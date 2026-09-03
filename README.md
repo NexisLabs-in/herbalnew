@@ -8,9 +8,16 @@ English from `/en`, Arabic from `/ar` — nothing invented, shortened or reworde
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000  ->  redirects to /en
-npm run build && npm start
+npm run dev              # http://localhost:3000  ->  redirects to /en
+./scripts/serve.sh 3111  # clean production rebuild + one server
 ```
+
+Use `scripts/serve.sh` rather than `next build && next start` by hand. Next
+serves prerendered HTML that references *hashed* asset filenames, so a stale
+`next start` surviving a rebuild will keep serving HTML pointing at CSS that no
+longer exists — every page then renders unstyled and it looks convincingly like
+a CSS bug. The script refuses to start on an occupied port and verifies the
+stylesheet actually resolves before reporting success.
 
 ---
 
@@ -61,6 +68,42 @@ To change copy, edit `src/content/*`; nothing in the components holds text.
 unconfirmed upstream. Populate them and the storefront switches from the
 "not yet on sale / enquire" state to a real price automatically —
 `formatAed()` and the buy panel are already wired for it.
+
+## Demo catalogue
+
+The client has **two** real formulas. `src/content/products.ts` also carries six
+placeholders (`Scalp Balance`, `Beard Care`, `Skin Clarity`, `Daily Balance`,
+`Digestive Ease`, `Evening Calm`) plus three extra shelves, so the cabinet can be
+demoed full instead of nearly empty.
+
+They are marked `demo: true` and gated behind one flag:
+
+```bash
+NEXT_PUBLIC_SHOW_DEMO_PRODUCTS=false   # ships only the two real formulas
+```
+
+**Every product-specific instruction on them is deliberately left unset.**
+`directions` is `null`, and price, net quantity and batch are pending — exactly
+the state the two real formulas are in. Inventing a dosage for a herbal product
+means inventing medical instruction, so the pages render the brand's existing
+"Awaiting confirmation" state instead. Delete the `DEMO_PRODUCTS` block and the
+three commented shelves to remove them permanently.
+
+The Arabic on the demo products is a working translation and has **not** been
+reviewed by a native speaker. Fine for a demo; not for launch.
+
+## Regenerating packshots
+
+Each formula needs its own label, so `scripts/packshots.py` stamps the product
+name, shelf and form onto the two master artworks:
+
+```bash
+python3 scripts/packshots.py     # -> public/img/pack-<slug>.svg
+```
+
+Add or rename a product in the `PRODUCTS` list at the top of that script and
+re-run it. The script wraps long names onto two lines and shrinks the type to
+keep it inside the label.
 
 ## Design tokens
 

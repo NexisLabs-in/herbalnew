@@ -22,6 +22,7 @@ export function Gallery({ views, label }: { views: GalleryView[]; label: string 
           priority
         />
       </div>
+      {views.length > 1 ? (
       <div className="pdp__thumbs" role="tablist" aria-label={label}>
         {views.map((view, i) => (
           <button
@@ -37,6 +38,7 @@ export function Gallery({ views, label }: { views: GalleryView[]; label: string 
           </button>
         ))}
       </div>
+      ) : null}
     </div>
   );
 }

@@ -49,8 +49,12 @@ export default async function ProductPage({
         }]
       : []),
     { src: `/img/${product.media.pack}`, alt: `${name} — ${form.toLowerCase()}` },
-    { src: `/img/${product.media.carton}`, alt: `${name} — ${t(UI.form, locale)}` },
-    { src: `/img/${product.media.plate}`, alt: shelf ? t(shelf.name, locale) : name },
+    ...(product.media.carton
+      ? [{ src: `/img/${product.media.carton}`, alt: `${name} — ${t(UI.form, locale)}` }]
+      : []),
+    ...(product.media.plate
+      ? [{ src: `/img/${product.media.plate}`, alt: shelf ? t(shelf.name, locale) : name }]
+      : []),
   ];
 
   return (
@@ -138,36 +142,49 @@ export default async function ProductPage({
 
               <section>
                 <p className="eyebrow">02 — {t(UI.directions, locale)}</p>
-                <ol style={{ marginTop: "1rem" }}>
-                  {product.directions.steps.map((step, i) => (
-                    <li className="dose" key={i}>
-                      <span className="dose__n">{String(i + 1).padStart(2, "0")}</span>
-                      <div className="dose__d">
-                        {t(step.detail, locale)}
-                        {step.measure ? <p className="dose__m">{step.measure}</p> : null}
+                {product.directions ? (
+                  <>
+                    <ol style={{ marginTop: "1rem" }}>
+                      {product.directions.steps.map((step, i) => (
+                        <li className="dose" key={i}>
+                          <span className="dose__n">{String(i + 1).padStart(2, "0")}</span>
+                          <div className="dose__d">
+                            {t(step.detail, locale)}
+                            {step.measure ? <p className="dose__m">{step.measure}</p> : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                    <dl className="spec-grid" style={{ marginTop: "1.25rem" }}>
+                      <div className="spec">
+                        <dt>{t(UI.frequency, locale)}</dt>
+                        <dd style={{ fontSize: ".875rem" }}>{t(product.directions.frequency, locale)}</dd>
                       </div>
-                    </li>
-                  ))}
-                </ol>
-                <dl className="spec-grid" style={{ marginTop: "1.25rem" }}>
-                  <div className="spec">
-                    <dt>{t(UI.frequency, locale)}</dt>
-                    <dd style={{ fontSize: ".875rem" }}>{t(product.directions.frequency, locale)}</dd>
-                  </div>
-                  <div className="spec">
-                    {product.directions.maximum ? (
-                      <>
-                        <dt>{t(UI.maximum, locale)}</dt>
-                        <dd style={{ fontSize: ".875rem" }}>{t(product.directions.maximum, locale)}</dd>
-                      </>
-                    ) : (
-                      <>
-                        <dt>{t(UI.storage, locale)}</dt>
-                        <dd style={{ fontSize: ".8125rem" }}>{t(product.storage, locale)}</dd>
-                      </>
-                    )}
-                  </div>
-                </dl>
+                      <div className="spec">
+                        {product.directions.maximum ? (
+                          <>
+                            <dt>{t(UI.maximum, locale)}</dt>
+                            <dd style={{ fontSize: ".875rem" }}>{t(product.directions.maximum, locale)}</dd>
+                          </>
+                        ) : (
+                          <>
+                            <dt>{t(UI.storage, locale)}</dt>
+                            <dd style={{ fontSize: ".8125rem" }}>{t(product.storage, locale)}</dd>
+                          </>
+                        )}
+                      </div>
+                    </dl>
+                  </>
+                ) : (
+                  <>
+                    <p className="display d4" style={{ marginTop: ".9rem" }}>
+                      {t(UI.pending, locale)}
+                    </p>
+                    <p className="body" style={{ marginTop: ".7rem" }}>
+                      {t(UI.compoundsPending, locale)}
+                    </p>
+                  </>
+                )}
               </section>
 
               <section>
