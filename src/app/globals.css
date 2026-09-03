@@ -591,3 +591,36 @@ body::before{
 .pdp__stage--photo{background:var(--color-paper-200)}
 .pdp__stage--photo::after{display:none}
 .pdp__img--photo{width:100%;height:100%;max-width:none;object-fit:cover}
+
+/* ── Light hero ────────────────────────────────────────────────────────────
+   Opens on paper instead of a dark ground. The violet stays an accent: it
+   appears in the eyebrow, the sub-headline and the CTA, and as two very low
+   blooms that read as light rather than as colour. Set HERO_VARIANT in
+   src/lib/theme.ts to switch. */
+.hero--light{
+  color:var(--color-ink-2);
+  background:
+    radial-gradient(78% 60% at 86% 2%,rgba(81,43,199,.11),transparent 66%),
+    radial-gradient(58% 52% at 0% 98%,rgba(58,107,44,.09),transparent 70%),
+    linear-gradient(172deg,#FFFFFF 0%,var(--color-paper-100) 58%,var(--color-paper-200) 100%);
+  border-bottom:1px solid var(--color-line);
+}
+.hero--light h1{color:var(--color-ink)}
+.hero--light .hero__sub{color:var(--color-violet-600)}
+.hero--light .hero__body{color:var(--color-ink-3)}
+.hero--light .hero__meta{border-top-color:var(--color-line)}
+.hero--light .hero__meta dt{color:var(--color-muted)}
+.hero--light .hero__meta dd{color:var(--color-ink)}
+.hero--light .hero__ring{border-color:var(--color-violet-200)}
+.hero--light .hero__ring::before{box-shadow:0 0 12px var(--color-violet-400)}
+/* presentation attributes on the inline SVG lose to these */
+.hero--light .hero__botanical{opacity:.75}
+.hero--light .hero__botanical g{stroke:var(--color-violet-400);stroke-opacity:.15}
+/* the wide concentric circles read as stray scratches on a pale ground */
+.hero--light .hero__botanical circle{stroke-opacity:0}
+.hero--light .hero__glow{background:radial-gradient(circle,rgba(123,95,224,.13),transparent 72%)}
+.hero--light .hero__plinth{background:radial-gradient(ellipse at 50% 50%,rgba(81,43,199,.15),transparent 72%)}
+.hero--light .hero__packshot{filter:drop-shadow(0 34px 44px rgba(18,8,51,.22))}
+/* the secondary CTA needs light-surface treatment */
+.hero--light .btn--on-dark{--btn-bg:transparent;--btn-fg:var(--color-ink);--btn-bd:var(--color-line-strong)}
+.hero--light .btn--on-dark:hover{--btn-bg:rgba(81,43,199,.05);--btn-bd:var(--color-violet-600)}

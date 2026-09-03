@@ -133,6 +133,25 @@ at 16px and collapse into a blob no matter how much they are thickened; the H
 stays legible at every size. The fern is kept for the touch icon, where 180px+
 resolves it properly.
 
+## Hero treatment
+
+`src/lib/theme.ts` picks between two heroes with one line:
+
+```ts
+export const HERO_VARIANT: HeroVariant = "light";   // or "dark"
+```
+
+The header lockup and the secondary CTA follow automatically — `light` uses the
+full-colour logo and a bordered button, `dark` swaps in the two-tone light
+lockup and an outlined-on-dark button.
+
+**`light` is the default.** The wordmark is drawn for a light ground, so on
+`dark` it has to be substituted with a mono version that discards the violet
+entirely. Light also keeps the storefront closer to the brightness and
+product-forward clarity of the client's reference. The trust strip and footer
+stay near-black either way, so the page keeps its rhythm rather than going
+uniformly pale.
+
 ## Design tokens
 
 `src/app/globals.css` declares the palette in Tailwind v4's `@theme`, so every

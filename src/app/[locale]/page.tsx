@@ -12,6 +12,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { TraditionsRibbon } from "@/components/TraditionsRibbon";
 import { localePath, isLocale, t, type Locale } from "@/lib/i18n";
+import { HERO_VARIANT } from "@/lib/theme";
 import { notFound } from "next/navigation";
 
 const PROMISE_ICONS: IconName[] = ["research", "balance", "shield", "doc"];
@@ -23,7 +24,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <section className="hero">
+      <section className={`hero hero--${HERO_VARIANT}`}>
         <div className="hero__glow" aria-hidden="true" />
         <svg className="hero__botanical" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <g fill="none" stroke="#B3A4EE" strokeOpacity=".16" strokeWidth="1.1" strokeLinecap="round">

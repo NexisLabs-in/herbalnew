@@ -7,11 +7,12 @@ import { useEffect, useState } from "react";
 import { BRAND, NAV, UI } from "@/content/brand";
 import { LOCALE_SHORT, localePath, otherLocale, swapLocaleInPath, t, type Locale } from "@/lib/i18n";
 import { Icon } from "./Icon";
+import { HERO_VARIANT } from "@/lib/theme";
 
 export function Header({ locale }: { locale: Locale }) {
   const pathname = usePathname();
-  // Only the home route has a dark hero for the header to sit on.
-  const dark = pathname === localePath(locale);
+  // The header only inverts when it is actually sitting on a dark hero.
+  const dark = pathname === localePath(locale) && HERO_VARIANT === "dark";
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
 
