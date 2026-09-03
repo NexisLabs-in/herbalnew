@@ -37,11 +37,16 @@ export function Header({ locale }: { locale: Locale }) {
     >
       <div className="shell shell--wide header__inner">
         <Link className="brand" href={localePath(locale)} aria-label={`${BRAND.name} — home`}>
-          <Image className="brand__mark" src="/img/mark.svg" alt="" width={34} height={34} priority />
-          <span>
-            <span className="brand__word">{BRAND.name}</span>
-            <span className="brand__tag">{t(BRAND.tagline, locale)}</span>
-          </span>
+          <Image
+            className="brand__logo"
+            /* the mono light lockup only reads on the dark hero header */
+            src={dark && !stuck ? "/brand/logo-light.png" : "/brand/logo.png"}
+            alt={BRAND.name}
+            width={850}
+            height={194}
+            priority
+          />
+          <span className="brand__tag">{t(BRAND.tagline, locale)}</span>
         </Link>
 
         <nav className={`nav${open ? " is-open" : ""}`} aria-label="Primary">

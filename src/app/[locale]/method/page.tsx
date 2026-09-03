@@ -56,7 +56,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
                   </li>
                 ))}
               </ul>
-              <hr className="rule rule--gold" style={{ marginBlock: "1.4rem" }} />
+              <hr className="rule rule--brand" style={{ marginBlock: "1.4rem" }} />
               <p className="body small">{t(TRADITIONS_NOTE, locale)}</p>
             </Reveal>
 
@@ -72,7 +72,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
         </div>
       </section>
 
-      <section className="section bg-ivory" style={{ borderBlock: "1px solid var(--color-line)" }}>
+      <section className="section bg-paper" style={{ borderBlock: "1px solid var(--color-line)" }}>
         <div className="shell shell--wide">
           <Reveal className="section-head">
             <div className="section-head__text">
@@ -116,7 +116,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
               <p className="eyebrow eyebrow--plain">{t(BRAND.tagline, locale)}</p>
               <p style={{ marginTop: ".9rem", maxWidth: "62ch" }}>{t(ADVISORY, locale)}</p>
             </div>
-            <Link className="btn btn--gold" href={localePath(locale, "/shop")}>
+            <Link className="btn btn--brand" href={localePath(locale, "/shop")}>
               {t(HERO.cta1, locale)} <span className="btn__arrow" aria-hidden="true">&rarr;</span>
             </Link>
           </Reveal>

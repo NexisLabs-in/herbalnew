@@ -54,7 +54,9 @@ export async function generateMetadata({
       template: `%s · ${BRAND.name}`,
     },
     description: t(HERO.desc, locale),
-    icons: { icon: "/img/mark.svg" },
+    // favicon.ico (the wordmark H) is picked up from src/app automatically;
+    // the fern only resolves at larger sizes, so it serves as the touch icon.
+    icons: { apple: "/brand/app-icon.png" },
   };
 }
 

@@ -26,7 +26,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="hero">
         <div className="hero__glow" aria-hidden="true" />
         <svg className="hero__botanical" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g fill="none" stroke="#DFC98F" strokeOpacity=".16" strokeWidth="1.1" strokeLinecap="round">
+          <g fill="none" stroke="#B3A4EE" strokeOpacity=".16" strokeWidth="1.1" strokeLinecap="round">
             <path d="M-40 700c160-30 250-120 270-260M-40 700c40-150 140-230 270-260" />
             <path d="M1480 90c-170 34-266 128-288 274M1480 90c-42 158-146 242-288 274" />
             <g transform="translate(1180 560)">
@@ -52,7 +52,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <p className="hero__body small">{t(HERO.body, locale)}</p>
 
             <div className="hero__cta">
-              <Link className="btn btn--gold" href={localePath(locale, "/shop")}>
+              <Link className="btn btn--brand" href={localePath(locale, "/shop")}>
                 {t(HERO.cta1, locale)} <span className="btn__arrow" aria-hidden="true">&rarr;</span>
               </Link>
               <Link className="btn btn--on-dark" href={localePath(locale, "/method")}>
@@ -144,7 +144,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="section bg-ivory" style={{ borderBlock: "1px solid var(--color-line)" }}>
+      <section className="section bg-paper" style={{ borderBlock: "1px solid var(--color-line)" }}>
         <div className="shell shell--wide">
           <div
             className="grid"

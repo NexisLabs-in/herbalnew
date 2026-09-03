@@ -77,7 +77,7 @@ export default async function ProductPage({
 
             <div className="stack" style={{ ["--stack" as string]: "clamp(1.75rem,3vw,2.5rem)" }}>
               <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
-                <span className="chip chip--gold">{form}</span>
+                <span className="chip chip--brand">{form}</span>
                 <span className="chip chip--dot">{t(UI.inPreparation, locale)}</span>
                 {shelf ? <span className="chip">{t(shelf.name, locale)}</span> : null}
               </div>

@@ -53,7 +53,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
           <div className="grid g3">
             {rows.map((row, i) => (
               <Reveal className="card card--lift card__pad" key={`${row.label}-${i}`} delay={i * 50}>
-                <span style={{ color: "var(--color-gold-600)", display: "block" }}>
+                <span style={{ color: "var(--color-violet-600)", display: "block" }}>
                   <Icon name={row.icon} size={24} />
                 </span>
                 <p className="data-label" style={{ marginTop: "1rem" }}>{row.label}</p>
@@ -86,7 +86,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             <div>
               <Advisory locale={locale} />
               <div style={{ marginTop: "1.25rem" }}>
-                <a className="btn btn--gold" href={`mailto:${CONTACT.email}`}>
+                <a className="btn btn--brand" href={`mailto:${CONTACT.email}`}>
                   {t(CONTACT.labels.email, locale)} — {t(CONTACT.company, locale)}{" "}
                   <span className="btn__arrow" aria-hidden="true">&rarr;</span>
                 </a>

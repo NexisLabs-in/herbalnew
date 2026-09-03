@@ -22,26 +22,26 @@ export default function NotFound() {
             minHeight: "100svh", display: "grid", placeItems: "center",
             textAlign: "center", padding: "var(--gutter)",
             background:
-              "radial-gradient(120% 90% at 50% 0%, rgba(79,115,85,.32), transparent 60%)," +
-              "linear-gradient(165deg, var(--color-forest-800), var(--color-forest-900))",
-            color: "var(--color-ivory-100)",
+              "radial-gradient(120% 90% at 50% 0%, rgba(90,60,200,.32), transparent 60%)," +
+              "linear-gradient(165deg, var(--color-violet-900), var(--color-violet-950))",
+            color: "var(--color-paper-100)",
           }}
         >
           <div>
             <p className="eyebrow eyebrow--center">{t(BRAND.tagline, defaultLocale)}</p>
             <p
               className="display"
-              style={{ fontSize: "clamp(4rem,14vw,8rem)", color: "var(--color-gold-300)", marginTop: "1rem" }}
+              style={{ fontSize: "clamp(4rem,14vw,8rem)", color: "var(--color-violet-300)", marginTop: "1rem" }}
             >
               404
             </p>
-            <h1 className="display d3" style={{ color: "var(--color-ivory-50)", marginTop: ".5rem" }}>
+            <h1 className="display d3" style={{ color: "var(--color-paper-50)", marginTop: ".5rem" }}>
               Page not found
             </h1>
-            <p style={{ color: "rgba(241,234,219,.72)", marginTop: "1rem" }}>
+            <p style={{ color: "rgba(240,237,251,.72)", marginTop: "1rem" }}>
               {t(BRAND.supporting, defaultLocale)}
             </p>
-            <Link className="btn btn--gold" style={{ marginTop: "2rem" }} href={localePath(defaultLocale)}>
+            <Link className="btn btn--brand" style={{ marginTop: "2rem" }} href={localePath(defaultLocale)}>
               {BRAND.name} <span className="btn__arrow" aria-hidden="true">&rarr;</span>
             </Link>
           </div>

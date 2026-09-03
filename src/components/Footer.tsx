@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BRAND, DISCLAIMER, DISCLAIMER_TITLE, LEGAL_NAV, NAV } from "@/content/brand";
 import { CONTACT } from "@/content/pages";
 import { localePath, t, type Locale } from "@/lib/i18n";
@@ -22,14 +23,20 @@ export function Footer({ locale }: { locale: Locale }) {
       <Disclaimer locale={locale} />
       <footer className="footer">
         <div className="shell shell--wide">
-          <p className="footer__word">{BRAND.name}</p>
+          <Image
+            className="footer__logo"
+            src="/brand/logo-light.png"
+            alt={BRAND.name}
+            width={850}
+            height={194}
+          />
 
           <div className="footer__grid">
             <div>
               <p className="footer__h">{t(BRAND.slogan, locale)}</p>
               <p
                 className="footer__meta"
-                style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-gold-300)" }}
+                style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-violet-300)" }}
               >
                 {t(BRAND.tagline, locale)}
               </p>

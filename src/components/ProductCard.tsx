@@ -28,7 +28,7 @@ export function ProductCard({
       <Link href={href} aria-label={name}>
         <div className={`product-card__media${photo ? " product-card__media--photo" : ""}`}>
           <div className="product-card__badges">
-            <span className="chip chip--gold">{t(product.formLabel, locale)}</span>
+            <span className="chip chip--brand">{t(product.formLabel, locale)}</span>
             <span className="chip chip--dot">{t(UI.inPreparation, locale)}</span>
           </div>
           <Image

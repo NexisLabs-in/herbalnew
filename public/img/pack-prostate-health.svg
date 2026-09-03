@@ -1,27 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 660" role="img" aria-label="Herbedia Prostate Health herbal blend in a matte deep-green stand-up pouch">
 <defs>
 <linearGradient id="pg" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="#031009"/><stop offset=".07" stop-color="#0A2A1E"/>
-  <stop offset=".26" stop-color="#1A4B37"/><stop offset=".42" stop-color="#25654A"/>
-  <stop offset=".55" stop-color="#1C513C"/><stop offset=".78" stop-color="#0D3025"/>
-  <stop offset=".93" stop-color="#061A13"/><stop offset="1" stop-color="#020B07"/>
+  <stop offset="0" stop-color="#120833"/><stop offset=".07" stop-color="#1F0E55"/>
+  <stop offset=".26" stop-color="#34168A"/><stop offset=".42" stop-color="#4927B7"/>
+  <stop offset=".55" stop-color="#3A1B95"/><stop offset=".78" stop-color="#241062"/>
+  <stop offset=".93" stop-color="#170B42"/><stop offset="1" stop-color="#0A0320"/>
 </linearGradient>
 <linearGradient id="seal" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="#051710"/><stop offset=".28" stop-color="#14402F"/>
-  <stop offset=".5" stop-color="#1D5240"/><stop offset=".76" stop-color="#0F3226"/>
-  <stop offset="1" stop-color="#040F0A"/>
+  <stop offset="0" stop-color="#150A3C"/><stop offset=".28" stop-color="#2E1364"/>
+  <stop offset=".5" stop-color="#3A1B95"/><stop offset=".76" stop-color="#26105F"/>
+  <stop offset="1" stop-color="#0E0628"/>
 </linearGradient>
 <linearGradient id="foil" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="#7C6330"/><stop offset=".2" stop-color="#C9A961"/>
-  <stop offset=".44" stop-color="#F2E4BC"/><stop offset=".68" stop-color="#B4924F"/>
-  <stop offset="1" stop-color="#6E5426"/>
+  <stop offset="0" stop-color="#34168A"/><stop offset=".2" stop-color="#7B5FE0"/>
+  <stop offset=".44" stop-color="#DDD5F8"/><stop offset=".68" stop-color="#512BC7"/>
+  <stop offset="1" stop-color="#2E1364"/>
 </linearGradient>
 <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0">
   <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".14"/>
   <stop offset="1" stop-color="#fff" stop-opacity="0"/>
 </linearGradient>
 <radialGradient id="shdw2" cx=".5" cy=".5" r=".5">
-  <stop offset="0" stop-color="#08201A" stop-opacity=".4"/><stop offset="1" stop-color="#08201A" stop-opacity="0"/>
+  <stop offset="0" stop-color="#120833" stop-opacity=".4"/><stop offset="1" stop-color="#120833" stop-opacity="0"/>
 </radialGradient>
 <clipPath id="pouchClip">
   <path d="M112 118c0-4 3-7 7-7h222c4 0 7 3 7 7l14 388c1 30-32 48-132 48S97 536 98 506l14-388z"/>
@@ -32,11 +32,11 @@
 
 <!-- crimped top seal -->
 <path d="M118 62h224c5 0 9 4 9 9v40c0 5-4 9-9 9H118c-5 0-9-4-9-9V71c0-5 4-9 9-9z" fill="url(#seal)"/>
-<g stroke="#3B7A5E" stroke-width="1" opacity=".4">
+<g stroke="#749567" stroke-width="1" opacity=".4">
   <path d="M120 68v46M130 68v46M140 68v46M150 68v46M160 68v46M170 68v46M180 68v46M190 68v46M200 68v46M210 68v46M220 68v46M230 68v46M240 68v46M250 68v46M260 68v46M270 68v46M280 68v46M290 68v46M300 68v46M310 68v46M320 68v46M330 68v46M340 68v46"/>
 </g>
-<path d="M109 96l13 8-13 8z" fill="#02100B"/>
-<path d="M351 96l-13 8 13 8z" fill="#02100B"/>
+<path d="M109 96l13 8-13 8z" fill="#0A0320"/>
+<path d="M351 96l-13 8 13 8z" fill="#0A0320"/>
 
 <!-- pouch body -->
 <path d="M112 118c0-4 3-7 7-7h222c4 0 7 3 7 7l14 388c1 30-32 48-132 48S97 536 98 506l14-388z" fill="url(#pg)"/>
@@ -48,17 +48,17 @@
   <path d="M150 120c8 130 6 300-6 440" stroke="#fff" stroke-opacity=".07" stroke-width="8" fill="none"/>
   <path d="M318 130c-6 140-4 290 4 420" stroke="#000" stroke-opacity=".22" stroke-width="10" fill="none"/>
   <!-- bottom gusset fold -->
-  <ellipse cx="230" cy="512" rx="140" ry="34" fill="#02100B" opacity=".5"/>
-  <ellipse cx="230" cy="500" rx="132" ry="26" fill="none" stroke="#3B7A5E" stroke-opacity=".22" stroke-width="1.5"/>
+  <ellipse cx="230" cy="512" rx="140" ry="34" fill="#0A0320" opacity=".5"/>
+  <ellipse cx="230" cy="500" rx="132" ry="26" fill="none" stroke="#749567" stroke-opacity=".22" stroke-width="1.5"/>
 </g>
 <!-- zipper track -->
-<rect x="122" y="132" width="216" height="7" rx="3.5" fill="#0A2118"/>
-<rect x="122" y="133" width="216" height="2" rx="1" fill="#3B7A5E" opacity=".45"/>
+<rect x="122" y="132" width="216" height="7" rx="3.5" fill="#1B0C4A"/>
+<rect x="122" y="133" width="216" height="2" rx="1" fill="#749567" opacity=".45"/>
 
 <!-- label lockup -->
 <rect x="132" y="176" width="196" height="292" rx="4" fill="none" stroke="url(#foil)" stroke-width="1.2" opacity=".85"/>
 <g text-anchor="middle">
-  <text x="230" y="218" font-family="Newsreader,Georgia,serif" font-size="17" letter-spacing="4.8" fill="#EFE3C4">HERBEDIA</text>
+  <text x="230" y="218" font-family="Newsreader,Georgia,serif" font-size="17" letter-spacing="4.8" fill="#DDD5F8">HERBEDIA</text>
   <path d="M180 232h100" stroke="url(#foil)" stroke-width="1"/>
   <text x="230" y="251" font-family="'JetBrains Mono',monospace" font-size="6.6" letter-spacing="2.6" fill="#C9A961">MEN'S HEALTH</text>
   <text x="230" y="303" font-size="29" fill="#FDFBF6">Prostate</text><text x="230" y="338" font-size="29" fill="#FDFBF6">Health</text>
@@ -66,8 +66,8 @@
 </g>
 <g transform="translate(230 412)">
   <circle r="33" fill="none" stroke="url(#foil)" stroke-width="1" opacity=".75"/>
-  <circle r="27" fill="none" stroke="#C9A961" stroke-width=".6" opacity=".38"/>
-  <g stroke="#DFC98F" stroke-width="1.3" fill="none" stroke-linecap="round">
+  <circle r="27" fill="none" stroke="#7B5FE0" stroke-width=".6" opacity=".38"/>
+  <g stroke="#B3A4EE" stroke-width="1.3" fill="none" stroke-linecap="round">
     <path d="M0 17V-14"/>
     <path d="M0 7c-11 0-17-6-17-14 10 0 17 6 17 14zM0 7c11 0 17-6 17-14-10 0-17 6-17 14z"/>
     <path d="M0-5c-8 0-12-5-12-11 7 0 12 5 12 11zM0-5c8 0 12-5 12-11-7 0-12 5-12 11z"/>
@@ -75,6 +75,6 @@
 </g>
 <g text-anchor="middle">
   <path d="M180 450h100" stroke="url(#foil)" stroke-width=".8" opacity=".55"/>
-  <text x="230" y="464" font-family="'JetBrains Mono',monospace" font-size="6" letter-spacing="2.2" fill="#8FA79A">NATURE IS CURE</text>
+  <text x="230" y="464" font-family="'JetBrains Mono',monospace" font-size="6" letter-spacing="2.2" fill="#A6C199">NATURE IS CURE</text>
 </g>
 </svg>

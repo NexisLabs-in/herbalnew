@@ -63,7 +63,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
                 <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
               </p>
             </div>
-            <Link className="btn btn--gold" href={localePath(locale, "/method")}>
+            <Link className="btn btn--brand" href={localePath(locale, "/method")}>
               {t(HERO.cta2, locale)} <span className="btn__arrow" aria-hidden="true">&rarr;</span>
             </Link>
           </Reveal>

@@ -105,22 +105,59 @@ Add or rename a product in the `PRODUCTS` list at the top of that script and
 re-run it. The script wraps long names onto two lines and shrinks the type to
 keep it inside the label.
 
+## Brand assets
+
+Derived from the supplied `Media.jpeg` wordmark. Its two colours drive the whole
+palette:
+
+| | Hex | Role |
+|---|---|---|
+| Wordmark violet | `#512BC7` | brand primary — accents, rules, numerals, CTAs |
+| Fern green | `#29511F` | secondary — botanical marks, anything that must read as "plant" |
+
+`public/brand/` holds the derived lockups. The white JPEG ground is keyed out
+with an alpha mask built from the *minimum* channel, not luminance — the violet
+is bright in blue and dark in red/green, so a luminance key renders it
+half-transparent and washed out.
+
+| File | Use |
+|---|---|
+| `logo.png` | full colour, transparent — light surfaces |
+| `logo-light.png` | two-tone (near-white wordmark, light fern) — dark surfaces |
+| `mark.png` | the fern alone, square |
+| `app-icon.png` | 256px fern on violet — touch / PWA icon |
+| `src/app/favicon.ico` | 16/32/48/64 — the wordmark **H**, not the fern |
+
+The favicon uses the H deliberately. The fern's fronds are finer than one pixel
+at 16px and collapse into a blob no matter how much they are thickened; the H
+stays legible at every size. The fern is kept for the touch icon, where 180px+
+resolves it properly.
+
 ## Design tokens
 
 `src/app/globals.css` declares the palette in Tailwind v4's `@theme`, so every
 scale generates utilities as well as CSS variables:
 
 ```
-bg-forest-800   text-gold-500   border-line-strong   font-display   ease-brand
+bg-violet-900   text-violet-500   border-line-strong   font-display   ease-brand
 ```
 
-The existing app's `--color-ink`, `--color-line`, `--color-leaf`, `--color-clay`
-and all three typefaces (Newsreader / Schibsted Grotesk / JetBrains Mono) are
-kept unchanged. What's new is the deep bottle-green scale, the antique-brass
-accent, an ivory ground scale and a layered shadow set.
+- `--color-violet-950 … -100` — brand scale. The deep end carries the dark
+  grounds (hero, trust strip, footer); the mid tones carry accents and rules.
+- `--color-leaf-800 … -300` — the logo's fern, for botanical marks.
+- `--color-paper-50 … -300` — off-white ground with the faintest violet cast, so
+  the brand hue reads as deliberate instead of fighting a warm cream.
+- `--color-ink*`, `--color-line*` — neutrals pulled toward the brand hue rather
+  than left grey.
+- `--shadow-*` — tinted `rgba(18,8,51,…)`, not neutral black.
 
 Component classes live in `@layer components`, so any Tailwind utility still
 wins over them — mix freely.
+
+`scripts/retint-assets.py` maps the vector assets onto this palette. One thing
+it deliberately leaves alone: **the amber glass of the oil bottle.** Amber is
+what botanical oils actually ship in, and a violet bottle reads as a novelty.
+The pouch, cartons, foil rules and label wordmarks all move to violet.
 
 ## Arabic / RTL
 
