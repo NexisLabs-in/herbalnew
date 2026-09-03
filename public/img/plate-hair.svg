@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 660" role="img" aria-label="Botanical study, hair and scalp shelf">
+<defs>
+<linearGradient id="pp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FCFAF4"/><stop offset="1" stop-color="#EFE8D9"/></linearGradient>
+<linearGradient id="gf2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9A7B3A"/><stop offset=".45" stop-color="#DFC98F"/><stop offset="1" stop-color="#8B6E31"/></linearGradient>
+</defs>
+<rect x="40" y="60" width="380" height="540" rx="4" fill="url(#pp)" stroke="#E3DACA"/>
+<rect x="58" y="78" width="344" height="504" fill="none" stroke="url(#gf2)" stroke-width=".9" opacity=".8"/>
+<g stroke="#3E6349" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+
+  <path d="M230 470V150"/>
+  <g stroke-width="1.2">
+  <path d="M230 430c-42-6-62-30-64-64 40 4 62 28 64 64zM230 430c42-6 62-30 64-64-40 4-62 28-64 64z"/>
+  <path d="M230 370c-38-6-56-28-58-58 36 4 56 26 58 58zM230 370c38-6 56-28 58-58-36 4-56 26-58 58z"/>
+  <path d="M230 312c-33-6-49-25-51-51 32 4 49 24 51 51zM230 312c33-6 49-25 51-51-32 4-49 24-51 51z"/>
+  <path d="M230 256c-27-5-40-21-42-43 26 4 40 20 42 43zM230 256c27-5 40-21 42-43-26 4-40 20-42 43z"/>
+  <path d="M230 206c-19-4-28-16-29-31 18 3 28 14 29 31zM230 206c19-4 28-16 29-31-18 3-28 14-29 31z"/>
+  </g>
+  <circle cx="230" cy="148" r="6" fill="#B4924F" stroke="none"/>
+  <path d="M186 480h88" stroke-width="1"/>
+</g>
+<text x="230" y="548" text-anchor="middle" font-family="Newsreader,Georgia,serif" font-size="18" font-style="italic" fill="#2E4038">Rosmarinus · Urtica</text>
+<text x="230" y="570" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" letter-spacing="2.6" fill="#9A7B3A">HAIR &amp; SCALP SHELF</text>
+</svg>
