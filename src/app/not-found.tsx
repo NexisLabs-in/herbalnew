@@ -22,8 +22,8 @@ export default function NotFound() {
             minHeight: "100svh", display: "grid", placeItems: "center",
             textAlign: "center", padding: "var(--gutter)",
             background:
-              "radial-gradient(120% 90% at 50% 0%, rgba(90,60,200,.32), transparent 60%)," +
-              "linear-gradient(165deg, var(--color-violet-900), var(--color-violet-950))",
+              "radial-gradient(96% 74% at 50% 0%, rgba(81,43,199,.28), transparent 64%)," +
+              "linear-gradient(165deg, var(--color-shade-900), var(--color-shade-950))",
             color: "var(--color-paper-100)",
           }}
         >
