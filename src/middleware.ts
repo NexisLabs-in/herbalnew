@@ -64,5 +64,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|img|brand|favicon.ico|.*\\..*).*)"],
+  // `api` and `uploads` are excluded deliberately: without that, the locale
+  // rule below rewrites /api/uploads/presign to /en/api/uploads/presign and
+  // every API call becomes a redirect. Route handlers do their own auth.
+  matcher: ["/((?!api|_next|img|brand|uploads|favicon.ico|.*\\..*).*)"],
 };

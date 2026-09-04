@@ -1,8 +1,9 @@
 import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel } from "./base";
+import { REVIEW_STATUSES } from "./enums";
 
-export const REVIEW_STATUSES = ["pending", "approved", "rejected"] as const;
-export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
+export { REVIEW_STATUSES } from "./enums";
+export type { ReviewStatus } from "./enums";
 
 /** A product review (requirement C2).
  *

@@ -1,8 +1,9 @@
 import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel, filsField } from "./base";
+import { ENQUIRY_STATUSES } from "./enums";
 
-export const ENQUIRY_STATUSES = ["new", "quoted", "accepted", "expired", "closed"] as const;
-export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number];
+export { ENQUIRY_STATUSES } from "./enums";
+export type { EnquiryStatus } from "./enums";
 
 /** The request-price flow (requirement C1).
  *

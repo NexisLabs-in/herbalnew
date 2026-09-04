@@ -1,13 +1,9 @@
 import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel, filsField, tlSchema } from "./base";
+import { IMAGE_KINDS, PRICING_MODES, PRODUCT_FORMS, PRODUCT_STATUSES } from "./enums";
 
-export const PRODUCT_FORMS = ["oil", "powder"] as const;
-export const PRICING_MODES = ["fixed", "request"] as const;
-export const PRODUCT_STATUSES = ["draft", "published", "archived"] as const;
-export const IMAGE_KINDS = ["photo", "pack", "carton", "plate"] as const;
-
-export type PricingMode = (typeof PRICING_MODES)[number];
-export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+export { IMAGE_KINDS, PRICING_MODES, PRODUCT_FORMS, PRODUCT_STATUSES } from "./enums";
+export type { ImageKind, PricingMode, ProductForm, ProductStatus } from "./enums";
 
 const imageSchema = new Schema(
   {

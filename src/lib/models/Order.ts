@@ -1,28 +1,14 @@
 import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel, filsField, tlSchema } from "./base";
 import { addressSchema } from "./Customer";
+import { FULFILLMENT_STATUSES, PAYMENT_STATUSES } from "./enums";
 
-/** The fulfilment stages the admin moves an order through (requirement C3).
- *  A plain dropdown — no courier API. The order of this array is the order of
- *  the dropdown and of the customer's timeline. */
-export const FULFILLMENT_STATUSES = [
-  "new",
-  "packed",
-  "dispatched",
-  "out_for_delivery",
-  "delivered",
-  "cancelled",
-  "returned",
-] as const;
-
-export type FulfillmentStatus = (typeof FULFILLMENT_STATUSES)[number];
-
-/** Stages at which a customer may still ask to cancel (plan 8.5). Past dispatch
- *  the parcel is with a courier and cancelling is a return instead. */
-export const CANCELLABLE_STATUSES: FulfillmentStatus[] = ["new", "packed"];
-
-export const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"] as const;
-export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+export {
+  CANCELLABLE_STATUSES,
+  FULFILLMENT_STATUSES,
+  PAYMENT_STATUSES,
+} from "./enums";
+export type { FulfillmentStatus, PaymentStatus } from "./enums";
 
 /** A line as it was at the moment of purchase.
  *

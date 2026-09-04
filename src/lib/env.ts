@@ -26,7 +26,10 @@ const schema = z.object({
   RESEND_API_KEY: z.string().default(""),
   MAIL_FROM: z.string().default("Herbedia <orders@example.com>"),
 
-  STORAGE_DRIVER: z.enum(["stub", "s3"]).default("stub"),
+  // "local" writes into public/uploads so the catalogue can be built before a
+  // bucket exists. S3 is the production driver (plan §3) — local disk does not
+  // survive a container rebuild and is not shared between instances.
+  STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   S3_ENDPOINT: z.string().default(""),
   S3_REGION: z.string().default("auto"),
   S3_BUCKET: z.string().default(""),
@@ -73,7 +76,7 @@ export function warnAboutStubs(log: (msg: string) => void = console.warn): strin
   const stubbed: string[] = [];
   if (!live.stripe) stubbed.push("Stripe (no STRIPE_SECRET_KEY — checkout will refuse)");
   if (!live.mail) stubbed.push("email (MAIL_DRIVER=console — nothing is delivered)");
-  if (!live.storage) stubbed.push("storage (STORAGE_DRIVER=stub — uploads are not persisted)");
+  if (!live.storage) stubbed.push("storage (STORAGE_DRIVER=local — uploads live on this server's disk)");
   if (stubbed.length && isProd) {
     log(`[env] PRODUCTION IS RUNNING ON STUBS: ${stubbed.join("; ")}`);
   }

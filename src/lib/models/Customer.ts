@@ -1,19 +1,9 @@
 import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel } from "./base";
+import { EMIRATES } from "./enums";
 
-/** The seven emirates. Shipping is UAE-only (plan section 3), so this is a
- *  closed list rather than a free-text region field. */
-export const EMIRATES = [
-  "Abu Dhabi",
-  "Dubai",
-  "Sharjah",
-  "Ajman",
-  "Umm Al Quwain",
-  "Ras Al Khaimah",
-  "Fujairah",
-] as const;
-
-export type Emirate = (typeof EMIRATES)[number];
+export { EMIRATES } from "./enums";
+export type { Emirate } from "./enums";
 
 /** No postcode: the UAE does not use them, and an empty required field is a
  *  checkout drop-off for nothing. */

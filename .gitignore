@@ -11,6 +11,9 @@ next-env.d.ts
 # production
 /build
 
+# admin-uploaded images (local storage driver; S3 in production)
+/public/uploads
+
 # misc
 .DS_Store
 *.pem

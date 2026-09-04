@@ -1,30 +1,9 @@
 import { Schema, type InferSchemaType } from "mongoose";
 import { defineModel, tlSchema } from "./base";
+import { SECTION_TYPES } from "./enums";
 
-/** The section types the CMS can place on a page.
- *
- *  This is a **fixed registry**, not free-form blocks: each type maps 1:1 onto a
- *  component that already exists in `src/components`. Admins reorder sections
- *  and edit copy; they cannot invent layouts, so the design system stays intact
- *  and no page can be arranged into something broken.
- *
- *  There is deliberately no harvest-calendar section (requirement C9).
- */
-export const SECTION_TYPES = [
-  "hero",
-  "trustStrip",
-  "traditionsRibbon",
-  "featuredProducts",
-  "categoryGrid",
-  "methodTeaser",
-  "richText",
-  "accordion",
-  "imageText",
-  "advisory",
-  "ctaBanner",
-] as const;
-
-export type SectionType = (typeof SECTION_TYPES)[number];
+export { SECTION_TYPES } from "./enums";
+export type { SectionType } from "./enums";
 
 const sectionSchema = new Schema(
   {
