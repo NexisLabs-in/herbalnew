@@ -624,3 +624,71 @@ body::before{
 /* the secondary CTA needs light-surface treatment */
 .hero--light .btn--on-dark{--btn-bg:transparent;--btn-fg:var(--color-ink);--btn-bd:var(--color-line-strong)}
 .hero--light .btn--on-dark:hover{--btn-bg:rgba(81,43,199,.05);--btn-bd:var(--color-violet-600)}
+
+/* ---------- 15. Forms & auth --------------------------------------------- */
+/* Reopening the layer keeps these at the same cascade level as the rest of the
+   component classes, so any Tailwind utility still wins over them. */
+@layer components {
+
+.field{display:block}
+.field__label{
+  display:block;font-family:var(--font-mono);font-size:.688rem;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--color-muted);
+  margin-bottom:.5rem;
+}
+.field__input{
+  width:100%;padding:.85rem 1rem;border-radius:var(--radius-md);
+  border:1px solid var(--color-line-strong);background:#fff;color:var(--color-ink);
+  font:inherit;font-size:.9375rem;line-height:1.4;
+  transition:border-color .25s var(--ease-brand),box-shadow .25s var(--ease-brand);
+}
+.field__input::placeholder{color:var(--color-muted)}
+.field__input:focus-visible{
+  outline:none;border-color:var(--color-violet-600);
+  box-shadow:0 0 0 3px rgba(81,43,199,.14);
+}
+.field__input:disabled{background:var(--color-paper-100);color:var(--color-muted)}
+.field__input[aria-invalid="true"]{border-color:#B4332B}
+/* The one-time code: wide tracking so six digits read as six digits, and
+   tabular figures so they do not jump as the field fills. */
+.field__input--code{
+  font-family:var(--font-mono);font-size:1.5rem;letter-spacing:.5em;
+  text-align:center;padding-inline:.5rem;font-variant-numeric:tabular-nums;
+}
+.field__hint{margin-top:.5rem;font-size:.8125rem;line-height:1.5;color:var(--color-muted)}
+.field__error{margin-top:.5rem;font-size:.8125rem;line-height:1.5;color:#B4332B}
+.field__row{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+select.field__input{
+  appearance:none;padding-inline-end:2.5rem;cursor:pointer;
+  /* Chevron drawn inline so no image request is needed; flipped for RTL by
+     the logical background position below. */
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%236b6482' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;
+}
+[dir="rtl"] select.field__input{background-position:left 1rem center}
+
+.auth-card{
+  border-radius:var(--radius-lg);border:1px solid var(--color-line);
+  background:#fff;padding:clamp(1.5rem,3vw,2.25rem);box-shadow:var(--shadow-sm);
+}
+.auth-card__notice{
+  margin-bottom:1.25rem;padding:.85rem 1rem;border-radius:var(--radius-md);
+  background:var(--color-violet-100);border:1px solid var(--color-violet-300);
+  color:var(--color-violet-950);font-size:.875rem;line-height:1.55;
+}
+.auth-card__error{
+  margin-bottom:1.25rem;padding:.85rem 1rem;border-radius:var(--radius-md);
+  background:#FCF0EF;border:1px solid #E9C7C3;color:#8A2A22;
+  font-size:.875rem;line-height:1.55;
+}
+.auth-card__alts{display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center}
+
+.link-plain{
+  background:none;border:none;padding:0;cursor:pointer;font:inherit;
+  font-size:.8125rem;color:var(--color-violet-600);text-decoration:underline;
+  text-underline-offset:3px;
+}
+.link-plain:hover{color:var(--color-violet-950)}
+
+}
