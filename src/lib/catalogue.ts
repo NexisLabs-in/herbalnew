@@ -1,0 +1,329 @@
+import "server-only";
+import { connectDb } from "./db";
+import { Category } from "./models/Category";
+import { Product, type ProductDoc } from "./models/Product";
+import { Sale } from "./models/Sale";
+import type { ImageKind, PricingMode, ProductForm } from "./models/enums";
+import { bestSaleDiscounts, resolveUnitPrice, stockStateOf, type StockState, type UnitPrice } from "./pricing";
+import { getSettings } from "./settings";
+import type { TL } from "./i18n";
+
+/** Reading the catalogue for the storefront.
+ *
+ *  Everything here returns **plain view models**, not Mongoose documents. Two
+ *  reasons: documents cannot cross into a client component, and the price a
+ *  page shows should be resolved once on the server rather than by every
+ *  component that happens to render a number.
+ */
+
+export type ProductImageView = {
+  url: string;
+  alt: TL;
+  kind: ImageKind;
+  isPrimary: boolean;
+};
+
+export type ProductCardView = {
+  id: string;
+  slug: string;
+  name: TL;
+  summary: TL;
+  form: ProductForm;
+  formLabel: TL;
+  categoryId: string;
+  categoryName: TL | null;
+  pricingMode: PricingMode;
+  /** Null for request-price products (C1). */
+  price: UnitPrice | null;
+  stockState: StockState;
+  /** Only meaningful when `stockState` is "low" — drives "Only X left" (C12). */
+  stock: number;
+  image: ProductImageView | null;
+  targetGroup: TL;
+  shelfLifeMonths: number | null;
+  ratingAvg: number;
+  reviewCount: number;
+};
+
+export type ProductDetailView = ProductCardView & {
+  images: ProductImageView[];
+  composition: TL;
+  chemistryEffects: TL;
+  netQuantity: TL;
+  batch: TL;
+  storage: TL;
+  directions: {
+    steps: { detail: TL; measure: string }[];
+    frequency: TL;
+    maximum: TL;
+  } | null;
+  safety: { targetGroup: TL; cautions: TL[]; seekAdvice: TL[] };
+  seo: { title: TL; description: TL };
+};
+
+export type CategoryView = { id: string; slug: string; name: TL; note: TL; description: TL };
+
+const tl = (value: { en?: string; ar?: string } | null | undefined): TL => ({
+  en: value?.en ?? "",
+  ar: value?.ar ?? "",
+});
+
+const imageView = (image: ProductDoc["images"][number]): ProductImageView => ({
+  url: image.url,
+  alt: tl(image.alt),
+  kind: image.kind,
+  isPrimary: image.isPrimary,
+});
+
+/** The image a card should lead with: the one marked primary, else the first. */
+const primaryImage = (images: ProductDoc["images"]): ProductImageView | null => {
+  if (images.length === 0) return null;
+  return imageView(images.find((image) => image.isPrimary) ?? images[0]);
+};
+
+function toCard(
+  product: ProductDoc,
+  saleDiscounts: Map<string, number>,
+  categories: Map<string, CategoryView>,
+  lowStockThreshold: number,
+): ProductCardView {
+  const id = String(product._id);
+  return {
+    id,
+    slug: product.slug,
+    name: tl(product.name),
+    summary: tl(product.summary),
+    form: product.form,
+    formLabel: tl(product.formLabel),
+    categoryId: String(product.categoryId),
+    categoryName: categories.get(String(product.categoryId))?.name ?? null,
+    pricingMode: product.pricingMode,
+    price: resolveUnitPrice(
+      {
+        id,
+        pricingMode: product.pricingMode,
+        priceFils: product.priceFils,
+        permanentDiscount: product.permanentDiscount ?? null,
+      },
+      saleDiscounts.get(id) ?? 0,
+    ),
+    stockState: stockStateOf(product, lowStockThreshold),
+    stock: product.stock,
+    image: primaryImage(product.images),
+    targetGroup: tl(product.safety?.targetGroup),
+    shelfLifeMonths: product.shelfLifeMonths ?? null,
+    ratingAvg: product.ratingAvg,
+    reviewCount: product.reviewCount,
+  };
+}
+
+/** Live sale discounts, resolved once per request rather than per product. */
+async function liveSaleDiscounts(): Promise<Map<string, number>> {
+  const now = new Date();
+  // Filtered in the query as well as in the engine so a store with years of
+  // finished sales does not read them all to decide today's prices.
+  const sales = await Sale.find({ active: true, startAt: { $lte: now }, endAt: { $gte: now } }).lean();
+  return bestSaleDiscounts(
+    sales.map((sale) => ({
+      active: sale.active,
+      startAt: sale.startAt,
+      endAt: sale.endAt,
+      entries: sale.entries.map((entry: { productId: unknown; discountPercent: number }) => ({
+        productId: String(entry.productId),
+        discountPercent: entry.discountPercent,
+      })),
+    })),
+    now,
+  );
+}
+
+async function categoryMap(): Promise<Map<string, CategoryView>> {
+  const categories = await Category.find({ published: true }).sort({ order: 1 }).lean();
+  return new Map(
+    categories.map((category) => [
+      String(category._id),
+      {
+        id: String(category._id),
+        slug: category.slug,
+        name: tl(category.name),
+        note: tl(category.note),
+        description: tl(category.description),
+      },
+    ]),
+  );
+}
+
+export async function getCategories(): Promise<CategoryView[]> {
+  await connectDb();
+  return [...(await categoryMap()).values()];
+}
+
+export type ShopSort = "featured" | "newest" | "price-asc" | "price-desc" | "name";
+
+export type ShopQuery = {
+  category?: string;
+  form?: ProductForm | "all";
+  q?: string;
+  sort?: ShopSort;
+  page?: number;
+  perPage?: number;
+};
+
+export type ShopResult = {
+  products: ProductCardView[];
+  categories: CategoryView[];
+  total: number;
+  page: number;
+  pages: number;
+  perPage: number;
+};
+
+const SORTS: Record<ShopSort, Record<string, 1 | -1>> = {
+  // Featured first, then newest — the default a shopper sees.
+  featured: { featured: -1, featuredOrder: 1, createdAt: -1 },
+  newest: { createdAt: -1 },
+  // Request-price products have a null price. Mongo sorts null lowest, so they
+  // lead a cheap-first list; that is the honest place for "ask us" and matches
+  // the fact that they carry no number at all.
+  "price-asc": { priceFils: 1 },
+  "price-desc": { priceFils: -1 },
+  name: { "name.en": 1 },
+};
+
+export async function getShopProducts(query: ShopQuery = {}): Promise<ShopResult> {
+  await connectDb();
+  const settings = await getSettings();
+
+  const perPage = Math.min(Math.max(query.perPage ?? 12, 1), 48);
+  const page = Math.max(query.page ?? 1, 1);
+
+  const categories = await categoryMap();
+
+  // Only published products are ever visible. Drafts and archived products stay
+  // out of the storefront entirely, including direct URLs.
+  const filter: Record<string, unknown> = { status: "published" };
+
+  if (query.category && query.category !== "all") {
+    const match = [...categories.values()].find((category) => category.slug === query.category);
+    // An unknown category slug matches nothing rather than silently showing
+    // everything — a wrong URL should look wrong.
+    filter.categoryId = match ? match.id : null;
+  }
+
+  if (query.form && query.form !== "all") filter.form = query.form;
+
+  if (query.q) {
+    // A regex rather than the text index: the catalogue is small, and a regex
+    // matches partial words ("prost" finds "Prostate"), which a text index
+    // does not. Escaped so a customer typing "(" does not throw.
+    const safe = query.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [
+      { "name.en": { $regex: safe, $options: "i" } },
+      { "name.ar": { $regex: safe, $options: "i" } },
+      { "summary.en": { $regex: safe, $options: "i" } },
+      { "summary.ar": { $regex: safe, $options: "i" } },
+    ];
+  }
+
+  const [total, docs, saleDiscounts] = await Promise.all([
+    Product.countDocuments(filter),
+    Product.find(filter)
+      .sort(SORTS[query.sort ?? "featured"])
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .lean<ProductDoc[]>(),
+    liveSaleDiscounts(),
+  ]);
+
+  return {
+    products: docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold)),
+    categories: [...categories.values()],
+    total,
+    page,
+    pages: Math.max(1, Math.ceil(total / perPage)),
+    perPage,
+  };
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductDetailView | null> {
+  await connectDb();
+  const settings = await getSettings();
+
+  const product = await Product.findOne({ slug, status: "published" }).lean<ProductDoc | null>();
+  if (!product) return null;
+
+  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  const card = toCard(product, saleDiscounts, categories, settings.inventory.lowStockThreshold);
+
+  return {
+    ...card,
+    images: product.images.map(imageView),
+    composition: tl(product.composition),
+    chemistryEffects: tl(product.chemistryEffects),
+    netQuantity: tl(product.netQuantity),
+    batch: tl(product.batch),
+    storage: tl(product.storage),
+    directions: product.directions
+      ? {
+          steps: product.directions.steps.map((step) => ({
+            detail: tl(step.detail),
+            measure: step.measure ?? "",
+          })),
+          frequency: tl(product.directions.frequency),
+          maximum: tl(product.directions.maximum),
+        }
+      : null,
+    safety: {
+      targetGroup: tl(product.safety?.targetGroup),
+      cautions: (product.safety?.cautions ?? []).map(tl),
+      seekAdvice: (product.safety?.seekAdvice ?? []).map(tl),
+    },
+    seo: { title: tl(product.seo?.title), description: tl(product.seo?.description) },
+  };
+}
+
+/** Related products are computed from the category rather than hand-picked
+ *  (plan §3): the section is then always populated and costs the admin nothing.
+ *  Out-of-stock items are excluded — recommending something unbuyable wastes
+ *  the click. */
+export async function getRelatedProducts(
+  product: ProductCardView,
+  limit = 3,
+): Promise<ProductCardView[]> {
+  await connectDb();
+  const settings = await getSettings();
+
+  const docs = await Product.find({
+    status: "published",
+    categoryId: product.categoryId,
+    _id: { $ne: product.id },
+    $or: [{ trackInventory: false }, { stock: { $gt: 0 } }],
+  })
+    .sort({ featured: -1, createdAt: -1 })
+    .limit(limit)
+    .lean<ProductDoc[]>();
+
+  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  return docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold));
+}
+
+/** The homepage Featured products section (C10), chosen in the admin panel. */
+export async function getFeaturedProducts(limit = 6): Promise<ProductCardView[]> {
+  await connectDb();
+  const settings = await getSettings();
+
+  const docs = await Product.find({ status: "published", featured: true })
+    .sort({ featuredOrder: 1, createdAt: -1 })
+    .limit(limit)
+    .lean<ProductDoc[]>();
+
+  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  return docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold));
+}
+
+/** Slugs for `generateStaticParams` and the sitemap. */
+export async function getPublishedSlugs(): Promise<string[]> {
+  await connectDb();
+  const docs = await Product.find({ status: "published" }).select("slug").lean();
+  return docs.map((doc) => doc.slug);
+}

@@ -4,23 +4,31 @@ import {
   BRAND, NAV, PROMISE, TRADITIONS, TRADITIONS_HEADING, TRADITIONS_NOTE, UI,
 } from "@/content/brand";
 import { HERO, METHOD_HEADING, METHOD_SUB } from "@/content/pages";
-import { PRODUCTS, SHELVES } from "@/content/products";
+import { SHOP } from "@/content/shop";
 import { Advisory } from "@/components/Blocks";
 import { Icon, type IconName } from "@/components/Icon";
 import { MethodSteps } from "@/components/MethodSteps";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { TraditionsRibbon } from "@/components/TraditionsRibbon";
-import { localePath, isLocale, t, type Locale } from "@/lib/i18n";
+import { getCategories, getFeaturedProducts } from "@/lib/catalogue";
+import { localePath, isLocale, t, tl, type Locale } from "@/lib/i18n";
 import { HERO_VARIANT } from "@/lib/theme";
 import { notFound } from "next/navigation";
 
 const PROMISE_ICONS: IconName[] = ["research", "balance", "shield", "doc"];
 
+/** Featured products come from the database, so the homepage revalidates on the
+ *  same cadence as the shop and is invalidated by every product write. */
+export const revalidate = 300;
+
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw as Locale;
+
+  // Featured products are chosen in the admin panel (C10).
+  const [featured, categories] = await Promise.all([getFeaturedProducts(), getCategories()]);
 
   return (
     <>
@@ -64,11 +72,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <dl className="hero__meta">
               <div>
                 <dt>{t(UI.formulas, locale)}</dt>
-                <dd>{PRODUCTS.length}</dd>
+                <dd>{featured.length}</dd>
               </div>
               <div>
                 <dt>{t(UI.shelves, locale)}</dt>
-                <dd>{SHELVES.length}</dd>
+                <dd>{categories.length}</dd>
               </div>
               <div>
                 <dt>{t(TRADITIONS_HEADING, locale)}</dt>
@@ -80,14 +88,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="hero__stage">
             <span className="hero__ring" aria-hidden="true" />
             <span className="hero__plinth" aria-hidden="true" />
-            <Image
-              className="hero__packshot"
-              src={`/img/${PRODUCTS[0].media.pack}`}
-              alt={t(PRODUCTS[0].name, locale)}
-              width={400}
-              height={660}
-              priority
-            />
+            {featured[0]?.image ? (
+              <Image
+                className="hero__packshot"
+                src={featured[0].image.url}
+                alt={tl(featured[0].name, locale)}
+                width={400}
+                height={660}
+                priority
+                unoptimized={!featured[0].image.url.startsWith("/img/")}
+              />
+            ) : null}
           </div>
         </div>
       </section>
@@ -125,7 +136,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <Reveal className="section-head">
             <div className="section-head__text">
               <p className="eyebrow">{t(BRAND.tagline, locale)}</p>
-              <h2 className="display d2">{t(NAV[0].label, locale)}</h2>
+              <h2 className="display d2">{t(SHOP.featuredTitle, locale)}</h2>
               <p className="lead">{t(BRAND.supporting, locale)}</p>
             </div>
             <Link className="btn btn--ghost" href={localePath(locale, "/shop")}>
@@ -133,11 +144,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </Link>
           </Reveal>
 
-          <div className="product-grid">
-            {PRODUCTS.map((product, i) => (
-              <ProductCard key={product.id} product={product} locale={locale} delay={i * 90} />
-            ))}
-          </div>
+          {featured.length ? (
+            <div className="product-grid">
+              {featured.map((product, i) => (
+                <ProductCard key={product.id} product={product} locale={locale} delay={i * 90} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="body">{t(SHOP.emptyCabinet, locale)}</p>
+            </div>
+          )}
 
           <div style={{ marginTop: "clamp(2rem,4vw,3rem)" }}>
             <Advisory locale={locale} />

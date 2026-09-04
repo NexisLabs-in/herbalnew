@@ -1,62 +1,208 @@
-"use client";
+import Link from "next/link";
+import { SHOP } from "@/content/shop";
+import type { CategoryView, ShopSort } from "@/lib/catalogue";
+import { t, tl, type Locale } from "@/lib/i18n";
 
-import { useState, type ReactNode } from "react";
+/** The catalogue toolbar: search, shelf, form and sort.
+ *
+ *  Rewritten from a client-side filter to plain links and a GET form. Filtering
+ *  in the browser only works while the whole catalogue fits on one page, and it
+ *  leaves every filtered view sharing one URL — so a customer cannot send
+ *  somebody "the oils", and a search engine sees one page instead of several.
+ *  Server-side means every view has an address and the page works without JS.
+ */
 
-export type FilterOption = { value: string; label: string };
-
-export type FilterShelf = {
-  id: string;
-  header: ReactNode;
-  products: { key: string; form: string; node: ReactNode }[];
+export type ShopParams = {
+  category?: string;
+  form?: string;
+  q?: string;
+  sort?: string;
+  page?: string;
 };
 
-/**
- * Filters formulas client-side. The cards themselves are rendered on the server
- * and passed in — this component only decides what stays visible, and drops a
- * shelf entirely once nothing on it matches.
- */
+/** Builds a URL that keeps the current view and changes one thing.
+ *  Paging always resets: page 3 of "oils" is rarely page 3 of "everything". */
+export function shopHref(base: string, params: ShopParams, change: Partial<ShopParams>): string {
+  const next = { ...params, ...change };
+  if (!("page" in change)) delete next.page;
+
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(next)) {
+    if (value && value !== "all" && !(key === "page" && value === "1")) search.set(key, value);
+  }
+
+  const query = search.toString();
+  return query ? `${base}?${query}` : base;
+}
+
 export function ShopFilters({
-  options,
-  shelves,
+  base,
+  params,
+  categories,
+  locale,
+  total,
 }: {
-  options: FilterOption[];
-  shelves: FilterShelf[];
+  base: string;
+  params: ShopParams;
+  categories: CategoryView[];
+  locale: Locale;
+  total: number;
 }) {
-  const [active, setActive] = useState(options[0]?.value ?? "all");
-  const matches = (form: string) => active === "all" || form === active;
+  const activeCategory = params.category ?? "all";
+  const activeForm = params.form ?? "all";
+  const activeSort = (params.sort ?? "featured") as ShopSort;
+
+  const sorts: { value: ShopSort; label: string }[] = [
+    { value: "featured", label: t(SHOP.sortFeatured, locale) },
+    { value: "newest", label: t(SHOP.sortNewest, locale) },
+    { value: "price-asc", label: t(SHOP.sortPriceAsc, locale) },
+    { value: "price-desc", label: t(SHOP.sortPriceDesc, locale) },
+    { value: "name", label: t(SHOP.sortName, locale) },
+  ];
 
   return (
-    <>
-      <div className="filters">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            className={`filter${option.value === active ? " is-active" : ""}`}
-            type="button"
-            aria-pressed={option.value === active}
-            onClick={() => setActive(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+    <div className="shop-bar">
+      {/* A GET form, so a search is a real URL that can be shared and revisited.
+          The other filters ride along as hidden fields rather than being lost
+          the moment somebody searches within a shelf. */}
+      <form className="shop-bar__search" action={base} method="get" role="search">
+        {activeCategory !== "all" ? <input type="hidden" name="category" value={activeCategory} /> : null}
+        {activeForm !== "all" ? <input type="hidden" name="form" value={activeForm} /> : null}
+        {activeSort !== "featured" ? <input type="hidden" name="sort" value={activeSort} /> : null}
 
-      {shelves.map((shelf) => {
-        const visible = shelf.products.filter((p) => matches(p.form));
-        if (visible.length === 0) return null;
-        return (
-          <section key={shelf.id} className="shelf" style={{ marginTop: "clamp(2.5rem,5vw,4rem)" }}>
-            <div className="shelf__head">{shelf.header}</div>
-            <div className="product-grid">
-              {visible.map((p) => (
-                <div key={p.key} style={{ display: "contents" }}>
-                  {p.node}
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </>
+        <label className="visually-hidden" htmlFor="shop-q">
+          {t(SHOP.search, locale)}
+        </label>
+        <input
+          className="field__input"
+          id="shop-q"
+          type="search"
+          name="q"
+          defaultValue={params.q ?? ""}
+          placeholder={t(SHOP.searchPlaceholder, locale)}
+        />
+        <button className="btn btn--ghost btn--sm" type="submit">
+          {t(SHOP.search, locale)}
+        </button>
+        {params.q ? (
+          <Link className="link-plain" href={shopHref(base, params, { q: undefined })}>
+            {t(SHOP.clear, locale)}
+          </Link>
+        ) : null}
+      </form>
+
+      <div className="shop-bar__rows">
+        <div className="shop-bar__row">
+          <span className="shop-bar__label">{t(SHOP.filterByShelf, locale)}</span>
+          <div className="filters">
+            <Link
+              className={`filter${activeCategory === "all" ? " is-active" : ""}`}
+              href={shopHref(base, params, { category: undefined })}
+              aria-current={activeCategory === "all" ? "true" : undefined}
+            >
+              {t(SHOP.filterAll, locale)}
+            </Link>
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                className={`filter${activeCategory === category.slug ? " is-active" : ""}`}
+                href={shopHref(base, params, { category: category.slug })}
+                aria-current={activeCategory === category.slug ? "true" : undefined}
+              >
+                {tl(category.name, locale)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="shop-bar__row">
+          <span className="shop-bar__label">{t(SHOP.filterByForm, locale)}</span>
+          <div className="filters">
+            {[
+              { value: "all", label: t(SHOP.filterAll, locale) },
+              { value: "oil", label: locale === "ar" ? "زيت" : "Oil" },
+              { value: "powder", label: locale === "ar" ? "مسحوق" : "Powder" },
+            ].map((option) => (
+              <Link
+                key={option.value}
+                className={`filter${activeForm === option.value ? " is-active" : ""}`}
+                href={shopHref(base, params, {
+                  form: option.value === "all" ? undefined : option.value,
+                })}
+                aria-current={activeForm === option.value ? "true" : undefined}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="shop-bar__row shop-bar__row--end">
+          <span className="shop-bar__count">
+            {total === 1
+              ? t(SHOP.resultsOne, locale)
+              : `${total} ${t(SHOP.resultsMany, locale)}`}
+          </span>
+          <div className="filters">
+            {sorts.map((option) => (
+              <Link
+                key={option.value}
+                className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
+                href={shopHref(base, params, {
+                  sort: option.value === "featured" ? undefined : option.value,
+                })}
+                aria-current={activeSort === option.value ? "true" : undefined}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ShopPagination({
+  base,
+  params,
+  page,
+  pages,
+  locale,
+}: {
+  base: string;
+  params: ShopParams;
+  page: number;
+  pages: number;
+  locale: Locale;
+}) {
+  if (pages <= 1) return null;
+
+  return (
+    <nav className="pager" aria-label={t(SHOP.page, locale)}>
+      {page > 1 ? (
+        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page - 1) })}>
+          {t(SHOP.previous, locale)}
+        </Link>
+      ) : (
+        <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
+          {t(SHOP.previous, locale)}
+        </span>
+      )}
+
+      <span className="pager__count">
+        {t(SHOP.page, locale)} {page} {t(SHOP.of, locale)} {pages}
+      </span>
+
+      {page < pages ? (
+        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page + 1) })}>
+          {t(SHOP.next, locale)}
+        </Link>
+      ) : (
+        <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
+          {t(SHOP.next, locale)}
+        </span>
+      )}
+    </nav>
   );
 }

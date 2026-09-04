@@ -23,6 +23,8 @@ const priceEnquirySchema = new Schema(
     phone: { type: String, default: "", trim: true },
     message: { type: String, default: "" },
     locale: { type: String, enum: ["en", "ar"], default: "en" },
+    /** Kept for abuse tracing — enquiries are open to signed-out visitors. */
+    ip: { type: String, default: "" },
 
     status: { type: String, enum: ENQUIRY_STATUSES, default: "new", index: true },
 
