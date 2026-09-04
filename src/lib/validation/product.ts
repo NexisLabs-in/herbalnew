@@ -120,6 +120,10 @@ export const categorySchema = z.object({
   name: bilingual({ required: true, max: 120 }),
   note: bilingual({ max: 300 }),
   description: bilingual({ max: 2000 }),
+  /** Empty string means top level. A subcategory names its parent; the depth
+   *  limit and the "parent has no parent" rule are enforced in the action,
+   *  which is the only place that can see the other categories. */
+  parentId: z.union([objectIdField, z.literal("")]).default(""),
   image: z.string().default(""),
   order: z.coerce.number().int().min(0).max(999).default(0),
   published: z.boolean().default(true),

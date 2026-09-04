@@ -1,7 +1,5 @@
 import type { L } from "@/lib/i18n";
 
-export type Shelf = { id: string; name: L; note: L };
-
 export type Product = {
   id: string;
   slug: string;
@@ -9,7 +7,8 @@ export type Product = {
   summary: L;
   form: "oil" | "powder";
   formLabel: L;
-  shelf: string;
+  /** Which subcategory this seeds into is decided in `taxonomy.ts`, so the
+   *  client's own category document stays the single source for the shelves. */
   /** null until the client confirms pricing; the storefront renders the
    *  "not yet on sale" state while this is null. */
   priceAed: number | null;
@@ -37,25 +36,6 @@ export type Product = {
     photoAlt?: L;
   };
 };
-
-export const SHELVES: Shelf[] = [
-  {
-    id: "hair",
-    name: { en: "Hair & Scalp", ar: "الشعر وفروة الرأس" },
-    note: {
-      en: "Botanical oils prepared for daily topical use.",
-      ar: "زيوت نباتية محضرة للاستخدام الموضعي اليومي.",
-    },
-  },
-  {
-    id: "prostate",
-    name: { en: "Men's Health", ar: "صحة الرجل" },
-    note: {
-      en: "Herbal blends prepared fresh as an infusion.",
-      ar: "خلطات عشبية تُحضَّر طازجة كمنقوع.",
-    },
-  },
-];
 
 export const FORM_LABELS = {
   oil: { en: "Oil", ar: "زيت" } as L,
@@ -108,7 +88,6 @@ const REAL_PRODUCTS: Product[] = [
     },
     form: "oil",
     formLabel: FORM_LABELS.oil,
-    shelf: "hair",
     priceAed: null,
     netQuantity: null,
     batch: null,
@@ -152,7 +131,6 @@ const REAL_PRODUCTS: Product[] = [
     },
     form: "powder",
     formLabel: FORM_LABELS.powder,
-    shelf: "prostate",
     priceAed: null,
     netQuantity: null,
     batch: null,
@@ -212,7 +190,6 @@ const REAL_PRODUCTS: Product[] = [
 export const PRODUCTS: Product[] = REAL_PRODUCTS;
 
 export const getProduct = (slug: string) => PRODUCTS.find((p) => p.slug === slug);
-export const getShelf = (id: string) => SHELVES.find((s) => s.id === id);
 
 /** True once any formula has both a price and availability. Drives whether the
  *  basket is meaningful at all. */

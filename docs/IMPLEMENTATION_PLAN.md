@@ -127,7 +127,7 @@ Every question raised during planning, answered. Do not revisit these without as
 |---|---|
 | Product variants | **None.** One price, one SKU per product. Different sizes are separate products |
 | Bilingual products | Every text field has EN + AR inputs. **EN required, AR optional** — blank AR falls back to EN on `/ar` |
-| Categories | **Filter on `/shop` only.** No `/categories/[slug]` landing pages |
+| Categories | **Two levels**, from the client's own taxonomy (`docs/Products categories.docx`): four top-level groupings with seven subcategories. **Products sit on a subcategory only**; a parent means "everything beneath it". Still a filter on `/shop` — no `/categories/[slug]` landing pages |
 | Related products | **Automatic — other published, in-stock products from the same category.** No manual picking |
 | Out of stock | **Product stays visible and listed**, buy button disabled and labelled, plus a **"Notify me when back in stock"** email capture that fires when admin restocks |
 | Seed data | **Only the two real formulas** (`hair-growth`, `prostate-health`). Demo filler products and the three demo shelves are dropped |
@@ -233,9 +233,24 @@ slugs or generated numbers, never raw ObjectIds.
 ### Catalogue
 
 **`Category`** (indication categories / shelves)
-`slug`, `name{en,ar}`, `note{en,ar}`, `description{en,ar}`, `image`, `order`,
-`published`.
+`slug`, `name{en,ar}`, `note{en,ar}`, `description{en,ar}`, `parentId | null`,
+`image`, `order`, `published`.
+Two levels, enforced: a subcategory cannot itself become a parent. Products are
+assigned to subcategories only, so a parent selection expands to its children.
 No SEO fields and no landing page — categories exist as a `/shop` filter.
+
+The taxonomy is transcribed in `src/content/taxonomy.ts` and seeded from there:
+
+| Top level | Subcategories |
+|---|---|
+| Beauty & Personal Care | Hair Care & Growth · Skin Cleansing & Glow |
+| Wellness & Lifestyle | Detox & Cleansing · Weight Management |
+| Body Systems & Chronic Support | Digestive Health · Heart & Blood Pressure |
+| Reproductive & Hormonal Health | Fertility & Vitality |
+
+`prostate-health` sits in Fertility & Vitality at the client's direction — the
+supplied taxonomy has no shelf for prostate support specifically. Worth
+revisiting with them if a men's-health range grows.
 
 **`Product`**
 - Identity: `slug`, `sku`, `name{en,ar}`, `summary{en,ar}`, `categoryId`, `form`
@@ -625,5 +640,6 @@ Recorded so it is never re-litigated mid-build:
 | 2026-09-04 | **Phase 1 complete** — 18 Mongoose models with indexes, permission catalogue, settings accessor, seed script. Verified against MongoDB Atlas: Owner role, admin account, settings defaults, 2 categories, the 2 real formulas (bilingual content intact), 8 system CMS pages. Demo products and the 3 demo shelves removed from `src/content` |
 | 2026-09-04 | **Phase 2 complete** — customer OTP login (hashed codes, 3-way rate limiting, single use), admin password sign-in with emailed-OTP recovery, forced password change on seeded accounts, separately-signed session cookies, DB-backed permission guards, middleware protection for `/admin`, `/account` and `/checkout`, admin shell with permission-filtered nav, dashboard with live counts, bilingual auth emails. Verified: 20 logic checks plus route-protection and signed-session checks against a running server |
 | 2026-09-04 | **Phase 3 complete** — product CRUD with bilingual fields, both pricing modes (C1), permanent discount (C7), image upload, archive/restore; category CRUD with delete guarded by product count; inventory screen with relative stock adjustments; audit log on every mutation. Storage gained a **local driver** (`STORAGE_DRIVER=local`, writes to `public/uploads`) so the catalogue can be built before the client's bucket exists — S3 stays the production driver and the client-side upload code is identical for both. Vocabularies moved to `models/enums.ts` so client components do not pull Mongoose into the browser bundle. Fixed: the locale middleware was rewriting `/api/*` to `/en/api/*`. Verified: 28 validation, money and storage-key checks, plus admin screens and the full upload path (auth, type, size and traversal rejection) against a running server |
+| 2026-09-05 | **Categories became two-level.** The client supplied `docs/Products categories.docx` — four groupings, seven subcategories, both languages — which supersedes the scope PDF's flat "Indication Categories". Products sit on subcategories only; a parent expands to its children. Adds `parentId` with a depth guard, a tree editor and grouped product picker in admin, a two-level shop filter (parent chips reveal their shelves), and a reseed that retires the two placeholder shelves once nothing points at them |
 | 2026-09-05 | **Phase 4 complete** — storefront reads MongoDB. Shop with server-side search, shelf/form filters, five sorts and pagination (every view has its own URL, works without JS); product page rebuilt with the three buy states — price, request-price enquiry form (C1), and out-of-stock with a notify-me capture (plan 8.7); "Only X left" from the global threshold (C12); related products from the same category; homepage Featured section from the admin flag (C10). Pricing engine's product level built with **23 unit tests** — sale vs permanent discount, larger wins, never stacks (C7). The two real formulas are now **published as request-price**: their pricing is genuinely unconfirmed and an enquiry form is the honest state. Verified against the database with temporary fixtures covering discounted, low-stock, out-of-stock and on-sale products in both languages |
 | 2026-09-04 | C12 (low-stock: admin panel + admin email + public "only X left") added. All 9 open questions closed plus 11 further decisions: UAE-only shipping, no manual orders, manual Stripe refunds, cancellation-requests, no category pages, single global stock threshold, instant + daily low-stock alerts, notify-me on out-of-stock, node-cron (hosting settled as VPS/persistent Node), contact form + admin inbox, charts + CSV reports, no variants, pricing-engine-only tests, stub credentials, S3 retained, admin OTP password reset, automatic related products, abandoned-cart email, no newsletter/WhatsApp. Open-questions section removed; out-of-scope section added |

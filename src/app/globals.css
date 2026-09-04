@@ -781,3 +781,16 @@ select.field__input{
 }
 
 }
+
+/* The second filter row: subcategories of whichever parent is open. */
+@layer components {
+.shop-bar__row--sub{padding-inline-start:.25rem}
+.filter--sub{
+  font-size:.75rem;padding-block:.35rem;
+  border-style:dashed;
+}
+.filter--sub.is-active{border-style:solid}
+/* A parent whose shelves are showing stays marked even when a child is the
+   active filter, so the trail back up the level is never lost. */
+.filter.is-open:not(.is-active){border-color:var(--color-violet-400);color:var(--color-violet-700)}
+}

@@ -33,9 +33,9 @@ export default async function NewProductPage() {
         </div>
       </div>
 
-      {categories.length === 0 ? (
+      {categories.filter((category) => category.parentId !== null).length === 0 ? (
         <div className="admin-empty">
-          <p>Create a category first — every product belongs to one.</p>
+          <p>Create a subcategory first — every product belongs to one.</p>
           <p style={{ marginTop: ".75rem" }}>
             <Link className="link-plain" href="/admin/categories">
               Go to categories
@@ -46,10 +46,15 @@ export default async function NewProductPage() {
         <ProductForm
           productId={null}
           lowStockThreshold={settings.inventory.lowStockThreshold}
-          categories={categories.map((category) => ({
-            id: String(category._id),
-            name: category.name.en,
-          }))}
+        categories={categories
+          .filter((category) => category.parentId === null)
+          .map((parent) => ({
+            parent: parent.name.en,
+            children: categories
+              .filter((child) => String(child.parentId ?? "") === String(parent._id))
+              .map((child) => ({ id: String(child._id), name: child.name.en })),
+          }))
+          .filter((group) => group.children.length > 0)}
         />
       )}
     </AdminShell>

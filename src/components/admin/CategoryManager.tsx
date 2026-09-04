@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteCategory, saveCategory } from "@/server/actions/categories";
 import type { ActionState } from "@/lib/validation/shared";
-import { BilingualField, TextField, Toggle, emptyTL, type TL } from "./fields/Fields";
+import { BilingualField, SelectField, TextField, Toggle, emptyTL, type TL } from "./fields/Fields";
 
 /** Categories are few and shallow, so they are edited in place rather than on
  *  their own pages — the whole shelf list fits on one screen and reordering is
@@ -16,9 +16,12 @@ export type CategoryRow = {
   name: TL;
   note: TL;
   description: TL;
+  /** Null for a top-level category. Products only sit on subcategories. */
+  parentId: string | null;
   order: number;
   published: boolean;
   productCount: number;
+  childCount: number;
 };
 
 type Draft = {
@@ -26,15 +29,17 @@ type Draft = {
   name: TL;
   note: TL;
   description: TL;
+  parentId: string;
   order: string;
   published: boolean;
 };
 
-const blank = (): Draft => ({
+const blank = (parentId = ""): Draft => ({
   slug: "",
   name: emptyTL(),
   note: emptyTL(),
   description: emptyTL(),
+  parentId,
   order: "0",
   published: true,
 });
@@ -55,9 +60,9 @@ export function CategoryManager({
   const [state, setState] = useState<ActionState>({});
   const [pending, start] = useTransition();
 
-  const startNew = () => {
+  const startNew = (parentId = "") => {
     setEditing("new");
-    setDraft(blank());
+    setDraft(blank(parentId));
     setState({});
   };
 
@@ -69,6 +74,7 @@ export function CategoryManager({
       name: category.name,
       note: category.note,
       description: category.description,
+      parentId: category.parentId ?? "",
       order: String(category.order),
       published: category.published,
     });
@@ -95,6 +101,12 @@ export function CategoryManager({
     });
 
   const err = (path: string) => state.fieldErrors?.[path];
+
+  /** Parents in order, each followed by its own subcategories, so the table
+   *  reads as the tree it is. */
+  const ordered = categories
+    .filter((category) => category.parentId === null)
+    .flatMap((parent) => [parent, ...categories.filter((child) => child.parentId === parent.id)]);
 
   return (
     <>
@@ -128,6 +140,20 @@ export function CategoryManager({
                   slug: editing === "new" ? slugify(next.en) : current.slug,
                 }))
               }
+            />
+
+            <SelectField
+              label="Sits under"
+              value={draft.parentId}
+              error={err("parentId")}
+              hint="Products can only be added to a subcategory. A top-level category groups the shelves beneath it."
+              options={[
+                { value: "", label: "Top level — a grouping" },
+                ...categories
+                  .filter((category) => category.parentId === null && category.id !== editing)
+                  .map((category) => ({ value: category.id, label: category.name.en })),
+              ]}
+              onChange={(next) => setDraft((current) => ({ ...current, parentId: next }))}
             />
 
             <div className="admin-row">
@@ -182,7 +208,7 @@ export function CategoryManager({
         </div>
       ) : canWrite ? (
         <p style={{ marginBottom: "1.25rem" }}>
-          <button className="btn btn--brand btn--sm" type="button" onClick={startNew}>
+          <button className="btn btn--brand btn--sm" type="button" onClick={() => startNew()}>
             Add category
           </button>
         </p>
@@ -203,16 +229,29 @@ export function CategoryManager({
               </tr>
             </thead>
             <tbody>
-              {categories.map((category) => (
+              {ordered.map((category) => (
                 <tr key={category.id}>
                   <td>
-                    <span className="admin-table__title">{category.name.en}</span>
-                    <span className="admin-table__meta">
+                    <span
+                      className="admin-table__title"
+                      style={category.parentId ? { paddingInlineStart: "1.4rem", fontWeight: 400 } : undefined}
+                    >
+                      {category.parentId ? "\u2514 " : ""}
+                      {category.name.en}
+                    </span>
+                    <span className="admin-table__meta" style={category.parentId ? { paddingInlineStart: "1.4rem" } : undefined}>
                       {category.name.ar || "no Arabic"} · order {category.order}
+                      {category.parentId === null ? ` · ${category.childCount} subcategor${category.childCount === 1 ? "y" : "ies"}` : ""}
                     </span>
                   </td>
                   <td className="admin-table__mono">{category.slug}</td>
-                  <td>{category.productCount}</td>
+                  <td>
+                    {category.parentId === null ? (
+                      <span className="admin-table__meta">—</span>
+                    ) : (
+                      category.productCount
+                    )}
+                  </td>
                   <td>
                     {category.published ? (
                       <span className="admin-chip admin-chip--published">Visible</span>
@@ -226,14 +265,21 @@ export function CategoryManager({
                         <button className="link-plain" type="button" onClick={() => startEdit(category)}>
                           Edit
                         </button>
+                        {category.parentId === null ? (
+                          <button className="link-plain" type="button" onClick={() => startNew(category.id)}>
+                            Add subcategory
+                          </button>
+                        ) : null}
                         <button
                           className="link-plain"
                           type="button"
-                          disabled={pending || category.productCount > 0}
+                          disabled={pending || category.productCount > 0 || category.childCount > 0}
                           title={
-                            category.productCount > 0
-                              ? "Move its products to another category first"
-                              : undefined
+                            category.childCount > 0
+                              ? "Delete or move its subcategories first"
+                              : category.productCount > 0
+                                ? "Move its products to another category first"
+                                : undefined
                           }
                           onClick={() => remove(category.id)}
                         >

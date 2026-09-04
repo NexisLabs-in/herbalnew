@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SHOP } from "@/content/shop";
-import type { CategoryView, ShopSort } from "@/lib/catalogue";
+import type { CategoryTreeNode, CategoryView, ShopSort } from "@/lib/catalogue";
 import { t, tl, type Locale } from "@/lib/i18n";
 
 /** The catalogue toolbar: search, shelf, form and sort.
@@ -38,17 +38,26 @@ export function shopHref(base: string, params: ShopParams, change: Partial<ShopP
 export function ShopFilters({
   base,
   params,
-  categories,
+  tree,
   locale,
   total,
 }: {
   base: string;
   params: ShopParams;
-  categories: CategoryView[];
+  tree: CategoryTreeNode[];
   locale: Locale;
   total: number;
 }) {
   const activeCategory = params.category ?? "all";
+
+  /** Which parent's shelves to reveal. Selecting a subcategory keeps its parent
+   *  open, so a customer can move sideways between shelves without going back
+   *  up a level first. */
+  const openParent: CategoryTreeNode | undefined = tree.find(
+    (parent) =>
+      parent.slug === activeCategory ||
+      parent.children.some((child: CategoryView) => child.slug === activeCategory),
+  );
   const activeForm = params.form ?? "all";
   const activeSort = (params.sort ?? "featured") as ShopSort;
 
@@ -102,18 +111,45 @@ export function ShopFilters({
             >
               {t(SHOP.filterAll, locale)}
             </Link>
-            {categories.map((category) => (
+            {tree.map((parent) => (
               <Link
-                key={category.id}
-                className={`filter${activeCategory === category.slug ? " is-active" : ""}`}
-                href={shopHref(base, params, { category: category.slug })}
-                aria-current={activeCategory === category.slug ? "true" : undefined}
+                key={parent.id}
+                className={`filter${openParent?.id === parent.id ? " is-open" : ""}${
+                  activeCategory === parent.slug ? " is-active" : ""
+                }`}
+                href={shopHref(base, params, { category: parent.slug })}
+                aria-current={activeCategory === parent.slug ? "true" : undefined}
               >
-                {tl(category.name, locale)}
+                {tl(parent.name, locale)}
               </Link>
             ))}
           </div>
         </div>
+
+        {openParent && openParent.children.length ? (
+          <div className="shop-bar__row shop-bar__row--sub">
+            <span className="shop-bar__label" />
+            <div className="filters">
+              <Link
+                className={`filter filter--sub${activeCategory === openParent.slug ? " is-active" : ""}`}
+                href={shopHref(base, params, { category: openParent.slug })}
+                aria-current={activeCategory === openParent.slug ? "true" : undefined}
+              >
+                {t(SHOP.filterAll, locale)}
+              </Link>
+              {openParent.children.map((child: CategoryView) => (
+                <Link
+                  key={child.id}
+                  className={`filter filter--sub${activeCategory === child.slug ? " is-active" : ""}`}
+                  href={shopHref(base, params, { category: child.slug })}
+                  aria-current={activeCategory === child.slug ? "true" : undefined}
+                >
+                  {tl(child.name, locale)}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="shop-bar__row">
           <span className="shop-bar__label">{t(SHOP.filterByForm, locale)}</span>

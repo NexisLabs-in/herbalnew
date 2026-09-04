@@ -14,7 +14,8 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { connectDb, disconnectDb } from "@/lib/db";
 import { env } from "@/lib/env";
-import { PRODUCTS, SHELVES } from "@/content/products";
+import { PRODUCTS } from "@/content/products";
+import { TAXONOMY, PRODUCT_CATEGORY } from "@/content/taxonomy";
 import { OWNER_ROLE } from "@/lib/permissions";
 import { AdminRole, AdminUser, Category, ContentPage, Product, Settings } from "@/lib/models";
 import type { L } from "@/lib/i18n";
@@ -68,24 +69,73 @@ async function seedSettings() {
   log("settings: store defaults in place");
 }
 
+/** The client's own taxonomy, two levels deep (docs/Products categories.docx).
+ *  Both languages come from that document, so nothing here is translated by us. */
 async function seedCategories() {
-  for (const [index, shelf] of SHELVES.entries()) {
-    await Category.findOneAndUpdate(
-      { slug: shelf.id },
+  for (const [index, parent] of TAXONOMY.entries()) {
+    const saved = await Category.findOneAndUpdate(
+      { slug: parent.slug },
       {
-        $set: { name: tl(shelf.name), note: tl(shelf.note), order: index, published: true },
-        $setOnInsert: { slug: shelf.id },
+        $set: {
+          name: tl(parent.name),
+          parentId: null,
+          order: index,
+          published: true,
+        },
+        $setOnInsert: { slug: parent.slug },
       },
-      { upsert: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
     );
+
+    for (const [childIndex, child] of parent.children.entries()) {
+      await Category.findOneAndUpdate(
+        { slug: child.slug },
+        {
+          $set: {
+            name: tl(child.name),
+            description: tl(child.description),
+            parentId: saved!._id,
+            order: childIndex,
+            published: true,
+          },
+          $setOnInsert: { slug: child.slug },
+        },
+        { upsert: true, setDefaultsOnInsert: true },
+      );
+    }
   }
-  log(`categories: ${SHELVES.map((s) => s.id).join(", ")}`);
+
+  const parents = TAXONOMY.length;
+  const children = TAXONOMY.reduce((total, parent) => total + parent.children.length, 0);
+  log(`categories: ${parents} top level, ${children} subcategories`);
+
+}
+
+/** The two placeholder shelves this project started with are not part of the
+ *  client's taxonomy. Runs *after* products are repointed, or it would always
+ *  find them still in use. Never deletes one that still holds a product —
+ *  `categoryId` is required, so that would leave the product unsaveable. */
+async function removePlaceholderCategories() {
+  for (const slug of ["hair", "prostate"]) {
+    const stale = await Category.findOne({ slug });
+    if (!stale) continue;
+    const held = await Product.countDocuments({ categoryId: stale._id });
+    if (held === 0) {
+      await Category.deleteOne({ _id: stale._id });
+      log(`removed placeholder category "${slug}"`);
+    } else {
+      log(`kept placeholder category "${slug}" — ${held} product(s) still assigned`);
+    }
+  }
 }
 
 async function seedProducts() {
   for (const product of PRODUCTS) {
-    const category = await Category.findOne({ slug: product.shelf });
-    if (!category) throw new Error(`No category "${product.shelf}" for product "${product.slug}"`);
+    // Products sit on a subcategory, never on a top-level grouping.
+    const slug = PRODUCT_CATEGORY[product.slug];
+    if (!slug) throw new Error(`No category mapping for product "${product.slug}"`);
+    const category = await Category.findOne({ slug });
+    if (!category) throw new Error(`No category "${slug}" for product "${product.slug}"`);
 
     const images = [
       { key: `seed/${product.media.pack}`, url: `/img/${product.media.pack}`, kind: "pack" as const, isPrimary: true },
@@ -194,6 +244,7 @@ async function main() {
   await seedSettings();
   await seedCategories();
   await seedProducts();
+  await removePlaceholderCategories();
   await seedContentPages();
 
   // Declared on the schemas but only built in development; do it explicitly so

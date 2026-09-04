@@ -15,6 +15,16 @@ export default async function AdminCategoriesPage() {
   await connectDb();
   const categories = await Category.find().sort({ order: 1, "name.en": 1 }).lean();
 
+  // Subcategories per parent, so the table can show the tree and the delete
+  // guard can be reflected in the UI rather than only in the action.
+  const childCounts = new Map<string, number>();
+  for (const category of categories) {
+    if (category.parentId) {
+      const key = String(category.parentId);
+      childCounts.set(key, (childCounts.get(key) ?? 0) + 1);
+    }
+  }
+
   // One grouped count rather than a query per category.
   const counts = await Product.aggregate<{ _id: string; count: number }>([
     { $match: { status: { $ne: "archived" } } },
@@ -28,7 +38,8 @@ export default async function AdminCategoriesPage() {
         <div>
           <h1 className="admin-head__title">Categories</h1>
           <p className="admin-head__sub">
-            The indication categories customers filter the Herb Cabinet by.
+            Two levels: a top-level grouping, and the subcategories products are
+            actually assigned to.
           </p>
         </div>
       </div>
@@ -41,9 +52,11 @@ export default async function AdminCategoriesPage() {
           name: { en: category.name.en, ar: category.name.ar ?? "" },
           note: { en: category.note?.en ?? "", ar: category.note?.ar ?? "" },
           description: { en: category.description?.en ?? "", ar: category.description?.ar ?? "" },
+          parentId: category.parentId ? String(category.parentId) : null,
           order: category.order,
           published: category.published,
           productCount: countFor.get(String(category._id)) ?? 0,
+          childCount: childCounts.get(String(category._id)) ?? 0,
         }))}
       />
     </AdminShell>

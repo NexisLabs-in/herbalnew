@@ -102,7 +102,9 @@ export function ProductForm({
    *  cannot be called from a server component, so the empty form is built
    *  here rather than passed in. */
   initial?: ProductFormValue;
-  categories: { id: string; name: string }[];
+  /** Only subcategories are selectable — a product never sits on a top-level
+   *  grouping — so they arrive grouped by their parent. */
+  categories: { parent: string; children: { id: string; name: string }[] }[];
   lowStockThreshold: number;
 }) {
   const router = useRouter();
@@ -204,10 +206,12 @@ export function ProductForm({
             label="Category"
             value={value.categoryId}
             error={err("categoryId")}
-            options={[
-              { value: "", label: "Choose a category…" },
-              ...categories.map((category) => ({ value: category.id, label: category.name })),
-            ]}
+            hint="Products are assigned to a subcategory, not to the grouping above it."
+            options={[{ value: "", label: "Choose a category…" }]}
+            groups={categories.map((group) => ({
+              label: group.parent,
+              options: group.children.map((child) => ({ value: child.id, label: child.name })),
+            }))}
             onChange={(next) => set("categoryId", next)}
           />
           <SelectField

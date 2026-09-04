@@ -204,18 +204,27 @@ export function BilingualField({
   );
 }
 
+export type SelectOption<T extends string> = { value: T; label: string };
+
+/** A group of options under a heading. Used for the category picker, where the
+ *  headings are top-level categories and only the subcategories beneath them
+ *  are selectable — which is exactly what an optgroup does. */
+export type SelectGroup<T extends string> = { label: string; options: SelectOption<T>[] };
+
 export function SelectField<T extends string>({
   label,
   value,
   onChange,
   options,
+  groups,
   hint,
   error,
 }: {
   label: string;
   value: T;
   onChange: (value: T) => void;
-  options: { value: T; label: string }[];
+  options?: SelectOption<T>[];
+  groups?: SelectGroup<T>[];
   hint?: string;
   error?: string;
 }) {
@@ -228,10 +237,19 @@ export function SelectField<T extends string>({
         aria-invalid={error ? true : undefined}
         onChange={(event) => onChange(event.target.value as T)}
       >
-        {options.map((option) => (
+        {options?.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
+        ))}
+        {groups?.map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
       {error ? <span className="field__error">{error}</span> : hint ? <span className="field__hint">{hint}</span> : null}

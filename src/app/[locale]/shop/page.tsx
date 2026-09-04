@@ -6,7 +6,7 @@ import { SHOP } from "@/content/shop";
 import { Advisory, PageHead } from "@/components/Blocks";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopFilters, ShopPagination, shopHref, type ShopParams } from "@/components/ShopFilters";
-import { getShopProducts, type ShopSort } from "@/lib/catalogue";
+import { buildCategoryTree, getShopProducts, type ShopSort } from "@/lib/catalogue";
 import { isLocale, localePath, t, type Locale } from "@/lib/i18n";
 import type { ProductForm } from "@/lib/models/enums";
 
@@ -85,7 +85,7 @@ export default async function ShopPage({
             <div>
               <dt className="data-label">{t(UI.shelves, locale)}</dt>
               <dd className="display d4" style={{ margin: ".3rem 0 0" }}>
-                {result.categories.length}
+                {result.categories.filter((category) => category.parentId !== null).length}
               </dd>
             </div>
           </dl>
@@ -98,7 +98,7 @@ export default async function ShopPage({
             <ShopFilters
               base={base}
               params={query}
-              categories={result.categories}
+              tree={buildCategoryTree(result.categories)}
               locale={locale}
               total={result.total}
             />

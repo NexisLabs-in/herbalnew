@@ -117,10 +117,15 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         productId={id}
         initial={initial}
         lowStockThreshold={settings.inventory.lowStockThreshold}
-        categories={categories.map((category) => ({
-          id: String(category._id),
-          name: category.name.en,
-        }))}
+        categories={categories
+          .filter((category) => category.parentId === null)
+          .map((parent) => ({
+            parent: parent.name.en,
+            children: categories
+              .filter((child) => String(child.parentId ?? "") === String(parent._id))
+              .map((child) => ({ id: String(child._id), name: child.name.en })),
+          }))
+          .filter((group) => group.children.length > 0)}
       />
     </AdminShell>
   );

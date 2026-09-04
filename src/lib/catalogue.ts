@@ -61,7 +61,18 @@ export type ProductDetailView = ProductCardView & {
   seo: { title: TL; description: TL };
 };
 
-export type CategoryView = { id: string; slug: string; name: TL; note: TL; description: TL };
+export type CategoryView = {
+  id: string;
+  slug: string;
+  name: TL;
+  note: TL;
+  description: TL;
+  /** Null for a top-level category. Products only ever sit on subcategories. */
+  parentId: string | null;
+};
+
+/** A parent with its subcategories, for the two-level shop filter. */
+export type CategoryTreeNode = CategoryView & { children: CategoryView[] };
 
 const tl = (value: { en?: string; ar?: string } | null | undefined): TL => ({
   en: value?.en ?? "",
@@ -148,6 +159,7 @@ async function categoryMap(): Promise<Map<string, CategoryView>> {
         name: tl(category.name),
         note: tl(category.note),
         description: tl(category.description),
+        parentId: category.parentId ? String(category.parentId) : null,
       },
     ]),
   );
@@ -156,6 +168,33 @@ async function categoryMap(): Promise<Map<string, CategoryView>> {
 export async function getCategories(): Promise<CategoryView[]> {
   await connectDb();
   return [...(await categoryMap()).values()];
+}
+
+/** Parents with their subcategories nested, in admin order. A subcategory whose
+ *  parent is unpublished is dropped rather than promoted — hiding a shelf
+ *  should hide what is on it. */
+export function buildCategoryTree(categories: CategoryView[]): CategoryTreeNode[] {
+  const parents = categories.filter((category) => category.parentId === null);
+  return parents.map((parent) => ({
+    ...parent,
+    children: categories.filter((category) => category.parentId === parent.id),
+  }));
+}
+
+export async function getCategoryTree(): Promise<CategoryTreeNode[]> {
+  return buildCategoryTree(await getCategories());
+}
+
+/** Resolves a slug from the URL to the set of categories to match.
+ *
+ *  A parent means "everything beneath it": products sit on subcategories, so a
+ *  parent selection has to expand to its children or it would match nothing. */
+export function categoryIdsFor(slug: string, categories: CategoryView[]): string[] | null {
+  const match = categories.find((category) => category.slug === slug);
+  if (!match) return null;
+  if (match.parentId !== null) return [match.id];
+  const children = categories.filter((category) => category.parentId === match.id);
+  return children.length ? children.map((child) => child.id) : [match.id];
 }
 
 export type ShopSort = "featured" | "newest" | "price-asc" | "price-desc" | "name";
@@ -204,10 +243,11 @@ export async function getShopProducts(query: ShopQuery = {}): Promise<ShopResult
   const filter: Record<string, unknown> = { status: "published" };
 
   if (query.category && query.category !== "all") {
-    const match = [...categories.values()].find((category) => category.slug === query.category);
-    // An unknown category slug matches nothing rather than silently showing
+    // A parent expands to its subcategories, since products only ever sit on a
+    // subcategory. An unknown slug matches nothing rather than silently showing
     // everything — a wrong URL should look wrong.
-    filter.categoryId = match ? match.id : null;
+    const ids = categoryIdsFor(query.category, [...categories.values()]);
+    filter.categoryId = ids ? { $in: ids } : null;
   }
 
   if (query.form && query.form !== "all") filter.form = query.form;
