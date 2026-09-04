@@ -69,28 +69,16 @@ unconfirmed upstream. Populate them and the storefront switches from the
 "not yet on sale / enquire" state to a real price automatically —
 `formatAed()` and the buy panel are already wired for it.
 
-## Demo catalogue
+## Catalogue
 
-The client has **two** real formulas. `src/content/products.ts` also carries six
-placeholders (`Scalp Balance`, `Beard Care`, `Skin Clarity`, `Daily Balance`,
-`Digestive Ease`, `Evening Calm`) plus three extra shelves, so the cabinet can be
-demoed full instead of nearly empty.
+The client has **two** confirmed formulas, `hair-growth` and `prostate-health`.
+The demo placeholder products and the three extra shelves that once padded this
+list were removed when the real catalogue moved into MongoDB.
 
-They are marked `demo: true` and gated behind one flag:
-
-```bash
-NEXT_PUBLIC_SHOW_DEMO_PRODUCTS=false   # ships only the two real formulas
-```
-
-**Every product-specific instruction on them is deliberately left unset.**
-`directions` is `null`, and price, net quantity and batch are pending — exactly
-the state the two real formulas are in. Inventing a dosage for a herbal product
-means inventing medical instruction, so the pages render the brand's existing
-"Awaiting confirmation" state instead. Delete the `DEMO_PRODUCTS` block and the
-three commented shelves to remove them permanently.
-
-The Arabic on the demo products is a working translation and has **not** been
-reviewed by a native speaker. Fine for a demo; not for launch.
+`src/content/products.ts` is now the **seed source**, not the runtime catalogue:
+`npm run seed` copies these records into the database, after which products are
+managed from the admin panel. Both start as `request`-price and `draft`, because
+pricing is still unconfirmed upstream.
 
 ## Regenerating packshots
 
