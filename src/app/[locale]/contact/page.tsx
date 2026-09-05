@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BRAND, NAV } from "@/content/brand";
 import { CONTACT } from "@/content/pages";
 import { Advisory, PageHead } from "@/components/Blocks";
+import { ContactForm } from "@/components/storefront/ContactForm";
 import { Icon, type IconName } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { isLocale, localePath, t, type Locale } from "@/lib/i18n";
@@ -84,12 +85,13 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             </Reveal>
 
             <div>
-              <Advisory locale={locale} />
-              <div style={{ marginTop: "1.25rem" }}>
-                <a className="btn btn--brand" href={`mailto:${CONTACT.email}`}>
-                  {t(CONTACT.labels.email, locale)} — {t(CONTACT.company, locale)}{" "}
-                  <span className="btn__arrow" aria-hidden="true">&rarr;</span>
-                </a>
+              {/* A real form now, saved to the admin inbox rather than only
+                  emailed — nothing gets lost in a shared mailbox, and a second
+                  admin can see what has already been handled. */}
+              <ContactForm locale={locale} />
+
+              <div style={{ marginTop: "2rem" }}>
+                <Advisory locale={locale} />
               </div>
             </div>
           </div>

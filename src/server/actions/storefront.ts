@@ -7,6 +7,7 @@ import { connectDb } from "@/lib/db";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { PriceEnquiry } from "@/lib/models/PriceEnquiry";
 import { Product } from "@/lib/models/Product";
+import { ContactMessage } from "@/lib/models/ContactMessage";
 import { StockNotification } from "@/lib/models/StockNotification";
 import { sendMail } from "@/lib/mail";
 import { getSettings } from "@/lib/settings";
@@ -145,6 +146,63 @@ export async function requestBackInStock(
     if ((error as { code?: number }).code === 11000) return { ok: true, already: true };
     throw error;
   }
+
+  return { ok: true };
+}
+
+// --- Contact form (plan 8.9) -------------------------------------------------
+
+export type ContactState = { ok?: boolean; error?: string };
+
+const contactSchema = z.object({
+  name: z.string().trim().min(2, "short_name").max(120),
+  email,
+  phone: z.string().trim().max(40).default(""),
+  subject: z.string().trim().max(160).default(""),
+  message: z.string().trim().min(10, "short_message").max(5000),
+  locale: localeField,
+  /** Honeypot: a field a person never sees and a bot always fills. */
+  website: z.string().max(0).optional(),
+});
+
+export async function submitContactMessage(
+  _prev: ContactState,
+  formData: FormData,
+): Promise<ContactState> {
+  const parsed = contactSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    // The honeypot failing means a bot filled a hidden field. It is told the
+    // message was sent, because telling it otherwise teaches it to try again.
+    if (issue?.path[0] === "website") return { ok: true };
+    return { error: issue?.message ?? "check" };
+  }
+
+  await connectDb();
+
+  const ip = await clientIp();
+  const recent = await ContactMessage.countDocuments({
+    email: parsed.data.email,
+    createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
+  });
+  if (recent >= 5) return { error: "rate" };
+
+  await ContactMessage.create({
+    name: parsed.data.name,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+    subject: parsed.data.subject,
+    message: parsed.data.message,
+    locale: parsed.data.locale as Locale,
+    ip,
+  });
+
+  await alertAdmins(`Contact form — ${parsed.data.name}`, [
+    `${parsed.data.name} <${parsed.data.email}> wrote in.`,
+    parsed.data.phone ? `Phone: ${parsed.data.phone}` : "",
+    parsed.data.subject ? `Subject: ${parsed.data.subject}` : "",
+    parsed.data.message,
+  ].filter(Boolean));
 
   return { ok: true };
 }

@@ -1,4 +1,4 @@
-import { Schema, type InferSchemaType } from "mongoose";
+import { Schema, type InferSchemaType, type Types } from "mongoose";
 import { defineModel } from "./base";
 
 /** Contact form submissions (plan 8.9).
@@ -24,5 +24,7 @@ const contactMessageSchema = new Schema(
 
 contactMessageSchema.index({ status: 1, createdAt: -1 });
 
-export type ContactMessageDoc = InferSchemaType<typeof contactMessageSchema>;
+export type ContactMessageDoc = InferSchemaType<typeof contactMessageSchema> & {
+  _id: Types.ObjectId;
+};
 export const ContactMessage = defineModel("ContactMessage", contactMessageSchema);

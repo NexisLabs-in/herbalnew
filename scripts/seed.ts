@@ -16,6 +16,9 @@ import { connectDb, disconnectDb } from "@/lib/db";
 import { env } from "@/lib/env";
 import { PRODUCTS } from "@/content/products";
 import { TAXONOMY, PRODUCT_CATEGORY } from "@/content/taxonomy";
+import { BRAND, PROMISE, TRADITIONS, TRADITIONS_HEADING, TRADITIONS_NOTE } from "@/content/brand";
+import { FAQ, HERO, METHOD_HEADING, METHOD_SUB } from "@/content/pages";
+import { LEGAL } from "@/content/legal";
 import { OWNER_ROLE } from "@/lib/permissions";
 import { AdminRole, AdminUser, Category, ContentPage, Product, Settings } from "@/lib/models";
 import type { L } from "@/lib/i18n";
@@ -222,15 +225,101 @@ const SYSTEM_PAGES: { slug: string; title: L }[] = [
   { slug: "returns", title: { en: "Return Policy", ar: "سياسة الإرجاع" } },
 ];
 
+/** The content file groups policies differently from the page list, so the two
+ *  are mapped explicitly rather than guessed from the slug. */
+const LEGAL_SLUGS: Record<string, string> = {
+  terms: "terms",
+  privacy: "privacy",
+  returns: "shipping",
+  "legal-notice": "cookies",
+};
+
+/** The sections a page starts life with, transcribed from the hand-built
+ *  version so moving it into the CMS loses nothing. Written on insert only —
+ *  re-seeding must never overwrite what an admin has since edited. */
+function startingSections(slug: string) {
+  const section = (type: string, order: number, data: unknown) => ({ type, order, visible: true, data });
+
+  if (slug === "home") {
+    return [
+      section("hero", 0, {
+        eyebrow: tl(BRAND.tagline),
+        heading: tl(BRAND.slogan),
+        sub: tl(HERO.sub),
+        body: tl(HERO.desc),
+        primary: { label: tl(HERO.cta1), href: "/en/shop" },
+        secondary: { label: tl(HERO.cta2), href: "/en/method" },
+      }),
+      section("trustStrip", 1, { items: PROMISE.map(tl) }),
+      section("traditionsRibbon", 2, {
+        heading: tl(TRADITIONS_HEADING),
+        note: tl(TRADITIONS_NOTE),
+        items: TRADITIONS.map(tl),
+      }),
+      section("featuredProducts", 3, { heading: { en: "Featured formulas", ar: "تركيبات مميزة" }, sub: tl(BRAND.supporting), limit: 6 }),
+      section("advisory", 4, { dark: false }),
+      section("methodTeaser", 5, {
+        heading: tl(METHOD_HEADING),
+        body: tl(METHOD_SUB),
+        cta: { label: tl(HERO.cta2), href: "/en/method" },
+      }),
+    ];
+  }
+
+  if (slug === "faq") {
+    return [
+      section("accordion", 0, {
+        heading: { en: "Frequently asked", ar: "الأسئلة الشائعة" },
+        items: FAQ.map((entry) => ({ q: tl(entry.q), a: tl(entry.a) })),
+      }),
+    ];
+  }
+
+  // Policy pages. The content file keeps clauses as a list; the CMS stores
+  // paragraphs, so they are joined with blank lines — which is exactly how the
+  // rich-text section splits them again when rendering.
+  const legal = LEGAL.find((doc) => doc.id === LEGAL_SLUGS[slug]);
+  if (legal) {
+    return [
+      section("richText", 0, {
+        eyebrow: { en: "", ar: "" },
+        heading: tl(legal.title),
+        body: {
+          en: legal.clauses.map((clause) => clause.en).join("\n\n"),
+          ar: legal.clauses.map((clause) => clause.ar).join("\n\n"),
+        },
+      }),
+    ];
+  }
+
+  return [];
+}
+
 async function seedContentPages() {
+  let filled = 0;
+
   for (const page of SYSTEM_PAGES) {
-    await ContentPage.findOneAndUpdate(
+    const existing = await ContentPage.findOneAndUpdate(
       { slug: page.slug },
       { $setOnInsert: { slug: page.slug, title: tl(page.title), isSystem: true, sections: [] } },
-      { upsert: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
     );
+
+    // Sections are written only into a page that has none. An edited page is
+    // never empty, so this can never overwrite an admin's work — and a page
+    // deliberately emptied gets its starting content back, which is a
+    // reasonable thing for a seed to do.
+    if (existing && existing.sections.length === 0) {
+      const sections = startingSections(page.slug);
+      if (sections.length > 0) {
+        existing.set("sections", sections);
+        await existing.save();
+        filled += 1;
+      }
+    }
   }
-  log(`pages: ${SYSTEM_PAGES.map((p) => p.slug).join(", ")}`);
+
+  log(`pages: ${SYSTEM_PAGES.map((p) => p.slug).join(", ")}${filled ? ` (${filled} filled from the content files)` : ""}`);
 }
 
 async function main() {

@@ -12,6 +12,8 @@ import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { TraditionsRibbon } from "@/components/TraditionsRibbon";
 import { getCategories, getFeaturedProducts } from "@/lib/catalogue";
+import { Section } from "@/components/cms/Sections";
+import { getPage, sectionContext } from "@/lib/cms/pages";
 import { localePath, isLocale, t, tl, type Locale } from "@/lib/i18n";
 import { HERO_VARIANT } from "@/lib/theme";
 import { notFound } from "next/navigation";
@@ -28,7 +30,25 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const locale = raw as Locale;
 
   // Featured products are chosen in the admin panel (C10).
-  const [featured, categories] = await Promise.all([getFeaturedProducts(), getCategories()]);
+  const [featured, categories, page] = await Promise.all([
+    getFeaturedProducts(),
+    getCategories(),
+    getPage("home"),
+  ]);
+
+  // Once the homepage has CMS sections it is rendered entirely from them.
+  // Until then it keeps the hand-built version below, so shipping the CMS does
+  // not blank the front page while nobody has edited it yet.
+  if (page && page.sections.length > 0) {
+    const context = await sectionContext(locale);
+    return (
+      <>
+        {page.sections.map((section, index) => (
+          <Section key={index} section={section} context={context} />
+        ))}
+      </>
+    );
+  }
 
   return (
     <>
