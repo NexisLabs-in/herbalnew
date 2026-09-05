@@ -22,17 +22,23 @@ export function PageHead({
   title,
   sub,
   crumbs,
+  compact = false,
 }: {
   kicker: string;
   title: string;
   sub?: string;
   crumbs?: Crumb[];
+  /** For pages somebody is *doing* something on — a basket, a checkout, a
+   *  receipt — rather than browsing. The full treatment is sized to introduce
+   *  a page worth exploring; on a page with one card on it, it becomes a
+   *  display-size heading floating above the thing that matters. */
+  compact?: boolean;
 }) {
   return (
-    <section className="page-head">
+    <section className={compact ? "page-head page-head--compact" : "page-head"}>
       <div className="shell shell--wide">
         {crumbs?.length ? (
-          <nav className="breadcrumb" aria-label="Breadcrumb" style={{ marginBottom: "1.6rem" }}>
+          <nav className="breadcrumb" aria-label="Breadcrumb" style={{ marginBottom: compact ? "1rem" : "1.6rem" }}>
             {crumbs.map((c, i) => (
               <span key={`${c.label}-${i}`} style={{ display: "contents" }}>
                 {i > 0 ? <span aria-hidden="true">/</span> : null}
@@ -42,11 +48,14 @@ export function PageHead({
           </nav>
         ) : null}
         <p className="eyebrow">{kicker}</p>
-        <h1 className="display d2" style={{ marginTop: "1rem" }}>
+        <h1 className={compact ? "display d3" : "display d2"} style={{ marginTop: compact ? ".7rem" : "1rem" }}>
           {title}
         </h1>
         {sub ? (
-          <p className="lead" style={{ marginTop: "1.1rem", maxWidth: "60ch" }}>
+          <p
+            className={compact ? "body" : "lead"}
+            style={{ marginTop: compact ? ".7rem" : "1.1rem", maxWidth: "60ch" }}
+          >
             {sub}
           </p>
         ) : null}

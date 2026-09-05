@@ -60,6 +60,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
   return (
     <>
       <PageHead
+        compact
         kicker={t(ACCOUNT.account, locale)}
         title={customer.name || t(ACCOUNT.welcome, locale)}
         sub={`${t(ACCOUNT.signedInAs, locale)} ${customer.email}`}

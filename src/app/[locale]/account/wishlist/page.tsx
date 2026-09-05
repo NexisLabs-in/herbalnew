@@ -36,6 +36,7 @@ export default async function WishlistPage({ params }: { params: Promise<{ local
   return (
     <>
       <PageHead
+        compact
         kicker={t(ACCOUNT.account, locale)}
         title={t(ACCOUNT.wishlist, locale)}
         crumbs={[

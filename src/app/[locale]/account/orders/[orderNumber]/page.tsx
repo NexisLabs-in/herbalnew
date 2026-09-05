@@ -80,6 +80,7 @@ export default async function CustomerOrderPage({
   return (
     <>
       <PageHead
+        compact
         kicker={t(COPY.orders, locale)}
         title={order.orderNumber}
         crumbs={[

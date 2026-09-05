@@ -100,6 +100,7 @@ export default async function QuotePage({
   return (
     <>
       <PageHead
+        compact
         kicker={t(COPY.kicker, locale)}
         title={t(COPY.title, locale)}
         crumbs={[

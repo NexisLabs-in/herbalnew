@@ -74,6 +74,7 @@ export default async function ConfirmationPage({
   return (
     <>
       <PageHead
+        compact
         kicker={t(COPY.kicker, locale)}
         title={t(COPY.title, locale)}
         sub={t(COPY.body, locale)}
@@ -81,46 +82,48 @@ export default async function ConfirmationPage({
       />
 
       <section className="section--tight">
-        <div className="shell shell--narrow">
-          <div className="buy-box">
-            <p className="eyebrow eyebrow--plain">{t(COPY.orderNumber, locale)}</p>
-            <p className="display d3" style={{ marginTop: ".6rem" }} dir="ltr">
-              {order.orderNumber}
-            </p>
-
-            <dl className="spec-grid" style={{ marginTop: "1.5rem" }}>
-              <div className="spec">
-                <dt>{t(COPY.total, locale)}</dt>
-                <dd>{formatFils(order.grandTotalFils, locale)}</dd>
+        <div className="shell shell--narrow" style={{ maxWidth: "640px" }}>
+          {/* A receipt, not a sales panel. Plain ground, one accent rule, and
+              the number the customer will quote back to us set largest. */}
+          <div className="receipt">
+            <div className="receipt__head">
+              <div>
+                <p className="eyebrow eyebrow--plain">{t(COPY.orderNumber, locale)}</p>
+                <p className="receipt__number" dir="ltr">
+                  {order.orderNumber}
+                </p>
               </div>
-              <div className="spec">
-                <dt>{t(COPY.deliveringTo, locale)}</dt>
-                <dd style={{ fontSize: ".8125rem" }}>
-                  {address.fullName}
-                  <br />
-                  {address.line1}
-                  {address.line2 ? `, ${address.line2}` : ""}
-                  <br />
-                  {address.city}, {address.emirate}
-                </dd>
+              <div className="receipt__total">
+                <p className="eyebrow eyebrow--plain">{t(COPY.total, locale)}</p>
+                <p className="receipt__amount">{formatFils(order.grandTotalFils, locale)}</p>
               </div>
-            </dl>
+            </div>
 
-            <ul className="summary-lines" style={{ marginTop: "1.5rem" }}>
+            <ul className="receipt__items">
               {order.items.map((item, index) => (
                 <li key={index}>
-                  <span className="summary-lines__name">
+                  <span>
                     {tl(item.name, locale)}
-                    <span className="summary-lines__qty"> × {item.qty}</span>
+                    <span className="receipt__qty"> × {item.qty}</span>
                   </span>
-                  <span className="summary-lines__total">
-                    {formatFils(item.lineTotalFils, locale)}
-                  </span>
+                  <span className="receipt__line">{formatFils(item.lineTotalFils, locale)}</span>
                 </li>
               ))}
             </ul>
 
-            <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap", marginTop: "1.75rem" }}>
+            <div className="receipt__address">
+              <p className="eyebrow eyebrow--plain">{t(COPY.deliveringTo, locale)}</p>
+              <p>
+                {address.fullName}
+                <br />
+                {address.line1}
+                {address.line2 ? `, ${address.line2}` : ""}
+                <br />
+                {address.city}, {address.emirate}
+              </p>
+            </div>
+
+            <div className="receipt__actions">
               <Link
                 className="btn btn--brand"
                 href={localePath(locale, `/account/orders/${order.orderNumber}`)}
@@ -133,15 +136,12 @@ export default async function ConfirmationPage({
               >
                 {t(COPY.invoice, locale)}
               </Link>
+              <Link className="link-arrow receipt__keep" href={localePath(locale, "/shop")}>
+                <span>{t(COPY.keepShopping, locale)}</span>
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
             </div>
           </div>
-
-          <p style={{ marginTop: "2rem" }}>
-            <Link className="link-arrow" href={localePath(locale, "/shop")}>
-              <span>{t(COPY.keepShopping, locale)}</span>
-              <span aria-hidden="true">&rarr;</span>
-            </Link>
-          </p>
         </div>
       </section>
     </>

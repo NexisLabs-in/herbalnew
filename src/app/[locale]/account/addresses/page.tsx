@@ -42,6 +42,7 @@ export default async function AddressesPage({ params }: { params: Promise<{ loca
   return (
     <>
       <PageHead
+        compact
         kicker={t(ACCOUNT.account, locale)}
         title={t(ACCOUNT.addresses, locale)}
         crumbs={[

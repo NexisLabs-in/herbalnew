@@ -30,6 +30,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
   return (
     <>
       <PageHead
+        compact
         kicker={t(ACCOUNT.account, locale)}
         title={t(ACCOUNT.profile, locale)}
         crumbs={[

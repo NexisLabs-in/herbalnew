@@ -58,6 +58,7 @@ export default async function CheckoutPage({
   return (
     <>
       <PageHead
+        compact
         kicker={BRAND.name}
         title={t(SHOP.checkout, locale)}
         crumbs={[

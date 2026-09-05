@@ -40,6 +40,7 @@ export default async function CartPage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <PageHead
+        compact
         kicker={BRAND.name}
         title={t(SHOP.basketTitle, locale)}
         sub={
