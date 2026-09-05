@@ -730,3 +730,28 @@
   font-size: .875rem;
   user-select: all;
 }
+
+/* ---------- Dashboard attention list -------------------------------------- */
+
+/* Every line is a link to the screen that clears it. A count somebody cannot
+   act on is decoration. */
+.admin-attention ul {
+  list-style: none;
+  margin: .75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: .4rem;
+}
+
+.admin-attention a {
+  display: block;
+  padding: .5rem .7rem;
+  border-radius: 8px;
+  color: var(--color-ink);
+  text-decoration: none;
+  font-size: .9375rem;
+  transition: background .2s var(--ease-brand);
+}
+
+.admin-attention a:hover { background: var(--color-paper-100); color: var(--color-violet-700); }
+.admin-attention strong { font-family: var(--font-mono), monospace; color: var(--color-violet-600); }
