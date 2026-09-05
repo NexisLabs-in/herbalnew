@@ -613,3 +613,43 @@
 }
 
 .admin-order__side a { color: var(--color-violet-600); }
+
+/* ---------- Product picker ------------------------------------------------ */
+
+.picker {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.picker.is-disabled { opacity: .5; pointer-events: none; }
+
+.picker__head {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: .7rem .8rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.picker__head .field__input { flex: 1; min-width: 160px; }
+.picker__count { font-family: var(--font-mono), monospace; font-size: .75rem; color: var(--color-muted); }
+
+/* Capped and scrollable: a catalogue of a hundred products should not push the
+   save button off the bottom of the page. */
+.picker__list { max-height: 280px; overflow-y: auto; }
+
+.picker__row {
+  display: flex;
+  gap: .7rem;
+  align-items: flex-start;
+  padding: .55rem .8rem;
+  border-bottom: 1px solid var(--color-line);
+  font-size: .875rem;
+  cursor: pointer;
+}
+
+.picker__row:last-child { border-bottom: none; }
+.picker__row:hover { background: var(--color-paper-50); }
+.picker__row input { margin-top: .2rem; accent-color: var(--color-violet-600); }
