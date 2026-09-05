@@ -61,6 +61,7 @@ export default async function ShopPage({
 
   const filtered = Boolean(query.q || query.category || query.form);
 
+
   return (
     <>
       <PageHead
@@ -133,6 +134,7 @@ export default async function ShopPage({
                     product={product}
                     locale={locale}
                     delay={index * 90}
+                    wishlist
                   />
                 ))}
               </div>

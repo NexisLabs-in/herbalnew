@@ -12,6 +12,7 @@ import { StockLine } from "@/components/StockLine";
 import { AddToCart } from "@/components/storefront/AddToCart";
 import { EnquiryForm } from "@/components/storefront/EnquiryForm";
 import { NotifyMeForm } from "@/components/storefront/NotifyMeForm";
+import { WishlistButton } from "@/components/storefront/WishlistButton";
 import { getCustomer } from "@/lib/auth/guards";
 import { getProductBySlug, getPublishedSlugs, getRelatedProducts } from "@/lib/catalogue";
 import { isLocale, locales, localePath, t, tl, type Locale } from "@/lib/i18n";
@@ -180,6 +181,18 @@ export default async function ProductPage({
                   )}
                 </div>
               )}
+
+              {/* Outside the price-mode branch on purpose: a customer asking
+                  for a price has as much reason to save the product as one
+                  buying it outright. */}
+              <div>
+                <WishlistButton
+                  productId={product.id}
+                  locale={locale}
+                  returnTo={localePath(locale, `/shop/${product.slug}`)}
+                  variant="full"
+                />
+              </div>
 
               {tl(product.composition, locale) ? (
                 <section>

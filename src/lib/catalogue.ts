@@ -361,6 +361,28 @@ export async function getFeaturedProducts(limit = 6): Promise<ProductCardView[]>
   return docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold));
 }
 
+/** Published products by id, in the order the ids were given.
+ *
+ *  Mongo returns documents in its own order, so the caller's order — a
+ *  wishlist's, most recently saved last — is restored here rather than lost. */
+export async function getProductsByIds(ids: string[]): Promise<ProductCardView[]> {
+  if (ids.length === 0) return [];
+  await connectDb();
+  const settings = await getSettings();
+
+  const docs = await Product.find({ _id: { $in: ids }, status: "published" }).lean<ProductDoc[]>();
+  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+
+  const cards = new Map(
+    docs.map((doc) => [
+      String(doc._id),
+      toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold),
+    ]),
+  );
+
+  return ids.map((id) => cards.get(id)).filter((card): card is ProductCardView => Boolean(card));
+}
+
 /** Slugs for `generateStaticParams` and the sitemap. */
 export async function getPublishedSlugs(): Promise<string[]> {
   await connectDb();

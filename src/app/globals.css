@@ -985,3 +985,66 @@ select.field__input{
 .address-choice em{color:var(--color-muted);font-style:normal}
 
 }
+
+/* ---------- 19. Customer portal ------------------------------------------ */
+@layer components {
+
+.account-layout{
+  display:grid;gap:clamp(1.5rem,4vw,3rem);align-items:start;
+  grid-template-columns:200px minmax(0,1fr);
+}
+@media (max-width:760px){.account-layout{grid-template-columns:minmax(0,1fr)}}
+
+.account-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:1.5rem}
+@media (max-width:760px){
+  /* On a phone the sidebar becomes a scrolling row of tabs rather than a
+     stack that pushes the content off the first screen. */
+  .account-nav{position:static;flex-direction:row;overflow-x:auto;gap:.4rem;padding-bottom:.5rem}
+}
+.account-nav__link{
+  padding:.55rem .75rem;border-radius:8px;text-decoration:none;
+  color:var(--color-ink-3);font-size:.9375rem;white-space:nowrap;
+  transition:background .2s var(--ease-brand),color .2s var(--ease-brand);
+}
+.account-nav__link:hover{background:var(--color-paper-100);color:var(--color-ink)}
+.account-nav__link[aria-current="page"]{
+  background:var(--color-violet-100);color:var(--color-violet-950);font-weight:500;
+}
+.account-nav__foot{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-line)}
+@media (max-width:760px){.account-nav__foot{display:none}}
+
+.account-stats{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.account-stat{
+  padding:1.15rem 1.25rem;border:1px solid var(--color-line);
+  border-radius:var(--radius-lg);background:#fff;
+}
+
+.address-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.address-card{
+  padding:1.15rem 1.25rem;border:1px solid var(--color-line);
+  border-radius:var(--radius-lg);background:#fff;display:grid;gap:.6rem;align-content:start;
+}
+.address-card__name{margin:0;font-weight:600}
+.address-card__label{color:var(--color-muted);font-weight:400}
+.address-card__body{margin:0;font-size:.875rem;line-height:1.6;color:var(--color-ink-3)}
+.address-card__tools{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.2rem}
+
+/* ---------- Wishlist heart ------------------------------------------------ */
+
+.product-card__frame{position:relative}
+.product-card__wish{position:absolute;inset-block-start:.75rem;inset-inline-end:.75rem;z-index:2}
+
+.wish{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  width:36px;height:36px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--color-line-strong);background:rgba(255,255,255,.92);
+  color:var(--color-ink-3);backdrop-filter:blur(4px);
+  transition:color .2s var(--ease-brand),border-color .2s var(--ease-brand),transform .2s var(--ease-brand);
+}
+.wish:hover:not(:disabled){color:var(--color-violet-600);border-color:var(--color-violet-400)}
+.wish:active:not(:disabled){transform:scale(.92)}
+.wish.is-saved{color:var(--color-violet-600);border-color:var(--color-violet-400)}
+.wish:disabled{opacity:.6;cursor:progress}
+.wish--full{width:auto;height:auto;padding:.6rem 1.1rem;border-radius:999px;font-size:.875rem}
+
+}

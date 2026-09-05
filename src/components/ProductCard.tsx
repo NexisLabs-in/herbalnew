@@ -6,16 +6,21 @@ import type { ProductCardView } from "@/lib/catalogue";
 import { localePath, t, tl, type Locale } from "@/lib/i18n";
 import { Price } from "./Price";
 import { Reveal } from "./Reveal";
+import { WishlistButton } from "./storefront/WishlistButton";
 import { StockLine } from "./StockLine";
 
 export function ProductCard({
   product,
   locale,
   delay = 0,
+  wishlist,
 }: {
   product: ProductCardView;
   locale: Locale;
   delay?: number;
+  /** Show the save-for-later heart. Omitted where it would be noise — the
+   *  homepage, related products. The button loads its own state. */
+  wishlist?: boolean;
 }) {
   const href = localePath(locale, `/shop/${product.slug}`);
   const name = tl(product.name, locale);
@@ -28,8 +33,18 @@ export function ProductCard({
 
   return (
     <Reveal as="article" className="card card--lift product-card" data-form={product.form} delay={delay}>
-      <Link href={href} aria-label={name}>
-        <div className={`product-card__media${isPhoto ? " product-card__media--photo" : ""}`}>
+      {/* The heart sits over the media but outside the link: a button nested
+          inside an anchor is invalid, and the click would navigate instead of
+          saving. */}
+      <div className="product-card__frame">
+        {wishlist ? (
+          <span className="product-card__wish">
+            <WishlistButton productId={product.id} locale={locale} returnTo={href} />
+          </span>
+        ) : null}
+
+        <Link href={href} aria-label={name}>
+          <div className={`product-card__media${isPhoto ? " product-card__media--photo" : ""}`}>
           <div className="product-card__badges">
             {product.formLabel.en || product.formLabel.ar ? (
               <span className="chip chip--brand">{tl(product.formLabel, locale)}</span>
@@ -57,9 +72,10 @@ export function ProductCard({
             />
           ) : (
             <div className="product-card__img product-card__img--none" aria-hidden="true" />
-          )}
-        </div>
-      </Link>
+            )}
+          </div>
+        </Link>
+      </div>
 
       <div className="product-card__body">
         {product.categoryName ? (
