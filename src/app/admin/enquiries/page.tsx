@@ -54,7 +54,7 @@ export default async function AdminEnquiriesPage() {
   const waiting = rows.filter((row) => row.status === "new").length;
 
   return (
-    <AdminShell admin={admin} badges={{ newEnquiries: waiting }}>
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Price enquiries</h1>

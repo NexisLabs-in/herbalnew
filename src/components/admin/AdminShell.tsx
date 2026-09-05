@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminNavLink } from "./AdminNavLink";
 import { AdminSignOutButton } from "./AdminSignOutButton";
 import { can, type Permission } from "@/lib/permissions";
+import { getAdminBadges, type AdminBadges } from "@/lib/admin/badges";
 import type { AdminContext } from "@/lib/auth/guards";
 
 /** The admin chrome: sidebar navigation, identity, sign-out.
@@ -15,14 +16,6 @@ import type { AdminContext } from "@/lib/auth/guards";
 
 type NavItem = { href: string; label: string; permission: Permission; badge?: number };
 type NavGroup = { label: string; items: NavItem[] };
-
-export type AdminBadges = {
-  newOrders?: number;
-  pendingReviews?: number;
-  newEnquiries?: number;
-  lowStock?: number;
-  newMessages?: number;
-};
 
 function navigation(badges: AdminBadges): NavGroup[] {
   return [
@@ -70,15 +63,18 @@ function navigation(badges: AdminBadges): NavGroup[] {
   ];
 }
 
-export function AdminShell({
+export async function AdminShell({
   admin,
-  badges = {},
   children,
 }: {
   admin: AdminContext;
-  badges?: AdminBadges;
   children: ReactNode;
 }) {
+  // Read here rather than passed in by each page. Pages used to supply only
+  // the counts they happened to compute, so a badge appeared or vanished
+  // depending on which screen you were standing on.
+  const badges: AdminBadges = await getAdminBadges(admin.permissions);
+
   const groups = navigation(badges)
     .map((group) => ({
       ...group,

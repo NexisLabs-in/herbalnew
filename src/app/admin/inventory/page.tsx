@@ -45,7 +45,7 @@ export default async function AdminInventoryPage() {
   const writable = can(admin.permissions, "inventory:write");
 
   return (
-    <AdminShell admin={admin} badges={{ lowStock: out.length + low.length }}>
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Inventory</h1>

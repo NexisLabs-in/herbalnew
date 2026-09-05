@@ -40,7 +40,7 @@ export default async function AdminMessagesPage({
   }));
 
   return (
-    <AdminShell admin={admin} badges={{ newMessages: unread }}>
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Messages</h1>

@@ -56,7 +56,7 @@ export default async function AdminReviewsPage({
   const pendingCount = rows.filter((row) => row.status === "pending").length;
 
   return (
-    <AdminShell admin={admin} badges={{ pendingReviews: pendingCount }}>
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Reviews</h1>

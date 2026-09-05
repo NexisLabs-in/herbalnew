@@ -67,7 +67,7 @@ export default async function AdminOrdersPage({
   const countFor = new Map(counts.map((row) => [row._id, row.count]));
 
   return (
-    <AdminShell admin={admin} badges={{ newOrders: countFor.get("new") ?? 0 }}>
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Orders</h1>

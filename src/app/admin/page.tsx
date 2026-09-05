@@ -74,10 +74,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <AdminShell
-      admin={admin}
-      badges={{ newOrders, pendingReviews, lowStock, newEnquiries, newMessages }}
-    >
+    <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Dashboard</h1>
