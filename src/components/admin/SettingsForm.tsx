@@ -6,6 +6,7 @@ import { saveSettings } from "@/server/actions/settings";
 import { runJob, type JobName } from "@/server/actions/jobs";
 import type { ActionState } from "@/lib/validation/shared";
 import { BilingualField, Fieldset, SelectField, TextField, Toggle, type TL } from "./fields/Fields";
+import { focusFirstError } from "./fields/focusError";
 
 export type SettingsValue = {
   store: { name: string; contactEmail: string; contactPhone: string; address: TL };
@@ -59,6 +60,7 @@ export function SettingsForm({
       });
       setState(result);
       if (result.ok) router.refresh();
+      else focusFirstError(result.fieldErrors);
     });
 
   const fire = (name: JobName) =>
@@ -69,17 +71,6 @@ export function SettingsForm({
 
   return (
     <div>
-      {state.error ? (
-        <p className="auth-card__error" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.notice ? (
-        <p className="admin-note" role="status" style={{ marginBottom: "1.25rem" }}>
-          {state.notice}
-        </p>
-      ) : null}
-
       <Fieldset legend="Store" hint="Shown on invoices and in emails.">
         <TextField
           label="Store name"
@@ -111,6 +102,7 @@ export function SettingsForm({
         <div className="admin-row">
           <TextField
             label="Delivery charge"
+            path="shipping.flatRate"
             prefix="AED"
             value={value.shipping.flatRate}
             error={err("shipping.flatRate")}
@@ -118,6 +110,7 @@ export function SettingsForm({
           />
           <TextField
             label="Free delivery above"
+            path="shipping.freeAbove"
             prefix="AED"
             value={value.shipping.freeAbove}
             error={err("shipping.freeAbove")}
@@ -264,6 +257,17 @@ export function SettingsForm({
         <button className="btn btn--brand" type="button" disabled={pending} onClick={save}>
           {pending ? "Saving…" : "Save settings"}
         </button>
+
+        {state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--error" role="alert">
+            {state.error}
+          </p>
+        ) : null}
+        {state.notice && !state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--ok" role="status">
+            {state.notice}
+          </p>
+        ) : null}
       </div>
     </div>
   );

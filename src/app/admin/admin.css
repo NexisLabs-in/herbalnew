@@ -755,3 +755,36 @@
 
 .admin-attention a:hover { background: var(--color-paper-100); color: var(--color-violet-700); }
 .admin-attention strong { font-family: var(--font-mono), monospace; color: var(--color-violet-600); }
+
+/* ---------- Sticky form bar ----------------------------------------------- */
+
+/* The bar already follows the viewport, so the message rides with it. On a
+   form as long as the product editor, a banner at the top is invisible from
+   the bottom — which is exactly where somebody is when they press save. */
+.admin-formbar {
+  flex-wrap: wrap;
+  /* Solid rather than a fade: a message needs a background it can be read on. */
+  background: var(--color-paper-100);
+  border-top: 1px solid var(--color-line);
+  margin-inline: calc(clamp(1rem, 3vw, 2.25rem) * -1);
+  padding-inline: clamp(1rem, 3vw, 2.25rem);
+  z-index: 5;
+}
+
+.admin-formbar__msg {
+  flex: 1 1 260px;
+  margin: 0;
+  padding: .5rem .8rem;
+  border-radius: var(--radius-md);
+  font-size: .875rem;
+  line-height: 1.45;
+}
+
+.admin-formbar__msg--error { background: #FCF0EF; border: 1px solid #E9C7C3; color: #8A2A22; }
+.admin-formbar__msg--ok { background: var(--color-violet-100); border: 1px solid var(--color-violet-300); color: var(--color-violet-950); }
+
+/* The field the form scrolled to, marked briefly so the eye lands on it. */
+[data-field] .field__input[aria-invalid="true"] {
+  border-color: #B4332B;
+  box-shadow: 0 0 0 3px rgba(180, 51, 43, .12);
+}

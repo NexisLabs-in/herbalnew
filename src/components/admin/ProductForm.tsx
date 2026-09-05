@@ -16,6 +16,7 @@ import {
   type TL,
 } from "./fields/Fields";
 import { ImageManager, type ProductImage } from "./fields/ImageManager";
+import { focusFirstError } from "./fields/focusError";
 
 /** The product editor.
  *
@@ -142,6 +143,7 @@ export function ProductForm({
       });
       setState(result);
       if (result.ok) router.refresh();
+      else focusFirstError(result.fieldErrors);
     });
   }
 
@@ -154,21 +156,11 @@ export function ProductForm({
         submit();
       }}
     >
-      {state.error ? (
-        <p className="auth-card__error" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.notice ? (
-        <p className="admin-note" role="status" style={{ marginBottom: "1.25rem" }}>
-          {state.notice}
-        </p>
-      ) : null}
-
       <Fieldset legend="Identity" hint="What the product is called and where it sits in the cabinet.">
         <BilingualField
           label="Product name"
           required
+          path="name"
           value={value.name}
           errors={{ en: err("name.en"), ar: err("name.ar") }}
           onChange={(next) => {
@@ -182,6 +174,7 @@ export function ProductForm({
             label="Web address (slug)"
             required
             monospace
+            path="slug"
             value={value.slug}
             error={err("slug")}
             hint={`/shop/${value.slug || "…"}`}
@@ -194,6 +187,7 @@ export function ProductForm({
             label="SKU"
             required
             monospace
+            path="sku"
             value={value.sku}
             error={err("sku")}
             hint="Your own stock code. Appears on orders and invoices."
@@ -204,6 +198,7 @@ export function ProductForm({
         <div className="admin-row">
           <SelectField
             label="Category"
+            path="categoryId"
             value={value.categoryId}
             error={err("categoryId")}
             hint="Products are assigned to a subcategory, not to the grouping above it."
@@ -229,6 +224,7 @@ export function ProductForm({
           label="Summary"
           multiline
           rows={3}
+          path="summary"
           value={value.summary}
           errors={{ en: err("summary.en") }}
           hint="One or two sentences. Shown on cards and under the product name."
@@ -259,6 +255,7 @@ export function ProductForm({
           />
           <TextField
             label="Price"
+            path="price"
             prefix="AED"
             value={requestPrice ? "" : value.price}
             error={err("price")}
@@ -293,6 +290,7 @@ export function ProductForm({
               }
             />
             <TextField
+              path="permanentDiscount.value"
               label={value.permanentDiscount.type === "percent" ? "Percent off" : "Amount off"}
               prefix={value.permanentDiscount.type === "percent" ? "%" : "AED"}
               value={value.permanentDiscount.value}
@@ -316,6 +314,7 @@ export function ProductForm({
         <div className="admin-row">
           <TextField
             label="Units in stock"
+            path="stock"
             type="number"
             value={value.stock}
             error={err("stock")}
@@ -325,6 +324,7 @@ export function ProductForm({
           />
           <TextField
             label="Shelf life (months)"
+            path="shelfLifeMonths"
             type="number"
             value={value.shelfLifeMonths}
             error={err("shelfLifeMonths")}
@@ -334,11 +334,13 @@ export function ProductForm({
       </Fieldset>
 
       <Fieldset legend="Images">
+        <div data-field="images">
         <ImageManager
           images={value.images}
           error={err("images")}
           onChange={(next) => set("images", next)}
         />
+        </div>
       </Fieldset>
 
       <Fieldset
@@ -554,6 +556,9 @@ export function ProductForm({
         />
       </Fieldset>
 
+      {/* The bar is sticky, so whatever it says is readable from anywhere in
+          the form — which is the only place a message on a form this long is
+          any use. */}
       <div className="admin-formbar">
         <button className="btn btn--brand" type="submit" disabled={pending}>
           {pending ? "Saving…" : productId ? "Save changes" : "Create product"}
@@ -566,6 +571,20 @@ export function ProductForm({
         >
           Cancel
         </button>
+
+        {state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--error" role="alert">
+            {state.error}
+            {state.fieldErrors && Object.keys(state.fieldErrors).length > 1
+              ? ` (${Object.keys(state.fieldErrors).length} fields)`
+              : ""}
+          </p>
+        ) : null}
+        {state.notice && !state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--ok" role="status">
+            {state.notice}
+          </p>
+        ) : null}
       </div>
     </form>
   );

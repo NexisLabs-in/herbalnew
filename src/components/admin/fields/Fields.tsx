@@ -45,6 +45,7 @@ export function TextField({
   required,
   disabled,
   monospace,
+  path,
 }: {
   label: string;
   value: string;
@@ -57,9 +58,11 @@ export function TextField({
   required?: boolean;
   disabled?: boolean;
   monospace?: boolean;
+  /** The schema path this field maps to, so a failed save can scroll to it. */
+  path?: string;
 }) {
   return (
-    <label className="field">
+    <label className="field" data-field={path}>
       <span className="field__label">
         {label}
         {required ? <span className="field__req"> *</span> : null}
@@ -131,6 +134,7 @@ export function BilingualField({
   hint,
   errors,
   required,
+  path,
 }: {
   label: string;
   value: TL;
@@ -140,11 +144,13 @@ export function BilingualField({
   hint?: string;
   errors?: { en?: string; ar?: string };
   required?: boolean;
+  /** Base path; the English side is what the schema requires and reports on. */
+  path?: string;
 }) {
   const missingArabic = value.en.trim() !== "" && value.ar.trim() === "";
 
   return (
-    <div className="admin-bilingual">
+    <div className="admin-bilingual" data-field={path ? `${path}.en` : undefined}>
       <div className="admin-bilingual__head">
         <span className="field__label">
           {label}
@@ -219,6 +225,7 @@ export function SelectField<T extends string>({
   groups,
   hint,
   error,
+  path,
 }: {
   label: string;
   value: T;
@@ -227,9 +234,10 @@ export function SelectField<T extends string>({
   groups?: SelectGroup<T>[];
   hint?: string;
   error?: string;
+  path?: string;
 }) {
   return (
-    <label className="field">
+    <label className="field" data-field={path}>
       <span className="field__label">{label}</span>
       <select
         className="field__input"

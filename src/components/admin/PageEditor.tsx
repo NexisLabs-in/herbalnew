@@ -166,17 +166,6 @@ export function PageEditor({
 
   return (
     <div>
-      {state.error ? (
-        <p className="auth-card__error" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.notice ? (
-        <p className="admin-note" role="status" style={{ marginBottom: "1.25rem" }}>
-          {state.notice}
-        </p>
-      ) : null}
-
       <div className="admin-fieldset">
         <div className="admin-fieldset__head">
           <h2 className="admin-fieldset__legend">Page</h2>
@@ -311,6 +300,17 @@ export function PageEditor({
         <a className="btn btn--ghost" href={`/en/${slug === "home" ? "" : slug}`} target="_blank" rel="noreferrer">
           View page
         </a>
+
+        {state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--error" role="alert">
+            {state.error}
+          </p>
+        ) : null}
+        {state.notice && !state.error ? (
+          <p className="admin-formbar__msg admin-formbar__msg--ok" role="status">
+            {state.notice}
+          </p>
+        ) : null}
       </div>
     </div>
   );
