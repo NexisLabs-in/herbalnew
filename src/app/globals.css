@@ -668,10 +668,58 @@ select.field__input{
 }
 [dir="rtl"] select.field__input{background-position:left 1rem center}
 
+/* A page with one field on it wants a different shape from a page somebody
+   browses: no breadcrumb, no display heading floating above a small card, and
+   nothing between the eye and the single thing to do. */
+.auth-page{
+  position:relative;overflow:hidden;
+  display:grid;place-items:center;
+  /* Tall enough to feel composed, short enough that the footer is not pushed
+     absurdly far down on a laptop. */
+  min-height:min(78vh,720px);
+  padding:clamp(2.5rem,7vw,5rem) var(--gutter);
+  background:
+    radial-gradient(70% 55% at 88% 6%,rgba(81,43,199,.10),transparent 66%),
+    radial-gradient(55% 50% at 4% 94%,rgba(58,107,44,.08),transparent 70%),
+    linear-gradient(172deg,#FFFFFF 0%,var(--color-paper-100) 60%,var(--color-paper-200) 100%);
+}
+
+/* The fern, very quiet — enough to say "herbal" without competing with the
+   form. Hidden on small screens, where it would only crowd the card. */
+.auth-page__botanical{
+  position:absolute;inset-block:0;inset-inline-end:-8%;
+  width:min(46%,560px);color:var(--color-violet-400);opacity:.16;
+  pointer-events:none;
+}
+.auth-page__botanical svg{width:100%;height:100%}
+[dir="rtl"] .auth-page__botanical{transform:scaleX(-1)}
+@media (max-width:760px){.auth-page__botanical{display:none}}
+
+.auth-page__inner{position:relative;width:100%;max-width:460px}
+
+.auth-page__foot{
+  margin:1.25rem 0 0;text-align:center;
+  font-size:.8125rem;line-height:1.6;color:var(--color-muted);
+}
+.auth-page__foot a{color:var(--color-violet-600);text-decoration:underline;text-underline-offset:3px}
+
 .auth-card{
   border-radius:var(--radius-lg);border:1px solid var(--color-line);
-  background:#fff;padding:clamp(1.5rem,3vw,2.25rem);box-shadow:var(--shadow-sm);
+  background:#fff;padding:clamp(1.75rem,4vw,2.5rem);box-shadow:var(--shadow-md);
 }
+
+/* The heading belongs inside the card, sized to sit with the form rather than
+   tower over it from the top of the page. */
+.auth-card--lead .auth-card__title{margin:.7rem 0 0;font-size:clamp(1.9rem,3.4vw,2.6rem)}
+.auth-card--lead .auth-card__sub{
+  margin:.85rem 0 0;color:var(--color-ink-3);font-size:.9375rem;line-height:1.65;max-width:38ch;
+}
+.auth-card--lead .auth-body{margin-top:1.75rem}
+
+/* The two steps swap in place, so the card must not jump height between
+   entering an address and entering the code. */
+.auth-body{display:grid;gap:1.1rem}
+
 .auth-card__notice{
   margin-bottom:1.25rem;padding:.85rem 1rem;border-radius:var(--radius-md);
   background:var(--color-violet-100);border:1px solid var(--color-violet-300);
@@ -682,7 +730,7 @@ select.field__input{
   background:#FCF0EF;border:1px solid #E9C7C3;color:#8A2A22;
   font-size:.875rem;line-height:1.55;
 }
-.auth-card__alts{display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center}
+.auth-card__alts{display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center;margin-top:.25rem}
 
 .link-plain{
   background:none;border:none;padding:0;cursor:pointer;font:inherit;

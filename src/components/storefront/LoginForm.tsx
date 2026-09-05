@@ -51,7 +51,7 @@ export function LoginForm({ locale, next }: { locale: Locale; next?: string }) {
   const error = onCodeStep ? codeState.error : emailState.error;
 
   return (
-    <div className="auth-card">
+    <div className="auth-body">
       {notice ? (
         <p className="auth-card__notice" role="status">
           {notice}
