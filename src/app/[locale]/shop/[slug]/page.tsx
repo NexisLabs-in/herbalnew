@@ -13,6 +13,10 @@ import { AddToCart } from "@/components/storefront/AddToCart";
 import { EnquiryForm } from "@/components/storefront/EnquiryForm";
 import { NotifyMeForm } from "@/components/storefront/NotifyMeForm";
 import { WishlistButton } from "@/components/storefront/WishlistButton";
+import { ReviewForm } from "@/components/storefront/ReviewForm";
+import { ReviewList } from "@/components/storefront/ReviewList";
+import { REVIEWS } from "@/content/reviews";
+import { getProductReviews, getReviewSummary, reviewableOrdersFor } from "@/lib/reviews";
 import { getCustomer } from "@/lib/auth/guards";
 import { getProductBySlug, getPublishedSlugs, getRelatedProducts } from "@/lib/catalogue";
 import { isLocale, locales, localePath, t, tl, type Locale } from "@/lib/i18n";
@@ -57,7 +61,19 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [related, customer] = await Promise.all([getRelatedProducts(product), getCustomer()]);
+  const [related, customer, reviews, summary] = await Promise.all([
+    getRelatedProducts(product),
+    getCustomer(),
+    getProductReviews(product.id),
+    getReviewSummary(product.id),
+  ]);
+
+  // The form is only rendered for somebody who can actually write a review —
+  // a verified buyer with a delivered order (C2) — rather than shown to
+  // everyone and refused on submit.
+  const canReview = customer
+    ? (await reviewableOrdersFor(customer._id, product.id)).length > 0
+    : false;
 
   const name = tl(product.name, locale);
   const form = tl(product.formLabel, locale);
@@ -320,6 +336,19 @@ export default async function ProductPage({
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="reviews">
+        <div className="shell shell--wide">
+          <h2 className="display d3" style={{ marginBottom: "clamp(1.5rem,3vw,2.5rem)" }}>
+            {t(REVIEWS.heading, locale)}
+          </h2>
+
+          <div className="reviews-layout">
+            <ReviewList reviews={reviews} summary={summary} locale={locale} />
+            {canReview ? <ReviewForm productId={product.id} locale={locale} /> : null}
           </div>
         </div>
       </section>
