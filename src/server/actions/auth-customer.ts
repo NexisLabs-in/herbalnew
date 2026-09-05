@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { mergeCartOnLogin } from "@/lib/cart";
 import { connectDb } from "@/lib/db";
 import { issueOtp, verifyOtp } from "@/lib/auth/otp";
 import { clearCustomerSession, createCustomerSession } from "@/lib/auth/session";
@@ -133,6 +134,11 @@ export async function verifyLoginCode(_prev: LoginState, formData: FormData): Pr
   }
 
   await createCustomerSession({ customerId: String(customer._id), email: customer.email });
+
+  // A basket filled while signed out follows the customer in. Merged rather
+  // than replaced, so neither the anonymous basket nor the one already on the
+  // account is lost.
+  await mergeCartOnLogin(String(customer._id));
 
   // Same-site paths only: an open redirect here would let a phishing link send
   // a freshly logged-in customer to an attacker's page.

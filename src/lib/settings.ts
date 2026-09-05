@@ -1,5 +1,6 @@
 import { connectDb } from "./db";
 import { Settings, type SettingsDoc } from "./models/Settings";
+import type { PricingSettings } from "./pricing";
 
 /** Reads the store settings singleton, creating it on first call.
  *
@@ -41,6 +42,25 @@ export async function getSettings(): Promise<SettingsDoc> {
 export function invalidateSettings(): void {
   cache.value = null;
   cache.readAt = 0;
+}
+
+/** Adapts stored settings to what the pricing engine takes.
+ *
+ *  Mongoose infers optional fields on nested defaults, and the engine wants a
+ *  definite `number | null`. Converting once here keeps every call site — cart,
+ *  checkout, the Stripe session — from repeating the same null coalescing and
+ *  possibly disagreeing about the default. */
+export function toPricingSettings(settings: SettingsDoc): PricingSettings {
+  return {
+    shipping: {
+      flatRateFils: settings.shipping.flatRateFils ?? 0,
+      freeAboveFils: settings.shipping.freeAboveFils ?? null,
+    },
+    tax: {
+      enabled: settings.tax.enabled ?? false,
+      ratePercent: settings.tax.ratePercent ?? 0,
+    },
+  };
 }
 
 /** Shipping for a given post-discount total (requirement C11). */

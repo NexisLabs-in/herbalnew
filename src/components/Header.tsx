@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { BRAND, NAV, UI } from "@/content/brand";
 import { LOCALE_SHORT, localePath, otherLocale, swapLocaleInPath, t, type Locale } from "@/lib/i18n";
 import { Icon } from "./Icon";
+import { CartCount } from "./storefront/CartCount";
 import { HERO_VARIANT } from "@/lib/theme";
 
 export function Header({ locale }: { locale: Locale }) {
@@ -78,11 +79,12 @@ export function Header({ locale }: { locale: Locale }) {
             {LOCALE_SHORT[next]}
           </Link>
           <Link
-            className="icon-btn"
-            href={localePath(locale, "/shop")}
+            className="icon-btn icon-btn--basket"
+            href={localePath(locale, "/cart")}
             aria-label={t(UI.basket, locale)}
           >
             <Icon name="bag" size={19} />
+            <CartCount />
           </Link>
           <button
             className="icon-btn burger"

@@ -9,6 +9,7 @@ import { Icon } from "@/components/Icon";
 import { Price } from "@/components/Price";
 import { ProductCard } from "@/components/ProductCard";
 import { StockLine } from "@/components/StockLine";
+import { AddToCart } from "@/components/storefront/AddToCart";
 import { EnquiryForm } from "@/components/storefront/EnquiryForm";
 import { NotifyMeForm } from "@/components/storefront/NotifyMeForm";
 import { getCustomer } from "@/lib/auth/guards";
@@ -168,7 +169,15 @@ export default async function ProductPage({
                         defaultEmail={customer?.email}
                       />
                     </div>
-                  ) : null}
+                  ) : (
+                    <div style={{ marginTop: "1.4rem" }}>
+                      <AddToCart
+                        productId={product.id}
+                        locale={locale}
+                        maxQty={product.stockState === "untracked" ? null : product.stock}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

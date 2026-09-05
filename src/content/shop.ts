@@ -87,6 +87,76 @@ export const SHOP: Record<string, L> = {
     ar: "لم يتم الإرسال. حاول مرة أخرى.",
   },
 
+  // --- Basket ---------------------------------------------------------------
+  addToBasket: { en: "Add to basket", ar: "أضف إلى السلة" },
+  adding: { en: "Adding…", ar: "جارٍ الإضافة…" },
+  added: { en: "Added to your basket", ar: "أُضيف إلى سلتك" },
+  viewBasket: { en: "View basket", ar: "عرض السلة" },
+  quantity: { en: "Quantity", ar: "الكمية" },
+  basketTitle: { en: "Your basket", ar: "سلتك" },
+  basketEmpty: { en: "Your basket is empty.", ar: "سلتك فارغة." },
+  basketEmptyHint: {
+    en: "Browse the cabinet and add a formula to get started.",
+    ar: "تصفّح الخزانة وأضف تركيبة للبدء.",
+  },
+  remove: { en: "Remove", ar: "إزالة" },
+  item: { en: "item", ar: "منتج" },
+  items: { en: "items", ar: "منتجات" },
+
+  // --- Totals ---------------------------------------------------------------
+  subtotal: { en: "Subtotal", ar: "المجموع الفرعي" },
+  productDiscounts: { en: "Discounts", ar: "الخصومات" },
+  couponLabel: { en: "Coupon", ar: "كوبون" },
+  couponPlaceholder: { en: "Discount code", ar: "رمز الخصم" },
+  couponApply: { en: "Apply", ar: "تطبيق" },
+  couponRemove: { en: "Remove code", ar: "إزالة الرمز" },
+  shipping: { en: "Shipping", ar: "الشحن" },
+  shippingFree: { en: "Free", ar: "مجاني" },
+  freeShippingNudge: {
+    en: "Spend {amount} more for free shipping.",
+    ar: "أنفق {amount} إضافية للحصول على شحن مجاني.",
+  },
+  total: { en: "Total", ar: "الإجمالي" },
+  checkout: { en: "Checkout", ar: "إتمام الشراء" },
+  continueShopping: { en: "Continue shopping", ar: "متابعة التسوق" },
+  taxNote: {
+    en: "Tax is calculated at checkout.",
+    ar: "تُحتسب الضريبة عند إتمام الشراء.",
+  },
+
+  // --- Coupon rejections (C8) -----------------------------------------------
+  couponUnknown: { en: "That code is not recognised.", ar: "الرمز غير معروف." },
+  couponInactive: { en: "That code is no longer active.", ar: "لم يعد هذا الرمز فعالاً." },
+  couponExpired: { en: "That code has expired.", ar: "انتهت صلاحية هذا الرمز." },
+  couponExhausted: { en: "That code has been fully used.", ar: "تم استخدام هذا الرمز بالكامل." },
+  couponCustomerLimit: {
+    en: "You have already used that code.",
+    ar: "لقد استخدمت هذا الرمز من قبل.",
+  },
+  couponMinOrder: {
+    en: "That code needs a basket of at least {amount}.",
+    ar: "يتطلب هذا الرمز سلة بقيمة {amount} على الأقل.",
+  },
+  couponNotCovered: {
+    en: "That code does not apply to {product}. Remove it from your basket, or use a different code.",
+    ar: "لا ينطبق هذا الرمز على {product}. أزله من سلتك أو استخدم رمزاً آخر.",
+  },
+  couponEmptyCart: { en: "Add something to your basket first.", ar: "أضف شيئاً إلى سلتك أولاً." },
+
+  // --- Unavailable lines ----------------------------------------------------
+  lineGone: { en: "No longer available", ar: "لم يعد متوفراً" },
+  lineOutOfStock: { en: "Out of stock", ar: "غير متوفر" },
+  lineRequestPrice: { en: "Now priced on request", ar: "أصبح السعر عند الطلب" },
+  lineReduced: {
+    en: "Only {qty} available — quantity reduced.",
+    ar: "المتوفر {qty} فقط — تم تقليل الكمية.",
+  },
+  removeUnavailable: { en: "Remove unavailable items", ar: "إزالة العناصر غير المتوفرة" },
+  cartBlocked: {
+    en: "Some items cannot be bought right now. Remove them to continue.",
+    ar: "بعض العناصر غير قابلة للشراء الآن. أزلها للمتابعة.",
+  },
+
   // --- Product page ---------------------------------------------------------
   relatedTitle: { en: "From the same shelf", ar: "من الرف نفسه" },
   composition: { en: "Composition", ar: "التركيب" },

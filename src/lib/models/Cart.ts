@@ -1,4 +1,4 @@
-import { Schema, type InferSchemaType, type Types } from "mongoose";
+import { Schema, type HydratedDocument, type InferSchemaType, type Types } from "mongoose";
 import { defineModel } from "./base";
 
 /** A cart in progress.
@@ -44,6 +44,10 @@ cartSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 cartSchema.index({ abandonedEmailSentAt: 1, updatedAt: 1 });
 
 export type CartDoc = InferSchemaType<typeof cartSchema> & { _id: Types.ObjectId };
+
+/** A live document, as returned by a query — has `save()`, `set()` and the rest.
+ *  `CartDoc` is the plain shape; anything that mutates a cart wants this. */
+export type CartDocument = HydratedDocument<CartDoc>;
 export const Cart = defineModel("Cart", cartSchema);
 
 export const CART_TTL_DAYS = 30;

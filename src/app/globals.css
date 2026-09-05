@@ -794,3 +794,134 @@ select.field__input{
    active filter, so the trail back up the level is never lost. */
 .filter.is-open:not(.is-active){border-color:var(--color-violet-400);color:var(--color-violet-700)}
 }
+
+/* ---------- 17. Basket ---------------------------------------------------- */
+@layer components {
+
+.icon-btn--basket{position:relative}
+.cart-badge{
+  position:absolute;inset-block-start:-2px;inset-inline-end:-2px;
+  min-width:17px;height:17px;padding:0 4px;border-radius:999px;
+  background:var(--color-violet-600);color:#fff;
+  font-family:var(--font-mono);font-size:.625rem;line-height:17px;text-align:center;
+}
+
+/* Quantity stepper. Buttons rather than a bare number input: on a phone a
+   spinner is a fiddly target, and this is the control people use most. */
+.qty{
+  display:inline-flex;align-items:stretch;
+  border:1px solid var(--color-line-strong);border-radius:var(--radius-md);
+  background:#fff;overflow:hidden;
+}
+.qty__btn{
+  width:38px;border:none;background:none;cursor:pointer;
+  font-size:1rem;color:var(--color-ink-3);line-height:1;
+}
+.qty__btn:hover:not(:disabled){background:var(--color-paper-100);color:var(--color-violet-600)}
+.qty__btn:disabled{opacity:.35;cursor:not-allowed}
+.qty__input{
+  width:52px;border:none;border-inline:1px solid var(--color-line);
+  text-align:center;font:inherit;font-variant-numeric:tabular-nums;
+  padding-block:.6rem;background:none;
+}
+/* The spinner duplicates the buttons either side of it. */
+.qty__input::-webkit-outer-spin-button,
+.qty__input::-webkit-inner-spin-button{appearance:none;margin:0}
+.qty__input[type=number]{appearance:textfield;-moz-appearance:textfield}
+.qty--sm .qty__btn{width:30px}
+.qty__value{
+  display:flex;align-items:center;justify-content:center;min-width:34px;
+  border-inline:1px solid var(--color-line);font-variant-numeric:tabular-nums;
+}
+
+.addcart__row{display:flex;gap:.75rem;align-items:stretch;flex-wrap:wrap}
+.addcart__row .btn{flex:1;min-width:160px}
+.addcart__done{
+  margin-top:.9rem;padding:.7rem .9rem;border-radius:var(--radius-md);
+  background:var(--color-violet-100);border:1px solid var(--color-violet-300);
+  color:var(--color-violet-950);font-size:.875rem;
+}
+
+/* ---------- Cart page ----------------------------------------------------- */
+
+.cart-layout{
+  display:grid;gap:clamp(1.5rem,4vw,3rem);align-items:start;
+  grid-template-columns:minmax(0,1.6fr) minmax(280px,.9fr);
+}
+@media (max-width:860px){.cart-layout{grid-template-columns:minmax(0,1fr)}}
+
+.cart-lines{display:grid;gap:1rem}
+
+.cart-line{
+  display:grid;gap:1rem;align-items:center;
+  grid-template-columns:96px minmax(0,1fr) auto auto;
+  padding:1rem;border:1px solid var(--color-line);border-radius:var(--radius-lg);
+  background:#fff;
+}
+@media (max-width:620px){
+  .cart-line{grid-template-columns:72px minmax(0,1fr);grid-template-areas:"media body" "qty total"}
+  .cart-line__media{grid-area:media}
+  .cart-line__body{grid-area:body}
+  .cart-line__qty{grid-area:qty}
+  .cart-line__total{grid-area:total;text-align:end}
+}
+/* Unavailable lines are dimmed but never hidden — a basket that quietly loses
+   an item leaves the customer wondering whether they ever added it. */
+.cart-line--blocked{background:var(--color-paper-100);border-style:dashed}
+.cart-line--blocked .cart-line__media{opacity:.5}
+
+.cart-line__media img{border-radius:var(--radius-md);object-fit:contain;background:var(--color-paper-100)}
+.cart-line__placeholder{width:96px;aspect-ratio:1;border-radius:var(--radius-md);background:var(--color-paper-200)}
+.cart-line__name{font-size:1rem;margin:0}
+.cart-line__name a{color:var(--color-ink);text-decoration:none}
+.cart-line__name a:hover{color:var(--color-violet-600)}
+.cart-line__unit{margin:.3rem 0 0;font-size:.875rem;color:var(--color-ink-3)}
+.cart-line__unit s{color:var(--color-muted);margin-inline-start:.35rem}
+.cart-line__note{margin:.35rem 0 0;font-size:.8125rem;color:#B4642B}
+.cart-line__total{display:grid;gap:.35rem;justify-items:end;white-space:nowrap}
+
+.cart-alert{
+  display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:.9rem 1rem;border-radius:var(--radius-md);
+  background:#FCF0EF;border:1px solid #E9C7C3;color:#8A2A22;font-size:.875rem;
+}
+
+/* ---------- Summary ------------------------------------------------------- */
+
+.cart-summary{
+  position:sticky;top:1.5rem;
+  padding:clamp(1.25rem,3vw,1.75rem);
+  border:1px solid var(--color-line);border-radius:var(--radius-lg);
+  background:linear-gradient(150deg,#fff,var(--color-paper-100));
+  box-shadow:var(--shadow-sm);
+}
+.cart-summary>*+*{margin-top:1.1rem}
+
+.cart-totals{margin:0;display:grid;gap:.6rem}
+.cart-totals>div{display:flex;justify-content:space-between;gap:1rem;font-size:.9375rem}
+.cart-totals dt{color:var(--color-ink-3)}
+.cart-totals dd{margin:0;font-variant-numeric:tabular-nums}
+.cart-totals__save dd{color:var(--color-leaf-700,#3A6B2C)}
+.cart-totals__grand{
+  padding-top:.75rem;border-top:1px solid var(--color-line);
+  font-size:1.125rem;font-weight:600;
+}
+.cart-totals__grand dt{color:var(--color-ink)}
+
+.cart-nudge{
+  padding:.6rem .8rem;border-radius:var(--radius-md);
+  background:var(--color-violet-100);color:var(--color-violet-950);font-size:.8125rem;
+}
+.cart-note{font-size:.8125rem;color:var(--color-muted)}
+
+.cart-coupon__row{display:flex;gap:.5rem}
+.cart-coupon__row .field__input{flex:1;min-width:0;text-transform:uppercase}
+.cart-coupon__applied{
+  display:flex;justify-content:space-between;gap:1rem;align-items:center;
+  padding:.6rem .8rem;border-radius:var(--radius-md);
+  background:var(--color-violet-100);border:1px solid var(--color-violet-300);
+  font-size:.875rem;
+}
+.cart-coupon__error{margin-top:.6rem;font-size:.8125rem;color:#8A2A22;line-height:1.55}
+
+}
