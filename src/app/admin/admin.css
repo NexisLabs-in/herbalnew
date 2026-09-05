@@ -572,3 +572,44 @@
 
 .admin-adjust { display: grid; gap: 0.35rem; }
 .admin-adjust__row { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ---------- Order detail -------------------------------------------------- */
+
+.admin-order {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, .9fr);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .admin-order { grid-template-columns: minmax(0, 1fr); }
+}
+
+.admin-order__main > * + *,
+.admin-order__side > * + * { margin-top: 1.25rem; }
+
+/* The status history reads top-down as the order's life. The rail makes the
+   sequence obvious without a heavier timeline component. */
+.admin-timeline {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid var(--color-line);
+}
+
+.admin-timeline li { position: relative; padding-bottom: 1rem; }
+.admin-timeline li:last-child { padding-bottom: 0; }
+
+.admin-timeline li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1rem - 5px);
+  top: .35rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-violet-500);
+}
+
+.admin-order__side a { color: var(--color-violet-600); }

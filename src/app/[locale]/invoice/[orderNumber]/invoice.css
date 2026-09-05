@@ -1,0 +1,122 @@
+/* A document, not a web page.
+ *
+ * Deliberately plain: white ground, black text, no brand gradients. An invoice
+ * is printed, filed and sometimes photocopied, and the storefront's violet
+ * washes out to grey on a laser printer. The only colour kept is the status
+ * badge, because that is the one thing someone scans for.
+ */
+
+.invoice {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  background: #fff;
+  color: #1a1a1a;
+  font-family: var(--font-grotesk), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.invoice__print { margin-bottom: 1.5rem; }
+
+.invoice__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.invoice__brand {
+  margin: 0 0 .4rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.invoice__meta { margin: 0; font-size: .8125rem; color: #555; }
+
+.invoice__ident { text-align: end; }
+.invoice__ident h1 {
+  margin: 0 0 .6rem;
+  font-size: 1.5rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.invoice__ident p { margin: 0 0 .2rem; font-size: .8125rem; }
+.invoice__ident span { color: #555; }
+
+.invoice__status {
+  display: inline-block;
+  margin-top: .5rem;
+  padding: .15rem .55rem;
+  border-radius: 3px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.invoice__status--paid { background: #E8F3E4; color: #2C5720; }
+.invoice__status--pending,
+.invoice__status--failed { background: #FBF0E8; color: #8A5620; }
+.invoice__status--refunded { background: #EFEFEF; color: #555; }
+
+.invoice__party { margin: 1.75rem 0; }
+.invoice__party p { margin: 0; }
+.invoice__label {
+  margin: 0 0 .35rem;
+  font-size: .6875rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #555;
+}
+
+.invoice__table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+.invoice__table th {
+  text-align: start;
+  padding: .6rem 0;
+  border-bottom: 1px solid #1a1a1a;
+  font-size: .6875rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.invoice__table td { padding: .7rem 0; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+.invoice__table .num { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.invoice__sku { color: #777; font-size: .8125rem; }
+
+.invoice__totals { margin-inline-start: auto; min-width: 260px; border-collapse: collapse; }
+.invoice__totals th {
+  text-align: start;
+  padding: .3rem 1.5rem .3rem 0;
+  font-weight: 400;
+  color: #555;
+}
+[dir="rtl"] .invoice__totals th { padding: .3rem 0 .3rem 1.5rem; }
+.invoice__totals td { padding: .3rem 0; text-align: end; font-variant-numeric: tabular-nums; }
+.invoice__totals .is-total th,
+.invoice__totals .is-total td {
+  padding-top: .6rem;
+  border-top: 1px solid #1a1a1a;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: #1a1a1a;
+}
+
+.invoice__legal {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+  font-size: .75rem;
+  color: #555;
+  white-space: pre-line;
+}
+
+@media print {
+  /* The print button, and anything the layout wraps this in, are screen
+     furniture — the sheet should carry the document and nothing else. */
+  .invoice__print, header.header, footer.footer, .skip { display: none !important; }
+  .invoice { max-width: none; padding: 0; font-size: 12px; }
+  @page { margin: 18mm; }
+}

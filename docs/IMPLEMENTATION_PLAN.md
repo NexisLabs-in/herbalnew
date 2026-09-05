@@ -143,7 +143,7 @@ Every question raised during planning, answered. Do not revisit these without as
 | Manual orders | **Not supported.** Every order originates from the storefront or an accepted quote, so orders reconcile 1:1 with Stripe |
 | Refunds | **Handled manually in the Stripe dashboard.** The app only marks the order cancelled/returned and records who did it |
 | Customer cancellation | **Request only** — customer can request cancellation while the order is `new` or `packed`; admin approves or declines and refunds in Stripe |
-| Invoices | **Downloadable PDF**, for customer and admin, attached to the confirmation email |
+| Invoices | **Printable HTML invoice page** for customer and admin, linked from the confirmation email. Chosen over a PDF library because none of them shape Arabic correctly — letters render disconnected — and headless Chrome would put ~300MB of Chromium on the VPS for one document |
 | Shipping destinations | **UAE only.** Country locked; address = full name, phone, line 1, line 2 (optional), area/city, **Emirate dropdown (7)**. No postcode field |
 
 ### Content & comms
@@ -171,7 +171,6 @@ resend                      transactional email
 @react-email/components     email templates
 @aws-sdk/client-s3          presigned uploads (works with R2/Backblaze)
 @aws-sdk/s3-request-presigner
-@react-pdf/renderer         invoice PDFs
 bcryptjs                    admin password + OTP code hashing
 node-cron                   daily digest, abandoned cart
 recharts                    admin report charts
@@ -188,7 +187,7 @@ src/
     api/
       webhooks/stripe/        Stripe webhook (raw body, signature verified)
       uploads/presign/        S3 presigned PUT
-      invoices/[orderNumber]/ PDF stream
+      invoices/[orderNumber]/ printable invoice
   components/                 existing design system (unchanged)
     storefront/               buy box, cart, review form, address form…
     admin/                    table, form fields, bilingual input, image picker…
@@ -445,7 +444,7 @@ No `/categories/[slug]` — categories are a `/shop` filter.
 ### API route handlers
 
 `POST /api/webhooks/stripe` · `POST /api/uploads/presign` ·
-`GET /api/invoices/[orderNumber]` · `GET /api/reports/export` (CSV) ·
+`GET /[locale]/invoice/[orderNumber]` · `GET /api/reports/export` (CSV) ·
 `GET /api/health`.
 
 ### Scheduled jobs (`node-cron`, in-process)
@@ -476,7 +475,7 @@ Checkout Session (line items built server-side, `client_reference_id` = order id
 
 **The webhook is the source of truth.** `checkout.session.completed` marks the
 order paid, decrements stock, fires the low-stock check (8.6), increments coupon
-usage, generates the invoice number and PDF, and sends the confirmation email plus
+usage, generates the invoice number, and sends the confirmation email plus
 the admin alert. The return page never marks an order paid on its own. Handlers
 are idempotent, keyed on the Stripe event id.
 
@@ -552,7 +551,7 @@ Each phase ends in a working, committed, manually verifiable state.
 | 3 | **Admin shell + catalogue** | Admin layout, permission-gated nav, dashboard stub; product CRUD with bilingual fields, both pricing modes (C1), permanent discount (C7), S3 image upload; category CRUD; inventory screen with adjustments and low-stock list |
 | 4 | **Storefront on the DB** | Shop and PDP read Mongo; search, filters, sort, pagination; price and discount display; request-price state; stock states incl. "Only X left" and notify-me (C12); related products; ISR + on-write revalidation |
 | 5 | **Cart & pricing engine** | Cart persistence and merge-on-login, cart page, coupon entry, pricing engine + Vitest suite |
-| 6 | **Checkout, Stripe, orders** | Address book (UAE fields), checkout, Stripe Checkout, webhook, order records, admin order management with the status dropdown and tracking (C3), cancellation requests, emails, PDF invoices |
+| 6 | **Checkout, Stripe, orders** | Address book (UAE fields), checkout, Stripe Checkout, webhook, order records, admin order management with the status dropdown and tracking (C3), cancellation requests, emails, printable invoices |
 | 7 | **Customer portal** | Dashboard, profile, addresses, order history, tracking timeline, wishlist |
 | 8 | **Reviews** | Verified-buyer submission, moderation toggle + queue (C2), PDP rating display |
 | 9 | **Price enquiries** | Enquiry capture, admin quoting, `/quote/[token]` acceptance and payment (C1) |
@@ -640,6 +639,7 @@ Recorded so it is never re-litigated mid-build:
 | 2026-09-04 | **Phase 1 complete** — 18 Mongoose models with indexes, permission catalogue, settings accessor, seed script. Verified against MongoDB Atlas: Owner role, admin account, settings defaults, 2 categories, the 2 real formulas (bilingual content intact), 8 system CMS pages. Demo products and the 3 demo shelves removed from `src/content` |
 | 2026-09-04 | **Phase 2 complete** — customer OTP login (hashed codes, 3-way rate limiting, single use), admin password sign-in with emailed-OTP recovery, forced password change on seeded accounts, separately-signed session cookies, DB-backed permission guards, middleware protection for `/admin`, `/account` and `/checkout`, admin shell with permission-filtered nav, dashboard with live counts, bilingual auth emails. Verified: 20 logic checks plus route-protection and signed-session checks against a running server |
 | 2026-09-04 | **Phase 3 complete** — product CRUD with bilingual fields, both pricing modes (C1), permanent discount (C7), image upload, archive/restore; category CRUD with delete guarded by product count; inventory screen with relative stock adjustments; audit log on every mutation. Storage gained a **local driver** (`STORAGE_DRIVER=local`, writes to `public/uploads`) so the catalogue can be built before the client's bucket exists — S3 stays the production driver and the client-side upload code is identical for both. Vocabularies moved to `models/enums.ts` so client components do not pull Mongoose into the browser bundle. Fixed: the locale middleware was rewriting `/api/*` to `/en/api/*`. Verified: 28 validation, money and storage-key checks, plus admin screens and the full upload path (auth, type, size and traversal rejection) against a running server |
+| 2026-09-05 | **Phase 6 complete** — address book (UAE fields, Emirates list), checkout, Stripe Checkout, the webhook, order records with snapshot line items, customer order pages with a five-stage journey and cancellation requests, admin order list and detail with the status dropdown, courier and tracking (C3), printable bilingual invoices, and the order/low-stock/status email set. Order and invoice numbers come from atomic counters. **Verified against real Stripe test keys**: session creation with AED totals matching to the fils, signature rejection, a genuine CLI-delivered event, and full fulfilment — paid, stock decremented, low-stock alert armed, coupon counted, basket cleared, invoice numbered — plus idempotency on redelivery. Two bugs found by running it: **Stripe Checkout has no Arabic locale** (passing `ar` throws, so Arabic customers could not have paid; they now get `auto`), and invoice numbers collided with order numbers because both prefixes defaulted to `HB` |
 | 2026-09-05 | **Phase 5 complete** — server-side cart with a cookie for anonymous shoppers and merge-on-login; add-to-basket with quantity, cart page, coupon field, header badge. Pricing engine gained cart totals, coupon evaluation, shipping and tax — **41 unit tests**. C8's all-or-nothing rule implemented and verified: a coupon covering only some of the basket is rejected outright and names the offending product. Carts store ids and quantities only, never prices, so a basket left open across a price change, a sale ending or a coupon expiring is re-judged on every read. Lines that become unbuyable are shown, excluded from totals, and block checkout until cleared. **Interpretation to confirm:** free shipping is judged on the goods total *after* the coupon (plan §6 orders coupon before shipping) |
 | 2026-09-05 | **Categories became two-level.** The client supplied `docs/Products categories.docx` — four groupings, seven subcategories, both languages — which supersedes the scope PDF's flat "Indication Categories". Products sit on subcategories only; a parent expands to its children. Adds `parentId` with a depth guard, a tree editor and grouped product picker in admin, a two-level shop filter (parent chips reveal their shelves), and a reseed that retires the two placeholder shelves once nothing points at them |
 | 2026-09-05 | **Phase 4 complete** — storefront reads MongoDB. Shop with server-side search, shelf/form filters, five sorts and pagination (every view has its own URL, works without JS); product page rebuilt with the three buy states — price, request-price enquiry form (C1), and out-of-stock with a notify-me capture (plan 8.7); "Only X left" from the global threshold (C12); related products from the same category; homepage Featured section from the admin flag (C10). Pricing engine's product level built with **23 unit tests** — sale vs permanent discount, larger wins, never stacks (C7). The two real formulas are now **published as request-price**: their pricing is genuinely unconfirmed and an enquiry form is the honest state. Verified against the database with temporary fixtures covering discounted, low-stock, out-of-stock and on-sale products in both languages |

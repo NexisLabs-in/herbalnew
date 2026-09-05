@@ -925,3 +925,63 @@ select.field__input{
 .cart-coupon__error{margin-top:.6rem;font-size:.8125rem;color:#8A2A22;line-height:1.55}
 
 }
+
+/* ---------- 18. Orders ---------------------------------------------------- */
+@layer components {
+
+/* The journey, not the status word: "dispatched" means little on its own, but
+   it means a lot as the third of five steps with two still to come. */
+.journey{
+  list-style:none;margin:0;padding:0;display:grid;gap:.85rem;
+}
+.journey__step{
+  display:flex;align-items:center;gap:.75rem;
+  font-size:.875rem;color:var(--color-muted);
+}
+.journey__dot{
+  width:11px;height:11px;border-radius:50%;flex:none;
+  border:2px solid var(--color-line-strong);background:#fff;
+}
+.journey__step.is-done{color:var(--color-ink)}
+.journey__step.is-done .journey__dot{background:var(--color-violet-600);border-color:var(--color-violet-600)}
+.journey__step[aria-current="step"]{font-weight:600}
+.journey__step[aria-current="step"] .journey__dot{box-shadow:0 0 0 4px rgba(81,43,199,.16)}
+
+.order-row{
+  display:grid;gap:1rem;align-items:center;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  padding:1rem 1.15rem;border:1px solid var(--color-line);border-radius:var(--radius-lg);
+  background:#fff;text-decoration:none;color:var(--color-ink);
+  transition:border-color .25s var(--ease-brand),box-shadow .25s var(--ease-brand);
+}
+.order-row:hover{border-color:var(--color-violet-400);box-shadow:var(--shadow-sm)}
+.order-row__status{
+  font-family:var(--font-mono);font-size:.6875rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--color-violet-600);
+}
+@media (max-width:560px){
+  .order-row{grid-template-columns:minmax(0,1fr) auto}
+  .order-row__status{grid-column:1/-1}
+}
+
+.summary-lines{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.summary-lines li{display:flex;align-items:center;gap:.7rem;font-size:.875rem}
+.summary-lines img{border-radius:6px;background:var(--color-paper-100);object-fit:contain}
+.summary-lines__name{flex:1;min-width:0}
+.summary-lines__qty{color:var(--color-muted)}
+.summary-lines__total{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ---------- Checkout ------------------------------------------------------ */
+
+.checkout-form>*+*{margin-top:1.25rem}
+.address-choices{display:grid;gap:.6rem}
+.address-choice{
+  display:flex;gap:.75rem;align-items:flex-start;
+  padding:.9rem 1rem;border:1px solid var(--color-line);border-radius:var(--radius-md);
+  background:#fff;cursor:pointer;font-size:.875rem;line-height:1.5;
+}
+.address-choice.is-active{border-color:var(--color-violet-600);box-shadow:0 0 0 1px var(--color-violet-600)}
+.address-choice input{margin-top:.25rem;accent-color:var(--color-violet-600)}
+.address-choice em{color:var(--color-muted);font-style:normal}
+
+}

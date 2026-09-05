@@ -14,6 +14,7 @@ export * from "./Cart";
 export * from "./Category";
 export * from "./ContactMessage";
 export * from "./ContentPage";
+export * from "./Counter";
 export * from "./Coupon";
 export * from "./Customer";
 export * from "./Order";

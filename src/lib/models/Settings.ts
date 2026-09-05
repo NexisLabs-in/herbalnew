@@ -78,7 +78,11 @@ const reviewSettingsSchema = new Schema(
 
 const invoiceSchema = new Schema(
   {
-    prefix: { type: String, default: "HB" },
+    /** Distinct from the order prefix on purpose. Both defaulted to "HB" and
+     *  the two sequences run in step early on, so an order and its invoice came
+     *  out with the identical identifier — unreadable for anyone reconciling
+     *  them. Orders are HB-2026-0001, invoices INV-2026-0001. */
+    prefix: { type: String, default: "INV" },
     nextNumber: { type: Number, default: 1 },
     legalLines: { type: tlSchema(), default: () => ({ en: "", ar: "" }) },
     trn: { type: String, default: "" },
