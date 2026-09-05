@@ -556,6 +556,11 @@ body::before{
 .page-head--compact + .section,
 .page-head--compact + .section--tight{padding-block-start:clamp(1.25rem,2.5vw,2rem)}
 
+/* The account already has an icon in the header on desktop; the worded link
+   is for the collapsed menu, where a small icon row is easy to miss. */
+.nav__link--account{display:none}
+@media (max-width:900px){.nav__link--account{display:block}}
+
 .breadcrumb{display:flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.6875rem;letter-spacing:.1em;color:var(--color-muted);text-transform:uppercase}
 .breadcrumb a:hover{color:var(--color-violet-700)}
 

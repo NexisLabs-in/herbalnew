@@ -66,6 +66,16 @@ export function Header({ locale }: { locale: Locale }) {
               </Link>
             );
           })}
+
+          {/* Repeated here because on a phone the icon row is small and easy
+              to miss, and orders are the reason most people come back. */}
+          <Link
+            className="nav__link nav__link--account"
+            href={localePath(locale, "/account")}
+            aria-current={pathname.startsWith(localePath(locale, "/account")) ? "page" : undefined}
+          >
+            {t(UI.account, locale)}
+          </Link>
         </nav>
 
         <div className="header__actions">
@@ -77,6 +87,17 @@ export function Header({ locale }: { locale: Locale }) {
             title={t(UI.switchLanguage, locale)}
           >
             {LOCALE_SHORT[next]}
+          </Link>
+          {/* Always points at the account. Signed out, the middleware sends
+              them to sign in and back again — so this needs no session read,
+              and the cached layout stays cached. */}
+          <Link
+            className="icon-btn"
+            href={localePath(locale, "/account")}
+            aria-label={t(UI.account, locale)}
+            title={t(UI.account, locale)}
+          >
+            <Icon name="user" size={19} />
           </Link>
           <Link
             className="icon-btn icon-btn--basket"

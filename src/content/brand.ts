@@ -30,6 +30,7 @@ export const UI = {
   menu: { en: "Menu", ar: "القائمة" },
   closeMenu: { en: "Close menu", ar: "إغلاق القائمة" },
   basket: { en: "Basket", ar: "السلة" },
+  account: { en: "Your account", ar: "حسابك" },
   switchLanguage: { en: "العربية", ar: "English" },
   switchLanguageAria: { en: "Switch to Arabic", ar: "التبديل إلى الإنجليزية" },
   allFormulas: { en: "All formulas", ar: "كل التركيبات" },

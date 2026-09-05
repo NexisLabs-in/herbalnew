@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BRAND, DISCLAIMER, DISCLAIMER_TITLE, LEGAL_NAV, NAV } from "@/content/brand";
 import { CONTACT } from "@/content/pages";
-import { localePath, t, type Locale } from "@/lib/i18n";
+import { localePath, t, type L, type Locale } from "@/lib/i18n";
 
 export function Disclaimer({ locale }: { locale: Locale }) {
   return (
@@ -14,6 +14,12 @@ export function Disclaimer({ locale }: { locale: Locale }) {
     </section>
   );
 }
+
+const ACCOUNT_LINKS: { label: L; href: string }[] = [
+  { label: { en: "Your account", ar: "حسابك" }, href: "/account" },
+  { label: { en: "Your orders", ar: "طلباتك" }, href: "/account/orders" },
+  { label: { en: "Saved items", ar: "العناصر المحفوظة" }, href: "/account/wishlist" },
+];
 
 export function Footer({ locale }: { locale: Locale }) {
   const links = [...NAV.map((n) => ({ label: n.label, href: n.href })), LEGAL_NAV];
@@ -66,6 +72,18 @@ export function Footer({ locale }: { locale: Locale }) {
             <div>
               <p className="footer__h">{BRAND.name}</p>
               {links.map((l) => (
+                <Link key={l.href} className="footer__li" href={localePath(locale, l.href)}>
+                  <span>{t(l.label, locale)}</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Named in full, because "account" as an icon is a guess and
+                these two are what people come back for. */}
+            <div>
+              <p className="footer__h">{t(ACCOUNT_LINKS[0].label, locale)}</p>
+              {ACCOUNT_LINKS.map((l) => (
                 <Link key={l.href} className="footer__li" href={localePath(locale, l.href)}>
                   <span>{t(l.label, locale)}</span>
                   <span aria-hidden="true">&rarr;</span>

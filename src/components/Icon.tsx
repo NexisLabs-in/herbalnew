@@ -1,6 +1,7 @@
 export type IconName =
   | "research" | "balance" | "shield" | "doc" | "arrow" | "leaf" | "check"
-  | "mail" | "pin" | "clock" | "id" | "bag" | "menu" | "globe";
+  | "mail" | "pin" | "clock" | "id" | "user"
+  | "bag" | "menu" | "globe";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   research: <path d="M11 3a8 8 0 105.29 14.01l4.35 4.35 1.41-1.41-4.35-4.35A8 8 0 0011 3zm0 2a6 6 0 110 12 6 6 0 010-12z" />,
@@ -47,6 +48,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <rect x="2.5" y="5" width="19" height="14" rx="2" />
       <path d="M7 10h4M7 14h7M16 10h1.5" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.5 20c0-3.8 3.4-6 7.5-6s7.5 2.2 7.5 6" />
     </>
   ),
   bag: (
