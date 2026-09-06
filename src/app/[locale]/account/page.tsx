@@ -117,9 +117,9 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
                       key={String(order._id)}
                       href={localePath(locale, `/account/orders/${order.orderNumber}`)}
                     >
-                      <span>
+                      <span className="order-row__id">
                         <strong dir="ltr">{order.orderNumber}</strong>
-                        <span className="cart-line__unit">
+                        <span className="order-row__meta">
                           {new Date(order.createdAt).toLocaleDateString(
                             locale === "ar" ? "ar-AE-u-nu-latn" : "en-AE",
                             { day: "numeric", month: "short", year: "numeric" },
@@ -129,7 +129,9 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
                       <span className="order-row__status">
                         {t(STATUS_LABEL[order.fulfillmentStatus], locale)}
                       </span>
-                      <strong>{formatFils(order.grandTotalFils, locale)}</strong>
+                      <strong className="order-row__total">
+                        {formatFils(order.grandTotalFils, locale)}
+                      </strong>
                     </Link>
                   ))}
                 </div>

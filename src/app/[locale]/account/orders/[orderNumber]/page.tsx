@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BRAND } from "@/content/brand";
 import { PageHead } from "@/components/Blocks";
+import { AccountNav } from "@/components/storefront/AccountNav";
 import { CancelOrderForm } from "@/components/storefront/CancelOrderForm";
 import { requireCustomer } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
@@ -92,7 +93,10 @@ export default async function CustomerOrderPage({
 
       <section className="section--tight">
         <div className="shell shell--wide">
-          <div className="cart-layout">
+          <div className="account-layout">
+            <AccountNav locale={locale} />
+
+            <div className="cart-layout">
             <div>
               {/* Progress, as a sequence of stages rather than a status word —
                   "dispatched" means little without knowing what comes next. */}
@@ -216,6 +220,7 @@ export default async function CustomerOrderPage({
                 </Link>
               ) : null}
             </aside>
+            </div>
           </div>
         </div>
       </section>
