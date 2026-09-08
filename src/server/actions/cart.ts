@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { MAX_LINE_QTY, findCart, openCart } from "@/lib/cart";
+import { MAX_LINE_QTY, findCart, openCart, orderQtyLimits } from "@/lib/cart";
+import { isLocale, t, type Locale } from "@/lib/i18n";
+import { SHOP } from "@/content/shop";
 import { connectDb } from "@/lib/db";
 import { cartExpiry } from "@/lib/models/Cart";
 import { Coupon } from "@/lib/models/Coupon";
@@ -29,7 +31,16 @@ function revalidateCart() {
   revalidatePath("/[locale]", "layout");
 }
 
-export async function addToCart(productId: string, qty = 1): Promise<CartActionState> {
+function localeOf(value?: string): Locale {
+  return value && isLocale(value) ? value : "en";
+}
+
+function qtyMessage(kind: "min" | "max" | "short", n: number, locale: Locale) {
+  const copy = kind === "min" ? SHOP.minOrder : kind === "max" ? SHOP.maxOrder : SHOP.onlyAvailable;
+  return t(copy, locale).replace("{qty}", String(n));
+}
+
+export async function addToCart(productId: string, qty = 1, localeRaw?: string): Promise<CartActionState> {
   if (!objectId.safeParse(productId).success) return { error: "That product could not be found." };
 
   await connectDb();
@@ -50,31 +61,35 @@ export async function addToCart(productId: string, qty = 1): Promise<CartActionS
     return { error: "That product is out of stock." };
   }
 
+  const locale = localeOf(localeRaw);
+  const limits = orderQtyLimits(product);
+  if (limits.impossible) {
+    return { error: qtyMessage("short", limits.min, locale) };
+  }
+
   const cart = await openCart();
   const existing = cart.items.find(
     (item: { productId: unknown }) => String(item.productId) === productId,
   );
 
-  const wanted = Math.min((existing?.qty ?? 0) + Math.max(1, qty), MAX_LINE_QTY);
-  const allowed = product.trackInventory ? Math.min(wanted, product.stock) : wanted;
+  const addQty = Math.max(1, qty);
+  const wanted = (existing?.qty ?? 0) + addQty;
 
-  if (existing) existing.qty = allowed;
-  else cart.items.push({ productId: product._id, qty: allowed, addedAt: new Date() });
+  if (!existing && addQty < limits.min) return { error: qtyMessage("min", limits.min, locale) };
+  if (wanted > limits.max) return { error: qtyMessage("max", limits.max, locale) };
+  if (wanted > MAX_LINE_QTY) return { error: qtyMessage("max", MAX_LINE_QTY, locale) };
+
+  if (existing) existing.qty = wanted;
+  else cart.items.push({ productId: product._id, qty: wanted, addedAt: new Date() });
 
   cart.expiresAt = cartExpiry();
   await cart.save();
   revalidateCart();
 
-  if (allowed < wanted) {
-    return {
-      ok: true,
-      notice: `Only ${allowed} available — your basket has been set to that.`,
-    };
-  }
-  return { ok: true, notice: "Added to your basket." };
+  return { ok: true, notice: t(SHOP.addedToBasket, locale) };
 }
 
-export async function setCartQty(productId: string, qty: number): Promise<CartActionState> {
+export async function setCartQty(productId: string, qty: number, localeRaw?: string): Promise<CartActionState> {
   if (!objectId.safeParse(productId).success) return { error: "That product could not be found." };
 
   const cart = await findCart();
@@ -91,17 +106,27 @@ export async function setCartQty(productId: string, qty: number): Promise<CartAc
   );
   if (!item) return { error: "That item is not in your basket." };
 
+  const locale = localeOf(localeRaw);
+  const limits = orderQtyLimits(product);
+  if (limits.impossible) return { error: qtyMessage("short", limits.min, locale) };
+  if (qty < limits.min) return { error: qtyMessage("min", limits.min, locale) };
+
+  // Stepping down from a stale quantity above the maximum is allowed, so the
+  // customer can get back inside the range. Raising it further is not.
+  if (qty > limits.max && qty >= item.qty) return { error: qtyMessage("max", limits.max, locale) };
+
   const wanted = Math.min(qty, MAX_LINE_QTY);
   const allowed = product.trackInventory ? Math.min(wanted, product.stock) : wanted;
 
   if (allowed <= 0) return removeFromCart(productId);
+  if (allowed < limits.min) return { error: qtyMessage("min", limits.min, locale) };
 
   item.qty = allowed;
   cart.expiresAt = cartExpiry();
   await cart.save();
   revalidateCart();
 
-  if (allowed < wanted) return { ok: true, notice: `Only ${allowed} available.` };
+  if (allowed < wanted) return { ok: true, notice: qtyMessage("short", allowed, locale) };
   return { ok: true };
 }
 

@@ -90,6 +90,10 @@ export const SHOP: Record<string, L> = {
   // --- Basket ---------------------------------------------------------------
   addToBasket: { en: "Add to basket", ar: "أضف إلى السلة" },
   adding: { en: "Adding…", ar: "جارٍ الإضافة…" },
+  addedToBasket: { en: "Added to your basket.", ar: "أُضيف إلى سلتك." },
+  minOrder: { en: "The minimum for this formula is {qty}.", ar: "الحد الأدنى لهذه التركيبة هو {qty}." },
+  maxOrder: { en: "The maximum for this formula is {qty}.", ar: "الحد الأقصى لهذه التركيبة هو {qty}." },
+  onlyAvailable: { en: "Only {qty} available.", ar: "المتوفر {qty} فقط." },
   added: { en: "Added to your basket", ar: "أُضيف إلى سلتك" },
   viewBasket: { en: "View basket", ar: "عرض السلة" },
   quantity: { en: "Quantity", ar: "الكمية" },
@@ -151,6 +155,14 @@ export const SHOP: Record<string, L> = {
     en: "Only {qty} available — quantity reduced.",
     ar: "المتوفر {qty} فقط — تم تقليل الكمية.",
   },
+  lineBelowMin: {
+    en: "This formula is sold from {qty}. Increase the quantity to continue.",
+    ar: "تُباع هذه التركيبة ابتداءً من {qty}. زِد الكمية للمتابعة.",
+  },
+  lineAboveMax: {
+    en: "The most you can order is {qty}. Reduce the quantity to continue.",
+    ar: "الحد الأقصى للطلب هو {qty}. قلّل الكمية للمتابعة.",
+  },
   removeUnavailable: { en: "Remove unavailable items", ar: "إزالة العناصر غير المتوفرة" },
   cartBlocked: {
     en: "Some items cannot be bought right now. Remove them to continue.",
@@ -159,6 +171,8 @@ export const SHOP: Record<string, L> = {
 
   // --- Product page ---------------------------------------------------------
   relatedTitle: { en: "From the same shelf", ar: "من الرف نفسه" },
+  recommendedTitle: { en: "Recommended", ar: "موصى به" },
+  recommendedLoading: { en: "Loading more…", ar: "جارٍ تحميل المزيد…" },
   composition: { en: "Composition", ar: "التركيب" },
   chemistryEffects: { en: "Chemistry & effects", ar: "الكيمياء والتأثيرات" },
   featuredTitle: { en: "Featured formulas", ar: "تركيبات مميزة" },

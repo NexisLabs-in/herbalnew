@@ -2,11 +2,22 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { SECTION_TYPES, type SectionType } from "@/lib/models/enums";
+import { type SectionType } from "@/lib/models/enums";
 import { SECTION_LABELS } from "@/lib/cms/registry";
+import { cmsPagePath } from "@/lib/cms/routes";
 import { savePage } from "@/server/actions/content";
 import type { ActionState } from "@/lib/validation/shared";
 import { BilingualField, TextField, Toggle, emptyTL, type TL } from "./fields/Fields";
+
+const GENERAL_SECTIONS: SectionType[] = ["richText", "noteBox", "traditionsRibbon", "ctaBanner"];
+const HOME_SECTIONS: SectionType[] = ["hero", "trustStrip", "featuredProducts", "categoryGrid", "methodTeaser", "advisory"];
+const FAQ_SECTIONS: SectionType[] = ["accordion"];
+
+function addableFor(slug: string): SectionType[] {
+  if (slug === "home") return [...GENERAL_SECTIONS, ...HOME_SECTIONS];
+  if (slug === "faq") return [...GENERAL_SECTIONS, ...FAQ_SECTIONS];
+  return GENERAL_SECTIONS;
+}
 
 /** The page builder.
  *
@@ -48,12 +59,17 @@ export function PageEditor({
   slug,
   initial,
   blanks,
+  headingLabel,
+  introLabel,
 }: {
   slug: string;
   initial: Value;
   /** An empty, valid instance of each section type, built by the registry on
    *  the server so the client never has to know the shapes. */
   blanks: Record<string, Record<string, unknown>>;
+  /** Policies uses these for the line customers see, not the search fields. */
+  headingLabel?: string;
+  introLabel?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState<Value>(initial);
@@ -82,7 +98,10 @@ export function PageEditor({
 
   const save = () =>
     start(async () => {
-      const result = await savePage(slug, value);
+      const result = await savePage(slug, {
+        ...value,
+        sections: value.sections.map(normaliseSection),
+      });
       setState(result);
       if (result.ok) router.refresh();
     });
@@ -132,11 +151,13 @@ export function PageEditor({
 
       // A list of bilingual strings, or of question/answer pairs.
       if (Array.isArray(fieldValue)) {
+        const pairs = isPairList(section.type, key);
         return (
           <ListField
             key={key}
             label={humanise(key)}
             items={fieldValue}
+            pairs={pairs}
             onChange={(next) => setField(index, key, next)}
           />
         );
@@ -172,22 +193,24 @@ export function PageEditor({
         </div>
         <div className="admin-fieldset__body">
           <BilingualField
-            label="Title"
+            label={headingLabel ?? "Title"}
             required
             value={value.title}
+            hint={headingLabel ? "The heading at the top of the page." : undefined}
             onChange={(next) => setValue({ ...value, title: next })}
           />
           <BilingualField
             label="SEO title"
             value={value.seo.title}
-            hint="Leave empty to use the page title."
+            hint="Leave empty to use the page heading."
             onChange={(next) => setValue({ ...value, seo: { ...value.seo, title: next } })}
           />
           <BilingualField
-            label="SEO description"
+            label={introLabel ?? "SEO description"}
             multiline
             rows={2}
             value={value.seo.description}
+            hint={introLabel ? "The line under the heading. Also used as the search description." : undefined}
             onChange={(next) => setValue({ ...value, seo: { ...value.seo, description: next } })}
           />
           <Toggle
@@ -199,12 +222,21 @@ export function PageEditor({
         </div>
       </div>
 
-      {value.sections.map((section, index) => (
+      {value.sections.map((section, index) => {
+        const sectionHeading = asTL(section.data.heading).en.trim();
+        const named = slug === "legal" && Boolean(sectionHeading);
+        return (
         <div className="admin-fieldset" key={`${section.type}-${index}`}>
           <div className="admin-fieldset__head admin-review__head">
             <div>
-              <h2 className="admin-fieldset__legend">{SECTION_LABELS[section.type].label}</h2>
-              <p className="admin-fieldset__hint">{SECTION_LABELS[section.type].hint}</p>
+              <h2 className="admin-fieldset__legend">
+                {named ? sectionHeading : SECTION_LABELS[section.type].label}
+              </h2>
+              <p className="admin-fieldset__hint">
+                {named
+                  ? "One panel on the policies page. A blank line starts a new numbered point."
+                  : SECTION_LABELS[section.type].hint}
+              </p>
             </div>
             <div className="admin-list__tools">
               <button
@@ -254,15 +286,21 @@ export function PageEditor({
             {renderFields(index, section)}
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {adding ? (
         <div className="admin-card" style={{ marginBottom: "1.25rem" }}>
           <p className="field__label" style={{ marginBottom: ".75rem" }}>
             Add a section
           </p>
+          {slug === "home" ? (
+            <p className="admin-note" style={{ marginBottom: ".85rem" }}>
+              Hero, Featured products, Category grid, Method teaser and Health notice are listed here so a deleted homepage block can be put back. They are not offered on other pages.
+            </p>
+          ) : null}
           <div className="section-choices">
-            {SECTION_TYPES.map((type) => (
+            {addableFor(slug).map((type) => (
               <button
                 className="section-choice"
                 type="button"
@@ -297,7 +335,7 @@ export function PageEditor({
         <button className="btn btn--brand" type="button" disabled={pending} onClick={save}>
           {pending ? "Saving…" : "Save page"}
         </button>
-        <a className="btn btn--ghost" href={`/en/${slug === "home" ? "" : slug}`} target="_blank" rel="noreferrer">
+        <a className="btn btn--ghost" href={cmsPagePath(slug)} target="_blank" rel="noreferrer">
           View page
         </a>
 
@@ -330,22 +368,43 @@ function humanise(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/** A repeatable list — plain bilingual lines, or question and answer pairs.
- *  Both shapes appear in the registry, and the editor stays generic by looking
- *  at what the first item actually is. */
+/** Question lists are empty until the first item is added, so the shape cannot
+ *  be guessed from an existing row — an empty Questions block must still add
+ *  a question and answer, not a plain line. */
+function isPairList(type: SectionType, key: string): boolean {
+  return type === "accordion" && key === "items";
+}
+
+function asPair(item: unknown): { q: TL; a: TL } {
+  if (item && typeof item === "object" && "q" in item) {
+    const pair = item as { q?: unknown; a?: unknown };
+    return { q: asTL(pair.q), a: asTL(pair.a) };
+  }
+  return { q: asTL(item), a: emptyTL() };
+}
+
+function normaliseSection(section: EditorSection): EditorSection {
+  if (section.type !== "accordion" || !Array.isArray(section.data.items)) return section;
+  return {
+    ...section,
+    data: { ...section.data, items: section.data.items.map(asPair) },
+  };
+}
+
+/** A repeatable list — plain bilingual lines, or question and answer pairs. */
 function ListField({
   label,
   items,
+  pairs,
   onChange,
 }: {
   label: string;
   items: unknown[];
+  pairs: boolean;
   onChange: (items: unknown[]) => void;
 }) {
-  const isPairs = items.length > 0 && typeof items[0] === "object" && items[0] !== null && "q" in (items[0] as object);
-
   const add = () =>
-    onChange([...items, isPairs ? { q: emptyTL(), a: emptyTL() } : emptyTL()]);
+    onChange([...items, pairs ? { q: emptyTL(), a: emptyTL() } : emptyTL()]);
 
   const move = (index: number, by: number) => {
     const target = index + by;
@@ -363,28 +422,28 @@ function ListField({
       </div>
 
       {items.map((item, index) => {
-        const pair = item as { q?: unknown; a?: unknown };
+        const pair = asPair(item);
         const single = asTL(item);
 
         return (
           <div className="admin-list__row" key={index}>
             <div className="admin-list__inputs">
-              {"q" in (item as object) ? (
+              {pairs ? (
                 <>
                   <BilingualField
                     label="Question"
-                    value={asTL(pair.q)}
+                    value={pair.q}
                     onChange={(next) =>
-                      onChange(items.map((entry, i) => (i === index ? { ...pair, q: next } : entry)))
+                      onChange(items.map((entry, i) => (i === index ? { ...asPair(entry), q: next } : entry)))
                     }
                   />
                   <BilingualField
                     label="Answer"
                     multiline
                     rows={3}
-                    value={asTL(pair.a)}
+                    value={pair.a}
                     onChange={(next) =>
-                      onChange(items.map((entry, i) => (i === index ? { ...pair, a: next } : entry)))
+                      onChange(items.map((entry, i) => (i === index ? { ...asPair(entry), a: next } : entry)))
                     }
                   />
                 </>

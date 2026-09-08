@@ -40,6 +40,15 @@ const asLink = (value: unknown) => {
   return { label: asTL(record.label), href: record.href ?? "" };
 };
 
+/** A stored path may be `/method` or already carry a locale. Either should
+ *  follow the page the visitor is on. */
+function cmsHref(href: string, locale: Locale): string {
+  const value = href.trim();
+  if (!value || /^(https?:|mailto:|tel:)/i.test(value)) return value;
+  const stripped = value.replace(/^\/(en|ar)(?=\/|$)/, "") || "/";
+  return localePath(locale, stripped);
+}
+
 /** Paragraphs from plain text. Blank lines separate them, which is what a
  *  person typing into a textarea already expects. */
 const paragraphs = (text: string) =>
@@ -355,46 +364,67 @@ export function Section({ section, context }: { section: RenderedSection; contex
       );
     }
 
+    case "noteBox": {
+      const heading = tl(asTL(data.heading), locale);
+      const body = paragraphs(tl(asTL(data.body), locale));
+      const dark = data.dark === true;
+      return (
+        <section className="section--tight">
+          <div className="shell shell--wide">
+            <Reveal className={dark ? "panel panel--dark" : "panel panel--advisory"}>
+              {heading ? <p className="eyebrow eyebrow--plain">{heading}</p> : null}
+              {body.map((paragraph, index) => (
+                <p className="body" key={index} style={{ marginTop: heading || index ? ".9rem" : 0, maxWidth: "82ch" }}>
+                  {paragraph}
+                </p>
+              ))}
+            </Reveal>
+          </div>
+        </section>
+      );
+    }
+
     case "advisory":
       return (
         <section className="section--tight">
           <div className="shell shell--wide">
-            <Advisory locale={locale} dark={data.dark === true} />
+            <Advisory locale={locale} />
           </div>
         </section>
       );
 
     case "ctaBanner": {
       const cta = asLink(data.cta);
+      const heading = tl(asTL(data.heading), locale);
+      const body = tl(asTL(data.body), locale);
+      const href = cmsHref(cta.href, locale);
+      const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body);
       return (
-        <section className="section--tight">
-          <div className="shell shell--wide">
-            <div className="panel panel--dark cta-banner">
-              <div>
-                {tl(asTL(data.heading), locale) ? (
-                  <h2 className="display d3">{tl(asTL(data.heading), locale)}</h2>
-                ) : null}
-                {tl(asTL(data.body), locale) ? (
-                  <p className="body" style={{ marginTop: ".8rem" }}>
-                    {tl(asTL(data.body), locale)}
-                  </p>
-                ) : null}
-              </div>
-              {cta.href ? (
-                <Link className="btn btn--brand" href={cta.href}>
-                  {tl(cta.label, locale)}{" "}
-                  <span className="btn__arrow" aria-hidden="true">&rarr;</span>
-                </Link>
+        <section className="cta-close">
+          <div className="shell shell--wide cta-banner">
+            <div>
+              {heading ? <h2 className="display d3">{heading}</h2> : null}
+              {body ? (
+                email ? (
+                  <a className="cta-banner__mail" href={`mailto:${body}`}>{body}</a>
+                ) : (
+                  <p className="body">{body}</p>
+                )
               ) : null}
             </div>
+            {href ? (
+              <Link className="btn btn--brand" href={href}>
+                {tl(cta.label, locale)}{" "}
+                <span className="btn__arrow" aria-hidden="true">&rarr;</span>
+              </Link>
+            ) : null}
           </div>
         </section>
       );
     }
 
     default:
-      // An unknown type is a section saved by a newer version of the registry.
-      // Rendering nothing is better than crashing the whole page for it.
+      // Copy blocks and unknown types are rendered by their own pages, not here.
       return null;
   }
 }

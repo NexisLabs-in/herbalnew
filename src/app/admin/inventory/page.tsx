@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { StockAdjuster } from "@/components/admin/StockAdjuster";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { Product, StockNotification } from "@/lib/models";
@@ -17,15 +19,26 @@ export const dynamic = "force-dynamic";
  *  the thing that needs attention. One global threshold drives this list, the
  *  admin email and the public "Only X left" notice (C12).
  */
-export default async function AdminInventoryPage() {
+export default async function AdminInventoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const admin = await requireAdminPage("inventory:read");
+  const { page: requested } = await searchParams;
 
   await connectDb();
   const settings = await getSettings();
   const threshold = settings.inventory.lowStockThreshold;
 
-  const products = await Product.find({ status: { $ne: "archived" }, trackInventory: true })
+  const filter = { status: { $ne: "archived" }, trackInventory: true };
+  const total = await Product.countDocuments(filter);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
+  const products = await Product.find(filter)
     .sort({ stock: 1, "name.en": 1 })
+    .skip(skip)
+    .limit(perPage)
     .lean();
 
   const untracked = await Product.countDocuments({
@@ -40,8 +53,10 @@ export default async function AdminInventoryPage() {
   ]);
   const waitingFor = new Map(waiting.map((row) => [String(row._id), row.count]));
 
-  const out = products.filter((product) => product.stock === 0);
-  const low = products.filter((product) => product.stock > 0 && product.stock <= threshold);
+  const [out, low] = await Promise.all([
+    Product.countDocuments({ ...filter, stock: 0 }),
+    Product.countDocuments({ ...filter, stock: { $gt: 0, $lte: threshold } }),
+  ]);
   const writable = can(admin.permissions, "inventory:write");
 
   return (
@@ -50,7 +65,7 @@ export default async function AdminInventoryPage() {
         <div>
           <h1 className="admin-head__title">Inventory</h1>
           <p className="admin-head__sub">
-            {out.length} out of stock · {low.length} low · threshold {threshold} ·{" "}
+            {out} out of stock · {low} low · threshold {threshold} ·{" "}
             <Link className="link-plain" href="/admin/settings">
               change threshold
             </Link>
@@ -119,6 +134,8 @@ export default async function AdminInventoryPage() {
           </table>
         </div>
       )}
+
+      <AdminPager path="/admin/inventory" page={page} pages={pages} />
 
       {untracked > 0 ? (
         <p className="admin-note" style={{ marginTop: "1.25rem" }}>

@@ -14,11 +14,15 @@ import { t, type Locale } from "@/lib/i18n";
 export function EnquiryForm({
   productId,
   locale,
+  minQty = 1,
+  maxQty = null,
   defaultEmail,
   defaultName,
 }: {
   productId: string;
   locale: Locale;
+  minQty?: number;
+  maxQty?: number | null;
   defaultEmail?: string;
   defaultName?: string;
 }) {
@@ -26,9 +30,9 @@ export function EnquiryForm({
 
   if (state.ok) {
     return (
-      <div className="buy-box" id="enquire">
+      <div className="enquire enquire--done" id="enquire">
         <p className="eyebrow eyebrow--plain">{t(SHOP.enquiryTitle, locale)}</p>
-        <p className="body" style={{ marginTop: ".9rem" }} role="status">
+        <p className="body" role="status">
           {t(SHOP.enquiryDone, locale)}
         </p>
       </div>
@@ -36,70 +40,59 @@ export function EnquiryForm({
   }
 
   return (
-    <form className="buy-box" id="enquire" action={submit}>
+    <form className="enquire" id="enquire" action={submit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="locale" value={locale} />
 
       <p className="eyebrow eyebrow--plain">{t(SHOP.enquiryTitle, locale)}</p>
-      <p className="body small" style={{ marginTop: ".8rem", maxWidth: "46ch" }}>
-        {t(SHOP.enquiryBody, locale)}
-      </p>
+      <p className="enquire__lead">{t(SHOP.enquiryBody, locale)}</p>
 
       {state.error ? (
-        <p className="auth-card__error" style={{ marginTop: "1rem", marginBottom: 0 }} role="alert">
-          {t(SHOP.enquiryFailed, locale)}
+        <p className="auth-card__error enquire__error" role="alert">
+          {state.error}
         </p>
       ) : null}
 
-      <div className="stack" style={{ ["--stack" as string]: ".9rem", marginTop: "1.25rem" }}>
-        <label className="field">
-          <span className="field__label">{t(SHOP.enquiryName, locale)}</span>
-          <input className="field__input" name="name" required defaultValue={defaultName} autoComplete="name" />
+      <div className="enquire__fields">
+        <label className="enquire__field">
+          <span>{t(SHOP.enquiryName, locale)}</span>
+          <input name="name" required defaultValue={defaultName} autoComplete="name" />
         </label>
 
-        <label className="field">
-          <span className="field__label">{t(SHOP.enquiryEmail, locale)}</span>
-          <input
-            className="field__input"
-            name="email"
-            type="email"
-            required
-            dir="ltr"
-            defaultValue={defaultEmail}
-            autoComplete="email"
-          />
+        <label className="enquire__field">
+          <span>{t(SHOP.enquiryEmail, locale)}</span>
+          <input name="email" type="email" required dir="ltr" defaultValue={defaultEmail} autoComplete="email" />
         </label>
 
-        <div className="field__row">
-          <label className="field">
-            <span className="field__label">{t(SHOP.enquiryPhone, locale)}</span>
-            <input className="field__input" name="phone" type="tel" dir="ltr" autoComplete="tel" />
+        <div className="enquire__pair">
+          <label className="enquire__field">
+            <span>{t(SHOP.enquiryPhone, locale)}</span>
+            <input name="phone" type="tel" dir="ltr" autoComplete="tel" />
           </label>
 
-          <label className="field">
-            <span className="field__label">{t(SHOP.enquiryQty, locale)}</span>
+          <label className="enquire__field">
+            <span>{t(SHOP.enquiryQty, locale)}</span>
             <input
-              className="field__input"
               name="qty"
               type="number"
-              min={1}
-              max={999}
-              defaultValue={1}
+              min={Math.max(1, minQty)}
+              max={maxQty && maxQty > 0 ? maxQty : 99}
+              defaultValue={Math.max(1, minQty)}
               dir="ltr"
             />
           </label>
         </div>
 
-        <label className="field">
-          <span className="field__label">{t(SHOP.enquiryMessage, locale)}</span>
-          <textarea className="field__input" name="message" rows={3} />
+        <label className="enquire__field">
+          <span>{t(SHOP.enquiryMessage, locale)}</span>
+          <textarea name="message" rows={2} />
         </label>
-
-        <button className="btn btn--brand btn--block" type="submit" disabled={pending}>
-          {pending ? t(SHOP.enquirySending, locale) : t(SHOP.enquirySubmit, locale)}
-          {!pending ? <span className="btn__arrow" aria-hidden="true">&rarr;</span> : null}
-        </button>
       </div>
+
+      <button className="btn btn--brand" type="submit" disabled={pending}>
+        {pending ? t(SHOP.enquirySending, locale) : t(SHOP.enquirySubmit, locale)}
+        {!pending ? <span className="btn__arrow" aria-hidden="true">&rarr;</span> : null}
+      </button>
     </form>
   );
 }

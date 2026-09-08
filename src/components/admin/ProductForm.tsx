@@ -40,6 +40,8 @@ export type ProductFormValue = {
   permanentDiscount: { type: "percent" | "amount"; value: string } | null;
   trackInventory: boolean;
   stock: string;
+  minOrderQty: string;
+  maxOrderQty: string;
   composition: TL;
   chemistryEffects: TL;
   netQuantity: TL;
@@ -68,6 +70,8 @@ export const blankProduct = (): ProductFormValue => ({
   permanentDiscount: null,
   trackInventory: true,
   stock: "0",
+  minOrderQty: "1",
+  maxOrderQty: "",
   composition: emptyTL(),
   chemistryEffects: emptyTL(),
   netQuantity: emptyTL(),
@@ -129,6 +133,8 @@ export function ProductForm({
       const result = await saveProduct(productId, {
         ...value,
         stock: value.stock === "" ? 0 : value.stock,
+        minOrderQty: value.minOrderQty === "" ? 1 : value.minOrderQty,
+        maxOrderQty: value.maxOrderQty,
         featuredOrder: value.featuredOrder === "" ? 0 : value.featuredOrder,
         price: value.pricingMode === "fixed" ? value.price : "",
         permanentDiscount: value.permanentDiscount
@@ -329,6 +335,26 @@ export function ProductForm({
             value={value.shelfLifeMonths}
             error={err("shelfLifeMonths")}
             onChange={(next) => set("shelfLifeMonths", next)}
+          />
+        </div>
+        <div className="admin-row">
+          <TextField
+            label="Minimum order quantity"
+            path="minOrderQty"
+            type="number"
+            value={value.minOrderQty}
+            error={err("minOrderQty")}
+            hint="The fewest a customer may buy in one order."
+            onChange={(next) => set("minOrderQty", next)}
+          />
+          <TextField
+            label="Maximum order quantity"
+            path="maxOrderQty"
+            type="number"
+            value={value.maxOrderQty}
+            error={err("maxOrderQty")}
+            hint="Leave empty for no product limit. Stock and 99 still apply."
+            onChange={(next) => set("maxOrderQty", next)}
           />
         </div>
       </Fieldset>

@@ -8,8 +8,17 @@ export type AccordionItem = { key: string; title: string; body: ReactNode };
  * Single-open accordion. `grid-template-rows: 0fr -> 1fr` animates the height
  * without measuring, so there is no layout thrash on open.
  */
-export function Accordion({ items }: { items: AccordionItem[] }) {
-  const [open, setOpen] = useState(0);
+export function Accordion({
+  items,
+  sign = true,
+  startOpen = 0,
+}: {
+  items: AccordionItem[];
+  /** FAQ drops the plus; a number and the question are enough. */
+  sign?: boolean;
+  startOpen?: number;
+}) {
+  const [open, setOpen] = useState(startOpen);
   const uid = useId().replace(/:/g, "");
 
   return (
@@ -29,7 +38,7 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
               >
                 <span className="acc__num">{String(i + 1).padStart(2, "0")}</span>
                 <span className="acc__q">{item.title}</span>
-                <span className="acc__sign" aria-hidden="true" />
+                {sign ? <span className="acc__sign" aria-hidden="true" /> : null}
               </button>
             </h3>
             <div className={`acc__panel${isOpen ? " is-open" : ""}`} id={panelId} role="region">

@@ -14,12 +14,22 @@ import { formatFils, isLocale, localePath, t, type L, type Locale } from "@/lib/
 
 export const dynamic = "force-dynamic";
 
+/** A page of the list, not the whole history. A customer with years of orders
+ *  should not download every one of them to see the latest. */
+const PER_PAGE = 10;
+
+function pageNumber(value: string | undefined): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}
+
 const COPY: Record<string, L> = {
   title: { en: "Your orders", ar: "طلباتك" },
   empty: { en: "You have not ordered anything yet.", ar: "لم تطلب أي شيء بعد." },
   emptyHint: { en: "The cabinet is open whenever you are.", ar: "الخزانة مفتوحة في أي وقت." },
   items: { en: "items", ar: "منتجات" },
   item: { en: "item", ar: "منتج" },
+  view: { en: "View order", ar: "عرض الطلب" },
 };
 
 const STATUS_LABEL: Record<FulfillmentStatus, L> = {
@@ -44,20 +54,35 @@ export async function generateMetadata({
 
 export default async function CustomerOrdersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw as Locale;
 
   const customer = await requireCustomer(locale, localePath(locale, "/account/orders"));
+  const { page: requested } = await searchParams;
 
   await connectDb();
-  const orders = await Order.find({ customerId: customer._id })
-    .sort({ createdAt: -1 })
-    .limit(100)
-    .lean<OrderDoc[]>();
+  const filter = { customerId: customer._id };
+  const total = await Order.countDocuments(filter);
+  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const page = Math.min(pageNumber(requested), pages);
+
+  const orders =
+    total === 0
+      ? []
+      : await Order.find(filter)
+          .sort({ createdAt: -1 })
+          .skip((page - 1) * PER_PAGE)
+          .limit(PER_PAGE)
+          .lean<OrderDoc[]>();
+
+  const pageHref = (n: number) =>
+    n <= 1 ? localePath(locale, "/account/orders") : `${localePath(locale, "/account/orders")}?page=${n}`;
 
   return (
     <>
@@ -114,11 +139,41 @@ export default async function CustomerOrdersPage({
                     <strong className="order-row__total">
                       {formatFils(order.grandTotalFils, locale)}
                     </strong>
+                    <span className="order-row__view">
+                      {t(COPY.view, locale)}
+                      <span aria-hidden="true">&rarr;</span>
+                    </span>
                   </Link>
                 );
               })}
             </div>
           )}
+
+          {pages > 1 ? (
+            <nav className="pager" aria-label={t(SHOP.page, locale)}>
+              {page > 1 ? (
+                <Link className="btn btn--ghost btn--sm" href={pageHref(page - 1)}>
+                  {t(SHOP.previous, locale)}
+                </Link>
+              ) : (
+                <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
+                  {t(SHOP.previous, locale)}
+                </span>
+              )}
+              <span className="pager__count">
+                {t(SHOP.page, locale)} {page} {t(SHOP.of, locale)} {pages}
+              </span>
+              {page < pages ? (
+                <Link className="btn btn--ghost btn--sm" href={pageHref(page + 1)}>
+                  {t(SHOP.next, locale)}
+                </Link>
+              ) : (
+                <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
+                  {t(SHOP.next, locale)}
+                </span>
+              )}
+            </nav>
+          ) : null}
             </div>
           </div>
         </div>

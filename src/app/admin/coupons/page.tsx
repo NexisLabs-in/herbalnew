@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CouponManager, type CouponRow } from "@/components/admin/CouponManager";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { toAed } from "@/lib/money";
@@ -13,18 +15,31 @@ export const dynamic = "force-dynamic";
 const aed = (fils: number | null | undefined) =>
   fils === null || fils === undefined ? "" : toAed(fils).toFixed(2);
 
-export default async function AdminCouponsPage() {
+export default async function AdminCouponsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const admin = await requireAdminPage("coupons:read");
+  const { page: requested } = await searchParams;
 
   await connectDb();
+  const now = new Date();
+  const total = await Coupon.countDocuments();
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+  const live = await Coupon.countDocuments({
+    active: true,
+    $or: [{ expiresAt: null }, { expiresAt: { $gte: now } }],
+  });
+
   const [coupons, products, categories] = await Promise.all([
-    Coupon.find().sort({ createdAt: -1 }).lean<CouponDoc[]>(),
+    Coupon.find().sort({ createdAt: -1 }).skip(skip).limit(perPage).lean<CouponDoc[]>(),
     Product.find({ status: "published", pricingMode: "fixed" }).select("name sku categoryId").lean(),
     Category.find().select("name").lean(),
   ]);
 
   const categoryName = new Map(categories.map((c) => [String(c._id), c.name.en]));
-  const now = Date.now();
+  const nowMs = now.getTime();
 
   const rows: CouponRow[] = coupons.map((coupon) => ({
     id: String(coupon._id),
@@ -40,10 +55,8 @@ export default async function AdminCouponsPage() {
     usageLimitPerCustomer: coupon.usageLimitPerCustomer ? String(coupon.usageLimitPerCustomer) : "",
     usedCount: coupon.usedCount,
     active: coupon.active,
-    expired: Boolean(coupon.expiresAt && new Date(coupon.expiresAt).getTime() < now),
+    expired: Boolean(coupon.expiresAt && new Date(coupon.expiresAt).getTime() < nowMs),
   }));
-
-  const live = rows.filter((row) => row.active && !row.expired).length;
 
   return (
     <AdminShell admin={admin}>
@@ -66,6 +79,7 @@ export default async function AdminCouponsPage() {
           category: categoryName.get(String(product.categoryId)) ?? "—",
         }))}
       />
+      <AdminPager path="/admin/coupons" page={page} pages={pages} />
     </AdminShell>
   );
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { formatFils } from "@/lib/i18n";
@@ -35,10 +37,10 @@ const STATUS_CHIP: Record<FulfillmentStatus, string> = {
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; payment?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; payment?: string; page?: string }>;
 }) {
   const admin = await requireAdminPage("orders:read");
-  const { status, q, payment } = await searchParams;
+  const { status, q, payment, page: requested } = await searchParams;
 
   await connectDb();
 
@@ -55,8 +57,11 @@ export default async function AdminOrdersPage({
     ];
   }
 
+  const total = await Order.countDocuments(filter);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
   const [orders, counts, pendingCancellations] = await Promise.all([
-    Order.find(filter).sort({ createdAt: -1 }).limit(200).lean<OrderDoc[]>(),
+    Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage).lean<OrderDoc[]>(),
     Order.aggregate<{ _id: string; count: number }>([
       { $match: { paymentStatus: "paid" } },
       { $group: { _id: "$fulfillmentStatus", count: { $sum: 1 } } },
@@ -182,6 +187,8 @@ export default async function AdminOrdersPage({
           </table>
         </div>
       )}
+
+      <AdminPager path="/admin/orders" page={page} pages={pages} params={{ status, q, payment }} />
     </AdminShell>
   );
 }

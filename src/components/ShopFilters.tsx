@@ -94,7 +94,7 @@ export function ShopFilters({
           {t(SHOP.search, locale)}
         </button>
         {params.q ? (
-          <Link className="link-plain" href={shopHref(base, params, { q: undefined })}>
+          <Link className="link-plain" scroll={false} href={shopHref(base, params, { q: undefined })}>
             {t(SHOP.clear, locale)}
           </Link>
         ) : null}
@@ -105,6 +105,7 @@ export function ShopFilters({
           <span className="shop-bar__label">{t(SHOP.filterByShelf, locale)}</span>
           <div className="filters">
             <Link
+              scroll={false}
               className={`filter${activeCategory === "all" ? " is-active" : ""}`}
               href={shopHref(base, params, { category: undefined })}
               aria-current={activeCategory === "all" ? "true" : undefined}
@@ -113,6 +114,7 @@ export function ShopFilters({
             </Link>
             {tree.map((parent) => (
               <Link
+                scroll={false}
                 key={parent.id}
                 className={`filter${openParent?.id === parent.id ? " is-open" : ""}${
                   activeCategory === parent.slug ? " is-active" : ""
@@ -131,6 +133,7 @@ export function ShopFilters({
             <span className="shop-bar__label" />
             <div className="filters">
               <Link
+                scroll={false}
                 className={`filter filter--sub${activeCategory === openParent.slug ? " is-active" : ""}`}
                 href={shopHref(base, params, { category: openParent.slug })}
                 aria-current={activeCategory === openParent.slug ? "true" : undefined}
@@ -139,6 +142,7 @@ export function ShopFilters({
               </Link>
               {openParent.children.map((child: CategoryView) => (
                 <Link
+                  scroll={false}
                   key={child.id}
                   className={`filter filter--sub${activeCategory === child.slug ? " is-active" : ""}`}
                   href={shopHref(base, params, { category: child.slug })}
@@ -160,6 +164,7 @@ export function ShopFilters({
               { value: "powder", label: locale === "ar" ? "مسحوق" : "Powder" },
             ].map((option) => (
               <Link
+                scroll={false}
                 key={option.value}
                 className={`filter${activeForm === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
@@ -182,6 +187,7 @@ export function ShopFilters({
           <div className="filters">
             {sorts.map((option) => (
               <Link
+                scroll={false}
                 key={option.value}
                 className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
@@ -217,7 +223,7 @@ export function ShopPagination({
   return (
     <nav className="pager" aria-label={t(SHOP.page, locale)}>
       {page > 1 ? (
-        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page - 1) })}>
+        <Link className="btn btn--ghost btn--sm" scroll={false} href={shopHref(base, params, { page: String(page - 1) })}>
           {t(SHOP.previous, locale)}
         </Link>
       ) : (
@@ -231,7 +237,7 @@ export function ShopPagination({
       </span>
 
       {page < pages ? (
-        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page + 1) })}>
+        <Link className="btn btn--ghost btn--sm" scroll={false} href={shopHref(base, params, { page: String(page + 1) })}>
           {t(SHOP.next, locale)}
         </Link>
       ) : (

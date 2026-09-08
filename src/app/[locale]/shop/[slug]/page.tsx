@@ -7,7 +7,6 @@ import { PageHead } from "@/components/Blocks";
 import { Gallery } from "@/components/Gallery";
 import { Icon } from "@/components/Icon";
 import { Price } from "@/components/Price";
-import { ProductCard } from "@/components/ProductCard";
 import { StockLine } from "@/components/StockLine";
 import { AddToCart } from "@/components/storefront/AddToCart";
 import { EnquiryForm } from "@/components/storefront/EnquiryForm";
@@ -18,7 +17,8 @@ import { ReviewList } from "@/components/storefront/ReviewList";
 import { REVIEWS } from "@/content/reviews";
 import { getProductReviews, getReviewSummary, reviewableOrdersFor } from "@/lib/reviews";
 import { getCustomer } from "@/lib/auth/guards";
-import { getProductBySlug, getPublishedSlugs, getRelatedProducts } from "@/lib/catalogue";
+import { RecommendedProducts } from "@/components/storefront/RecommendedProducts";
+import { getProductBySlug, getPublishedSlugs, getRecommendedProducts } from "@/lib/catalogue";
 import { isLocale, locales, localePath, t, tl, type Locale } from "@/lib/i18n";
 
 export const revalidate = 300;
@@ -61,8 +61,8 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [related, customer, reviews, summary] = await Promise.all([
-    getRelatedProducts(product),
+  const [recommended, customer, reviews, summary] = await Promise.all([
+    getRecommendedProducts(product),
     getCustomer(),
     getProductReviews(product.id),
     getReviewSummary(product.id),
@@ -89,6 +89,8 @@ export default async function ProductPage({
   return (
     <>
       <PageHead
+        compact
+        className="page-head--product"
         kicker={product.categoryName ? tl(product.categoryName, locale) : BRAND.name}
         title={name}
         sub={tl(product.summary, locale)}
@@ -160,6 +162,8 @@ export default async function ProductPage({
                 <EnquiryForm
                   productId={product.id}
                   locale={locale}
+                  minQty={product.minOrderQty}
+                  maxQty={product.maxOrderQty}
                   defaultEmail={customer?.email}
                   defaultName={customer?.name || undefined}
                 />
@@ -191,7 +195,12 @@ export default async function ProductPage({
                       <AddToCart
                         productId={product.id}
                         locale={locale}
-                        maxQty={product.stockState === "untracked" ? null : product.stock}
+                        minQty={product.minOrderQty}
+                        maxQty={
+                          product.stockState === "untracked"
+                            ? product.maxOrderQty
+                            : Math.min(product.stock, product.maxOrderQty ?? product.stock)
+                        }
                       />
                     </div>
                   )}
@@ -287,11 +296,9 @@ export default async function ProductPage({
 
               <section>
                 <p className="eyebrow">04 — {t(UI.safety, locale)}</p>
-                <div className="panel panel--advisory" style={{ marginTop: "1rem" }}>
-                  <p className="eyebrow eyebrow--plain">{t(UI.readBeforeBuying, locale)}</p>
-                  <p className="body small" style={{ marginTop: ".8rem" }}>
-                    {t(ADVISORY, locale)}
-                  </p>
+                <div className="advisory" style={{ marginTop: "1rem" }}>
+                  <p className="advisory__label">{t(UI.readBeforeBuying, locale)}</p>
+                  <p className="advisory__text">{t(ADVISORY, locale)}</p>
                 </div>
 
                 {product.safety.cautions.length ? (
@@ -353,18 +360,13 @@ export default async function ProductPage({
         </div>
       </section>
 
-      {related.length ? (
-        <section className="section bg-paper" style={{ borderBlockStart: "1px solid var(--color-line)" }}>
-          <div className="shell shell--wide">
-            <h2 className="display d3">{t(SHOP.relatedTitle, locale)}</h2>
-            <div className="product-grid" style={{ marginTop: "clamp(1.5rem,3vw,2.5rem)" }}>
-              {related.map((item, index) => (
-                <ProductCard key={item.id} product={item} locale={locale} delay={index * 90} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <RecommendedProducts
+        initial={recommended.products}
+        total={recommended.total}
+        categoryId={product.categoryId}
+        excludeId={product.id}
+        locale={locale}
+      />
     </>
   );
 }

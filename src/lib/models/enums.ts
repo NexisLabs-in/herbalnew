@@ -74,6 +74,10 @@ export const SECTION_TYPES = [
   "imageText",
   "advisory",
   "ctaBanner",
+  "noteBox",
+  /** Fixed copy for Our Method and Contact. Not offered in "Add a section". */
+  "methodCopy",
+  "contactCopy",
 ] as const;
 
 export type SectionType = (typeof SECTION_TYPES)[number];

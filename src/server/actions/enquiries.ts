@@ -14,11 +14,13 @@ import { Product } from "@/lib/models/Product";
 import { quoteEmail } from "@/lib/emails/quotes";
 import { sendMail } from "@/lib/mail";
 import { getSettings, toPricingSettings } from "@/lib/settings";
+import { orderQtyLimits } from "@/lib/cart";
+import { SHOP } from "@/content/shop";
 import { priceCart, priceLine } from "@/lib/pricing";
 import { checkoutLineItems, checkoutReturnUrls, getStripe, stripeLocale, StripeNotConfiguredError } from "@/lib/stripe";
 import { addressSchema } from "@/lib/validation/checkout";
 import { aedAmount, fieldErrorsFrom, type ActionState } from "@/lib/validation/shared";
-import type { Locale } from "@/lib/i18n";
+import { t, type Locale } from "@/lib/i18n";
 
 /** The request-price loop (requirement C1).
  *
@@ -163,6 +165,15 @@ export async function payQuote(
   const product = await Product.findById(enquiry.productId).lean();
   if (!product || product.status !== "published") {
     return { error: "That product is no longer available." };
+  }
+
+  const limits = orderQtyLimits(product);
+  const quoteLocale = (enquiry.locale === "ar" ? "ar" : "en") as Locale;
+  if (limits.impossible || enquiry.qty < limits.min) {
+    return { error: t(SHOP.minOrder, quoteLocale).replace("{qty}", String(limits.min)) };
+  }
+  if (enquiry.qty > limits.max) {
+    return { error: t(SHOP.maxOrder, quoteLocale).replace("{qty}", String(limits.max)) };
   }
 
   // Priced through the same engine as the cart, with the quote standing in for

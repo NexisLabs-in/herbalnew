@@ -259,14 +259,19 @@ revisiting with them if a men's-health range grows.
   null when request), `permanentDiscount: { type: "percent"|"amount", value } | null`.
 - Inventory: `trackInventory`, `stock`, `lowStockAlertedAt | null`.
   **No per-product threshold** — one global number in Settings (C12).
+  `minOrderQty` (default 1) and `maxOrderQty` (null = no product cap). The
+  basket, checkout and quote payment refuse a quantity outside that range.
+  Stock and the line limit of 99 still apply. Empty maximum on the form means
+  no product-specific maximum.
 - Herbal content (carried over from `src/content/products.ts`):
   `composition{en,ar}`, `chemistryEffects{en,ar}`, `directions{ steps[{detail{en,ar},
   measure}], frequency{en,ar}, maximum{en,ar} } | null`, `netQuantity{en,ar}`,
   `batch{en,ar}`, `shelfLifeMonths`, `storage{en,ar}`,
   `safety{ targetGroup{en,ar}, cautions[{en,ar}], seekAdvice[{en,ar}] }`.
 - Media: `images[{ key, url, alt{en,ar}, isPrimary, kind: "photo"|"pack"|"carton"|"plate" }]`.
-- Merchandising: `featured`, `featuredOrder`. **No `relatedProductIds`** — related
-  products are computed from the category.
+- Merchandising: `featured`, `featuredOrder`. **No `relatedProductIds`** — the
+  recommended list under reviews is every other published product on the same
+  category, highest `ratingAvg` first, loaded in pages as the visitor scrolls.
 - Publishing: `status: "draft"|"published"|"archived"`, `seo{title{en,ar},description{en,ar}}`.
 - Denormalised: `ratingAvg`, `reviewCount`.
 
@@ -359,10 +364,15 @@ Unique index on `{productId, customerId, orderId}` — one review per purchase.
 - `cart{ abandonedAfterHours }`
 - `seo{ defaultTitle{en,ar}, defaultDescription{en,ar}, ogImage }`
 
-**`ContentPage`** — `slug` (`home`, `about`, `method`, `faq`, `contact`,
-`legal-notice`, `privacy`, `terms`, `returns`), `title{en,ar}`,
+**`ContentPage`** — `slug` (`home`, `method`, `faq`, `contact`, `legal`),
+`title{en,ar}`,
 `seo{title{en,ar}, description{en,ar}}`, `published`,
 `sections[{ type, order, visible, data }]`.
+
+`legal` is one storefront page (`/legal`) and one admin page. Its sections are
+the policy accordion (terms, privacy, cookies, shipping). Heading and intro are
+the page title and SEO description. The old split records (`legal-notice`,
+`privacy`, `terms`, `returns`) are retired.
 
 Section `type` comes from a **fixed registry** mapped 1:1 onto existing
 components, so the CMS edits copy and ordering, never layout:
@@ -421,15 +431,15 @@ Rounding happens once, at the end of each step, in integer fils.
 |---|---|
 | `/` | Home, from the `home` ContentPage + featured products (C10) |
 | `/shop` | Catalogue: search, category filter, sort, pagination |
-| `/shop/[slug]` | PDP: fixed price → add to cart; request price → enquiry form (C1); stock state (C12); reviews; related products from the same category |
+| `/shop/[slug]` | PDP: fixed price → add to cart; request price → enquiry form (C1); stock state (C12); reviews; recommended products (same category, rating desc, infinite scroll) |
 | `/cart` | Line items, qty, coupon field, totals |
 | `/checkout` | Login-gated. Address form/picker → shipping + tax → Stripe redirect |
 | `/order/confirmation` | Post-Stripe return; polls until the webhook confirms |
 | `/login` | Email → OTP (C5) |
 | `/account` | Dashboard |
-| `/account/profile` `/addresses` `/orders` `/orders/[orderNumber]` `/wishlist` | Customer portal |
+| `/account/profile` `/addresses` `/orders` `/orders/[orderNumber]` `/wishlist` | Customer portal. Orders and wishlist are paged (10 per page) — never the full list |
 | `/quote/[token]` | Accept an admin quote and pay (C1) |
-| `/method` `/faq` `/contact` `/legal/[slug]` | CMS-driven; `/contact` carries the real form |
+| `/method` `/faq` `/contact` `/legal` | CMS-driven; `/legal` is one page; `/contact` carries the real form |
 
 No `/categories/[slug]` — categories are a `/shop` filter.
 
@@ -635,6 +645,12 @@ Recorded so it is never re-litigated mid-build:
 
 | Date | Change |
 |---|---|
+| 2026-09-09 | **Admin lists are paged.** Inventory, orders, products, customers, enquiries, reviews, messages, coupons, sales and admin users load 20 rows at a time. Filter query params are kept when paging. Dashboard, reports, categories, featured and CMS pages stay as they are — those screens need the whole small set, not a growing ledger |
+| 2026-09-09 | **Minimum and maximum order quantities.** Set on the product add and edit forms. A customer cannot add, change, enquire or pay a quote outside that range. Minimum defaults to 1; empty maximum means no product cap. A line already in the basket that falls outside a later change blocks checkout until the quantity is fixed |
+| 2026-09-09 | **Customer orders list is paged.** `/account/orders` loads 10 orders at a time, newest first, with previous/next. A long history is no longer fetched in one query |
+| 2026-09-09 | **Wishlist is paged the same way.** `/account/wishlist` loads 10 saved formulas at a time. Unpublished saves drop out before paging, so a page is not a short list of missing cards |
+| 2026-09-09 | **Recommended products** under reviews on the product page: every other published formula in the same category, highest rating first, the rest loaded as the visitor scrolls. The current product is left out. No hand-picked related ids |
+| 2026-09-08 | **Policies is one CMS page.** `/legal` is a single storefront page, so the admin Pages list no longer splits it into Legal Notice, Privacy, Terms and Returns. Those records fold into `legal` (heading, intro, and four text sections) and are then removed. The list is Home, Our Method, FAQ, Contact, Policies — navbar order, plus the homepage and the footer policies page. "Still to confirm" notes stay in the editor only |
 | 2026-09-04 | Plan created from the scope PDF + the client's custom requirements C1–C11; 20 architecture and behaviour decisions confirmed |
 | 2026-09-04 | **Phase 0 complete** — deps installed, `.env.example`, env contract (`src/lib/env.ts`), cached Mongo connection, fils money helpers, `tl()` AR-fallback, stub-capable mail/storage/Stripe drivers, Vitest wired |
 | 2026-09-04 | **Phase 1 complete** — 18 Mongoose models with indexes, permission catalogue, settings accessor, seed script. Verified against MongoDB Atlas: Owner role, admin account, settings defaults, 2 categories, the 2 real formulas (bilingual content intact), 8 system CMS pages. Demo products and the 3 demo shelves removed from `src/content` |

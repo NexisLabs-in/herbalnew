@@ -1,17 +1,14 @@
 import { ADVISORY, UI } from "@/content/brand";
 import { t, type Locale } from "@/lib/i18n";
-import { Reveal } from "./Reveal";
 
 /** The "Read before ordering" notice. Legally required on every surface — the
  *  design gives it a panel so it reads as care, not as a defensive footnote. */
 export function Advisory({ locale, dark = false }: { locale: Locale; dark?: boolean }) {
   return (
-    <Reveal className={dark ? "panel panel--dark" : "panel panel--advisory"}>
-      <p className="eyebrow eyebrow--plain">{t(UI.readBeforeBuying, locale)}</p>
-      <p className="body" style={{ marginTop: ".9rem", maxWidth: "82ch" }}>
-        {t(ADVISORY, locale)}
-      </p>
-    </Reveal>
+    <aside className={dark ? "advisory advisory--dark" : "advisory"}>
+      <p className="advisory__label">{t(UI.readBeforeBuying, locale)}</p>
+      <p className="advisory__text">{t(ADVISORY, locale)}</p>
+    </aside>
   );
 }
 
@@ -23,11 +20,13 @@ export function PageHead({
   sub,
   crumbs,
   compact = false,
+  className,
 }: {
   kicker: string;
   title: string;
   sub?: string;
   crumbs?: Crumb[];
+  className?: string;
   /** For pages somebody is *doing* something on — a basket, a checkout, a
    *  receipt — rather than browsing. The full treatment is sized to introduce
    *  a page worth exploring; on a page with one card on it, it becomes a
@@ -35,7 +34,7 @@ export function PageHead({
   compact?: boolean;
 }) {
   return (
-    <section className={compact ? "page-head page-head--compact" : "page-head"}>
+    <section className={["page-head", compact ? "page-head--compact" : "", className].filter(Boolean).join(" ")}>
       <div className="shell shell--wide">
         {crumbs?.length ? (
           <nav className="breadcrumb" aria-label="Breadcrumb" style={{ marginBottom: compact ? "1rem" : "1.6rem" }}>
@@ -48,13 +47,13 @@ export function PageHead({
           </nav>
         ) : null}
         <p className="eyebrow">{kicker}</p>
-        <h1 className={compact ? "display d3" : "display d2"} style={{ marginTop: compact ? ".7rem" : "1rem" }}>
+        <h1 className={compact ? "display d3" : "display d2"} style={className ? undefined : { marginTop: compact ? ".7rem" : "1rem" }}>
           {title}
         </h1>
         {sub ? (
           <p
             className={compact ? "body" : "lead"}
-            style={{ marginTop: compact ? ".7rem" : "1.1rem", maxWidth: "60ch" }}
+            style={className ? undefined : { marginTop: compact ? ".7rem" : "1.1rem", maxWidth: "60ch" }}
           >
             {sub}
           </p>

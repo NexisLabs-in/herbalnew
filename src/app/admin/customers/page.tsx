@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { formatFils } from "@/lib/i18n";
@@ -11,10 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminCustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const admin = await requireAdminPage("customers:read");
-  const { q } = await searchParams;
+  const { q, page: requested } = await searchParams;
 
   await connectDb();
   const filter = q
@@ -27,7 +29,9 @@ export default async function AdminCustomersPage({
       }
     : {};
 
-  const customers = await Customer.find(filter).sort({ createdAt: -1 }).limit(200).lean();
+  const total = await Customer.countDocuments(filter);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+  const customers = await Customer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage).lean();
 
   // Spend and order count in one grouped query rather than one per customer.
   const spend = await Order.aggregate<{ _id: string; orders: number; total: number }>([
@@ -41,7 +45,7 @@ export default async function AdminCustomersPage({
       <div className="admin-head">
         <div>
           <h1 className="admin-head__title">Customers</h1>
-          <p className="admin-head__sub">{customers.length} shown</p>
+          <p className="admin-head__sub">{total} customer{total === 1 ? "" : "s"}</p>
         </div>
       </div>
 
@@ -108,6 +112,8 @@ export default async function AdminCustomersPage({
           </table>
         </div>
       )}
+
+      <AdminPager path="/admin/customers" page={page} pages={pages} params={{ q }} />
     </AdminShell>
   );
 }

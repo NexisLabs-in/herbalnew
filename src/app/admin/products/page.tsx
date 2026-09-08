@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductRowActions } from "@/components/admin/ProductRowActions";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { formatFils } from "@/lib/i18n";
@@ -21,10 +23,10 @@ const STATUS_LABEL: Record<ProductStatus, string> = {
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; created?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; created?: string; page?: string }>;
 }) {
   const admin = await requireAdminPage("products:read");
-  const { status, q, created } = await searchParams;
+  const { status, q, created, page: requested } = await searchParams;
 
   await connectDb();
   const settings = await getSettings();
@@ -41,8 +43,11 @@ export default async function AdminProductsPage({
     { sku: { $regex: q, $options: "i" } },
   ];
 
+  const total = await Product.countDocuments(filter);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
   const [products, categories] = await Promise.all([
-    Product.find(filter).sort({ updatedAt: -1 }).limit(200).lean<ProductDoc[]>(),
+    Product.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(perPage).lean<ProductDoc[]>(),
     Category.find().lean(),
   ]);
 
@@ -177,6 +182,8 @@ export default async function AdminProductsPage({
           </table>
         </div>
       )}
+
+      <AdminPager path="/admin/products" page={page} pages={pages} params={{ status, q, created }} />
     </AdminShell>
   );
 }

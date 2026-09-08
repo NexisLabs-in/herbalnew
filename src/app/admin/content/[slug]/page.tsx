@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { consolidateLegalPage } from "@/lib/cms/catalogue";
+import { isRetiredPolicySlug, LEGAL_PAGE_SLUG } from "@/lib/cms/order";
+import { CopyEditor } from "@/components/admin/CopyEditor";
+import { ensureFaqClosing, ensurePageCopy } from "@/lib/cms/copy";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PageEditor, type EditorSection } from "@/components/admin/PageEditor";
 import { requireAdminPage } from "@/lib/auth/guards";
@@ -15,6 +19,12 @@ export const dynamic = "force-dynamic";
 export default async function EditContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const admin = await requireAdminPage("content:write");
   const { slug } = await params;
+
+  if (isRetiredPolicySlug(slug)) redirect(`/admin/content/${LEGAL_PAGE_SLUG}`);
+
+  if (slug === LEGAL_PAGE_SLUG) await consolidateLegalPage();
+  if (slug === "method" || slug === "contact") await ensurePageCopy(slug);
+  if (slug === "faq") await ensureFaqClosing();
 
   await connectDb();
   const page = await ContentPage.findOne({ slug }).lean<ContentPageDoc | null>();
@@ -34,20 +44,36 @@ export default async function EditContentPage({ params }: { params: Promise<{ sl
     SECTION_TYPES.map((type) => [type, blankSection(type) as Record<string, unknown>]),
   );
 
+  const copy = sections.find((section) => section.type === "methodCopy" || section.type === "contactCopy");
+
   return (
     <AdminShell admin={admin}>
       <div className="admin-head">
         <div>
           <p className="admin-crumb">
-            <Link href="/admin/content">Pages</Link> / {slug}
+            <Link href="/admin/content">Pages</Link> / {page.title.en || slug}
           </p>
           <h1 className="admin-head__title">{page.title.en || slug}</h1>
         </div>
       </div>
 
+      {slug === "method" || slug === "contact" ? (
+        <CopyEditor
+          slug={slug}
+          title={{ en: page.title.en, ar: page.title.ar ?? "" }}
+          seo={{
+            title: { en: page.seo?.title?.en ?? "", ar: page.seo?.title?.ar ?? "" },
+            description: { en: page.seo?.description?.en ?? "", ar: page.seo?.description?.ar ?? "" },
+          }}
+          published={page.published}
+          data={copy?.data ?? {}}
+        />
+      ) : (
       <PageEditor
         slug={slug}
         blanks={blanks}
+        headingLabel={slug === LEGAL_PAGE_SLUG ? "Page heading" : undefined}
+        introLabel={slug === LEGAL_PAGE_SLUG ? "Intro" : undefined}
         initial={{
           title: { en: page.title.en, ar: page.title.ar ?? "" },
           seo: {
@@ -58,6 +84,7 @@ export default async function EditContentPage({ params }: { params: Promise<{ sl
           sections,
         }}
       />
+      )}
     </AdminShell>
   );
 }

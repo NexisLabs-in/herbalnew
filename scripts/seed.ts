@@ -17,8 +17,10 @@ import { env } from "@/lib/env";
 import { PRODUCTS } from "@/content/products";
 import { TAXONOMY, PRODUCT_CATEGORY } from "@/content/taxonomy";
 import { BRAND, PROMISE, TRADITIONS, TRADITIONS_HEADING, TRADITIONS_NOTE } from "@/content/brand";
-import { FAQ, HERO, METHOD_HEADING, METHOD_SUB } from "@/content/pages";
-import { LEGAL } from "@/content/legal";
+import { CONTACT, FAQ, HERO, METHOD_HEADING, METHOD_SUB } from "@/content/pages";
+import { CMS_PAGES } from "@/lib/cms/order";
+import { consolidateLegalPage } from "@/lib/cms/catalogue";
+import { ensurePageCopy } from "@/lib/cms/copy";
 import { OWNER_ROLE } from "@/lib/permissions";
 import { AdminRole, AdminUser, Category, ContentPage, Product, Settings } from "@/lib/models";
 import type { L } from "@/lib/i18n";
@@ -209,30 +211,13 @@ async function seedProducts() {
   log(`products: ${PRODUCTS.map((p) => p.slug).join(", ")}`);
 }
 
-/** The CMS pages that have a route in code. Created empty and unpublished
- *  section-wise; Phase 11 fills them from the existing content files. Marked
- *  `isSystem` so an admin cannot delete a page whose URL would then 404.
+/** The CMS pages that have a route in code. Marked `isSystem` so an admin
+ *  cannot delete a page whose URL would then 404. Policies is one page —
+ *  `consolidateLegalPage` fills it and retires the old split records.
  *
  *  There is deliberately no harvest-calendar page (requirement C9). */
-const SYSTEM_PAGES: { slug: string; title: L }[] = [
-  { slug: "home", title: { en: "Home", ar: "الرئيسية" } },
-  { slug: "method", title: { en: "Our Method", ar: "منهجنا" } },
-  { slug: "faq", title: { en: "FAQ", ar: "الأسئلة الشائعة" } },
-  { slug: "contact", title: { en: "Contact", ar: "تواصل معنا" } },
-  { slug: "legal-notice", title: { en: "Legal Notice", ar: "إشعار قانوني" } },
-  { slug: "privacy", title: { en: "Privacy Policy", ar: "سياسة الخصوصية" } },
-  { slug: "terms", title: { en: "Terms & Conditions", ar: "الشروط والأحكام" } },
-  { slug: "returns", title: { en: "Return Policy", ar: "سياسة الإرجاع" } },
-];
+const SYSTEM_PAGES: { slug: string; title: L }[] = CMS_PAGES;
 
-/** The content file groups policies differently from the page list, so the two
- *  are mapped explicitly rather than guessed from the slug. */
-const LEGAL_SLUGS: Record<string, string> = {
-  terms: "terms",
-  privacy: "privacy",
-  returns: "shipping",
-  "legal-notice": "cookies",
-};
 
 /** The sections a page starts life with, transcribed from the hand-built
  *  version so moving it into the CMS loses nothing. Written on insert only —
@@ -272,22 +257,10 @@ function startingSections(slug: string) {
         heading: { en: "Frequently asked", ar: "الأسئلة الشائعة" },
         items: FAQ.map((entry) => ({ q: tl(entry.q), a: tl(entry.a) })),
       }),
-    ];
-  }
-
-  // Policy pages. The content file keeps clauses as a list; the CMS stores
-  // paragraphs, so they are joined with blank lines — which is exactly how the
-  // rich-text section splits them again when rendering.
-  const legal = LEGAL.find((doc) => doc.id === LEGAL_SLUGS[slug]);
-  if (legal) {
-    return [
-      section("richText", 0, {
-        eyebrow: { en: "", ar: "" },
-        heading: tl(legal.title),
-        body: {
-          en: legal.clauses.map((clause) => clause.en).join("\n\n"),
-          ar: legal.clauses.map((clause) => clause.ar).join("\n\n"),
-        },
+      section("ctaBanner", 1, {
+        heading: tl(CONTACT.labels.contact),
+        body: { en: CONTACT.email, ar: "" },
+        cta: { label: tl(HERO.cta2), href: "/method" },
       }),
     ];
   }
@@ -335,6 +308,10 @@ async function main() {
   await seedProducts();
   await removePlaceholderCategories();
   await seedContentPages();
+  await consolidateLegalPage();
+  await ensurePageCopy("method");
+  await ensurePageCopy("contact");
+  log("pages: policies folded into one page");
 
   // Declared on the schemas but only built in development; do it explicitly so
   // a production seed leaves the database ready rather than unindexed.

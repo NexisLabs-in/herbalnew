@@ -39,7 +39,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // Once the homepage has CMS sections it is rendered entirely from them.
   // Until then it keeps the hand-built version below, so shipping the CMS does
   // not blank the front page while nobody has edited it yet.
-  if (page && page.sections.length > 0) {
+  if (page?.managed) {
     const context = await sectionContext(locale);
     return (
       <>

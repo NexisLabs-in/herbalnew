@@ -31,7 +31,7 @@ export default async function CartPage({ params }: { params: Promise<{ locale: s
   const empty = cart.lines.length === 0;
 
   // Checkout is blocked while anything in the basket cannot actually be bought.
-  const blocked = cart.lines.some((line) => line.unavailableReason !== null);
+  const blocked = cart.lines.some((line) => line.unavailableReason !== null || line.qtyLimit !== null);
 
   const productNames = Object.fromEntries(
     cart.lines.map((line) => [line.productId, tl(line.name, locale)]),

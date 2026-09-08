@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminUsers, type AdminRow, type RoleRow } from "@/components/admin/AdminUsers";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { AdminRole, AdminUser } from "@/lib/models";
@@ -9,20 +11,25 @@ import { can } from "@/lib/permissions";
 export const metadata: Metadata = { title: "Admin users" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const admin = await requireAdminPage("admins:read");
+  const { page: requested } = await searchParams;
 
   await connectDb();
-  const [users, roles] = await Promise.all([
-    AdminUser.find().sort({ createdAt: 1 }).lean(),
+  const total = await AdminUser.countDocuments();
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
+  const [users, roles, membership] = await Promise.all([
+    AdminUser.find().sort({ createdAt: 1 }).skip(skip).limit(perPage).lean(),
     AdminRole.find().sort({ isSystem: -1, name: 1 }).lean(),
+    AdminUser.aggregate<{ _id: unknown; count: number }>([{ $group: { _id: "$roleId", count: { $sum: 1 } } }]),
   ]);
 
-  const memberCount = new Map<string, number>();
-  for (const user of users) {
-    const key = String(user.roleId);
-    memberCount.set(key, (memberCount.get(key) ?? 0) + 1);
-  }
+  const memberCount = new Map(membership.map((row) => [String(row._id), row.count]));
 
   const roleName = new Map(roles.map((role) => [String(role._id), role.name]));
 
@@ -52,7 +59,7 @@ export default async function AdminUsersPage() {
         <div>
           <h1 className="admin-head__title">Admin users</h1>
           <p className="admin-head__sub">
-            {adminRows.length} account{adminRows.length === 1 ? "" : "s"} · {roleRows.length} roles
+            {total} account{total === 1 ? "" : "s"} · {roleRows.length} roles
           </p>
         </div>
       </div>
@@ -62,6 +69,7 @@ export default async function AdminUsersPage() {
         roles={roleRows}
         canWrite={can(admin.permissions, "admins:write")}
       />
+      <AdminPager path="/admin/admins" page={page} pages={pages} />
     </AdminShell>
   );
 }

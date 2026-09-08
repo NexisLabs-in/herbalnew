@@ -40,6 +40,12 @@ export function CartTable({
     if (line.unavailableReason === "gone") return t(SHOP.lineGone, locale);
     if (line.unavailableReason === "out_of_stock") return t(SHOP.lineOutOfStock, locale);
     if (line.unavailableReason === "request_price") return t(SHOP.lineRequestPrice, locale);
+    if (line.qtyLimit === "below_min") {
+      return t(SHOP.lineBelowMin, locale).replace("{qty}", String(line.minQty));
+    }
+    if (line.qtyLimit === "above_max") {
+      return t(SHOP.lineAboveMax, locale).replace("{qty}", String(line.maxQty));
+    }
     if (line.availableQty !== null) {
       return t(SHOP.lineReduced, locale).replace("{qty}", String(line.availableQty));
     }
@@ -118,8 +124,8 @@ export function CartTable({
                     type="button"
                     className="qty__btn"
                     aria-label="−"
-                    disabled={pending}
-                    onClick={() => run(() => setCartQty(line.productId, line.qty - 1))}
+                    disabled={pending || line.qty <= line.minQty}
+                    onClick={() => run(() => setCartQty(line.productId, line.qty - 1, locale))}
                   >
                     −
                   </button>
@@ -130,8 +136,16 @@ export function CartTable({
                     type="button"
                     className="qty__btn"
                     aria-label="+"
-                    disabled={pending}
-                    onClick={() => run(() => setCartQty(line.productId, line.qty + 1))}
+                    disabled={pending || line.qty >= line.maxQty}
+                    onClick={() =>
+                      run(() =>
+                        setCartQty(
+                          line.productId,
+                          line.qty > line.maxQty ? line.maxQty : line.qty + 1,
+                          locale,
+                        ),
+                      )
+                    }
                   >
                     +
                   </button>

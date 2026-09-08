@@ -17,25 +17,29 @@ import { localePath, t, type Locale } from "@/lib/i18n";
 export function AddToCart({
   productId,
   locale,
+  minQty = 1,
   maxQty,
   compact = false,
 }: {
   productId: string;
   locale: Locale;
-  /** Live stock, when it is being tracked — the input cannot exceed it. */
+  /** Fewest units in one order. The stepper cannot go below this. */
+  minQty?: number;
+  /** Live stock and the product maximum, already combined. */
   maxQty?: number | null;
   compact?: boolean;
 }) {
   const router = useRouter();
-  const [qty, setQty] = useState(1);
+  const floor = Math.max(1, minQty);
+  const [qty, setQty] = useState(floor);
   const [pending, start] = useTransition();
   const [state, setState] = useState<{ error?: string; notice?: string } | null>(null);
 
-  const ceiling = maxQty && maxQty > 0 ? Math.min(maxQty, 99) : 99;
+  const ceiling = maxQty && maxQty > 0 ? Math.min(Math.max(maxQty, floor), 99) : 99;
 
   const submit = () =>
     start(async () => {
-      const result = await addToCart(productId, qty);
+      const result = await addToCart(productId, qty, locale);
       setState(result);
       // The header badge fetches its own count, and the page may show stock
       // that this add has just changed.
@@ -62,8 +66,8 @@ export function AddToCart({
             type="button"
             className="qty__btn"
             aria-label="−"
-            disabled={qty <= 1 || pending}
-            onClick={() => setQty((current) => Math.max(1, current - 1))}
+            disabled={qty <= floor || pending}
+            onClick={() => setQty((current) => Math.max(floor, current - 1))}
           >
             −
           </button>
@@ -71,13 +75,13 @@ export function AddToCart({
             className="qty__input"
             id={`qty-${productId}`}
             type="number"
-            min={1}
+            min={floor}
             max={ceiling}
             value={qty}
             dir="ltr"
             onChange={(event) => {
               const next = Number.parseInt(event.target.value, 10);
-              setQty(Number.isFinite(next) ? Math.min(Math.max(1, next), ceiling) : 1);
+              setQty(Number.isFinite(next) ? Math.min(Math.max(floor, next), ceiling) : floor);
             }}
           />
           <button

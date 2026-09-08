@@ -50,6 +50,9 @@ export const productSchema = z
 
     trackInventory: z.boolean().default(true),
     stock: z.coerce.number().int().min(0).max(1_000_000).default(0),
+    minOrderQty: z.coerce.number().int().min(1, "At least 1.").max(99, "99 or less.").default(1),
+    /** Empty means no product-specific maximum. */
+    maxOrderQty: optionalInt(99),
 
     composition: bilingual({ max: 4000 }),
     chemistryEffects: bilingual({ max: 4000 }),
@@ -103,6 +106,16 @@ export const productSchema = z
     }
     // Publishing is the point at which a customer can see it, so that is where
     // the standards apply rather than at draft.
+    if (value.maxOrderQty !== null && value.maxOrderQty < 1) {
+      ctx.addIssue({ code: "custom", path: ["maxOrderQty"], message: "At least 1, or leave it empty." });
+    }
+    if (value.maxOrderQty !== null && value.maxOrderQty < value.minOrderQty) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["maxOrderQty"],
+        message: "The maximum cannot be less than the minimum.",
+      });
+    }
     if (value.status === "published") {
       if (value.images.length === 0) {
         ctx.addIssue({ code: "custom", path: ["images"], message: "Add at least one image before publishing." });

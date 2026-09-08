@@ -88,25 +88,76 @@ export const SECTION_SCHEMAS = {
     dark: z.boolean().default(false),
   }),
 
+  noteBox: z.object({
+    heading: bilingual({ max: 160 }),
+    body: bilingual({ max: 1200 }),
+    dark: z.boolean().default(false),
+  }),
+
   ctaBanner: z.object({
     heading: bilingual({ max: 200 }),
     body: bilingual({ max: 600 }),
     cta: link,
+  }),
+
+  methodCopy: z.object({
+    heading: bilingual({ max: 200 }),
+    standfirst: bilingual({ max: 400 }),
+    kicker: bilingual({ max: 120 }),
+    traditionsHeading: bilingual({ max: 160 }),
+    traditionsNote: bilingual({ max: 400 }),
+    traditions: z.array(bilingual({ max: 80 })).max(12),
+    intro: bilingual({ max: 800 }),
+    paragraphs: z.array(bilingual({ max: 1200 })).max(8),
+    stepsHeading: bilingual({ max: 160 }),
+    stepsSub: bilingual({ max: 400 }),
+    steps: z
+      .array(z.object({ title: bilingual({ max: 160 }), detail: bilingual({ max: 600 }) }))
+      .max(8),
+    valuesHeading: bilingual({ max: 160 }),
+    valuesSub: bilingual({ max: 400 }),
+    values: z.array(bilingual({ max: 240 })).max(12),
+    cta: bilingual({ max: 80 }),
+  }),
+
+  contactCopy: z.object({
+    company: bilingual({ max: 160 }),
+    about: bilingual({ max: 800 }),
+    email: z.string().trim().max(160).default(""),
+    hours: bilingual({ max: 160 }),
+    address: bilingual({ max: 400 }),
+    licence: z.string().trim().max(80).default(""),
+    website: z.string().trim().max(160).default(""),
+    country: bilingual({ max: 120 }),
+    pendingTitle: bilingual({ max: 120 }),
+    pendingNote: bilingual({ max: 160 }),
+    pending: z
+      .array(
+        z.object({
+          label: bilingual({ max: 80 }),
+          href: z.string().trim().max(300).default(""),
+        }),
+      )
+      .max(12)
+      .default([]),
   }),
 } satisfies Record<SectionType, z.ZodTypeAny>;
 
 export const SECTION_LABELS: Record<SectionType, { label: string; hint: string }> = {
   hero: { label: "Hero", hint: "The big opening block with the headline and buttons." },
   trustStrip: { label: "Trust strip", hint: "A row of short promises on a dark band." },
-  traditionsRibbon: { label: "Traditions ribbon", hint: "The scrolling list of traditions." },
-  featuredProducts: { label: "Featured products", hint: "Products chosen on the Featured screen." },
-  categoryGrid: { label: "Category grid", hint: "The shelves, as cards." },
-  methodTeaser: { label: "Method teaser", hint: "The numbered method steps with a heading." },
+  traditionsRibbon: { label: "Ribbon", hint: "A heading and a short scrolling list. You edit every line." },
+  featuredProducts: { label: "Featured products", hint: "Products chosen on the Featured screen. Homepage only." },
+  categoryGrid: { label: "Category grid", hint: "The shelves, as cards. Homepage only." },
+  methodTeaser: { label: "Method teaser", hint: "A heading and button. The numbered steps come from Our Method and cannot be edited here." },
   richText: { label: "Text", hint: "A heading and paragraphs." },
-  accordion: { label: "Questions", hint: "Expandable question and answer pairs — used for the FAQ." },
+  accordion: { label: "Questions", hint: "Expandable question and answer pairs. Used for the FAQ." },
   imageText: { label: "Image and text", hint: "A picture beside a block of copy." },
-  advisory: { label: "Health advisory", hint: "The store-wide 'read before ordering' notice." },
-  ctaBanner: { label: "Call to action", hint: "A short prompt with one button." },
+  advisory: { label: "Health notice", hint: "The store-wide read-before-ordering notice. The words are fixed. Homepage only." },
+  noteBox: { label: "Note box", hint: "A paragraph in a panel. You write the text and choose light or dark." },
+  ctaBanner: { label: "Call to action", hint: "A heading, a line of text, and one button." },
+  methodCopy: { label: "Method", hint: "The text on Our Method." },
+  contactCopy: { label: "Contact", hint: "The text on Contact." },
 };
 
 const EMPTY_TL = { en: "", ar: "" };
@@ -149,6 +200,40 @@ function defaultsFor(type: SectionType): unknown {
       };
     case "advisory":
       return { dark: false };
+    case "noteBox":
+      return { heading: EMPTY_TL, body: EMPTY_TL, dark: false };
+    case "methodCopy":
+      return {
+        heading: EMPTY_TL,
+        standfirst: EMPTY_TL,
+        kicker: EMPTY_TL,
+        traditionsHeading: EMPTY_TL,
+        traditionsNote: EMPTY_TL,
+        traditions: [],
+        intro: EMPTY_TL,
+        paragraphs: [],
+        stepsHeading: EMPTY_TL,
+        stepsSub: EMPTY_TL,
+        steps: [],
+        valuesHeading: EMPTY_TL,
+        valuesSub: EMPTY_TL,
+        values: [],
+        cta: EMPTY_TL,
+      };
+    case "contactCopy":
+      return {
+        company: EMPTY_TL,
+        about: EMPTY_TL,
+        email: "",
+        hours: EMPTY_TL,
+        address: EMPTY_TL,
+        licence: "",
+        website: "",
+        country: EMPTY_TL,
+        pendingTitle: EMPTY_TL,
+        pendingNote: EMPTY_TL,
+        pending: [],
+      };
   }
 }
 

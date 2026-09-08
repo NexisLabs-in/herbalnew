@@ -56,6 +56,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       : null,
     trackInventory: product.trackInventory,
     stock: String(product.stock),
+    minOrderQty: String(product.minOrderQty ?? 1),
+    maxOrderQty: product.maxOrderQty ? String(product.maxOrderQty) : "",
     composition: tl(product.composition),
     chemistryEffects: tl(product.chemistryEffects),
     netQuantity: tl(product.netQuantity),

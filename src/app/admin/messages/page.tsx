@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { MessageInbox, type InboxMessage } from "@/components/admin/MessageInbox";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { ContactMessage, type ContactMessageDoc } from "@/lib/models";
@@ -12,18 +14,21 @@ export const dynamic = "force-dynamic";
 export default async function AdminMessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string }>;
 }) {
   const admin = await requireAdminPage("messages:read");
-  const { status } = await searchParams;
+  const { status, page: requested } = await searchParams;
 
   await connectDb();
   // Archived messages are hidden unless asked for — an inbox that never empties
   // stops being read.
   const filter = status ? { status } : { status: { $ne: "archived" } };
 
+  const total = await ContactMessage.countDocuments(filter);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
   const [messages, unread] = await Promise.all([
-    ContactMessage.find(filter).sort({ createdAt: -1 }).limit(200).lean<ContactMessageDoc[]>(),
+    ContactMessage.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage).lean<ContactMessageDoc[]>(),
     ContactMessage.countDocuments({ status: "new" }),
   ]);
 
@@ -61,6 +66,7 @@ export default async function AdminMessagesPage({
       </form>
 
       <MessageInbox messages={rows} canWrite={can(admin.permissions, "messages:write")} />
+      <AdminPager path="/admin/messages" page={page} pages={pages} params={{ status }} />
     </AdminShell>
   );
 }

@@ -2,11 +2,14 @@ import type { L } from "@/lib/i18n";
 
 export const LEGAL_TITLE: L = { en: "Policies", ar: "السياسات" };
 
+/** Fallback heading and standfirst, used until the Policies page is edited.
+ *  The live page reads its heading and intro from that one CMS record. */
 export const LEGAL_INTRO: L = {
-  en: "These are operational drafts, not jurisdiction-specific legal advice. The legal company details, governing law, target markets and consumer rights must be confirmed and reviewed before publication.",
-  ar: "هذه مسودات تشغيلية وليست مشورة قانونية خاصة بدولة معينة، يجب إدخال بيانات الشركة والاختصاص القضائي والأسواق وحقوق المستهلك ومراجعتها قبل النشر.",
+  en: "How we sell, ship, protect your data and handle returns. Please read these before ordering.",
+  ar: "كيف نبيع ونشحن ونحمي بياناتك ونتعامل مع الإرجاع. يرجى قراءتها قبل الطلب.",
 };
 
+/** Shown in the admin editor only — not on the public page. */
 export const PENDING_TITLE: L = { en: "Still to confirm", ar: "بانتظار الاعتماد" };
 
 export type LegalSection = { id: string; title: L; clauses: L[]; pending: L[] };

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ReviewQueue, type AdminReview } from "@/components/admin/ReviewQueue";
+import { pageNumber, pageWindow } from "@/lib/admin/paging";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { Customer, Product, Review, type ReviewDoc } from "@/lib/models";
@@ -13,19 +15,27 @@ export const dynamic = "force-dynamic";
 export default async function AdminReviewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string }>;
 }) {
   const admin = await requireAdminPage("reviews:read");
-  const { status } = await searchParams;
+  const { status, page: requested } = await searchParams;
 
   await connectDb();
   const settings = await getSettings();
 
   // Pending first: this is a queue, and what needs a decision comes before what
   // has already had one.
-  const reviews = await Review.find(status ? { status } : {})
+  const filter = status ? { status } : {};
+  const [total, pendingCount] = await Promise.all([
+    Review.countDocuments(filter),
+    Review.countDocuments({ status: "pending" }),
+  ]);
+  const { page, pages, skip, perPage } = pageWindow(pageNumber(requested), total);
+
+  const reviews = await Review.find(filter)
     .sort({ status: 1, createdAt: -1 })
-    .limit(200)
+    .skip(skip)
+    .limit(perPage)
     .lean<ReviewDoc[]>();
 
   const [products, customers] = await Promise.all([
@@ -53,8 +63,6 @@ export default async function AdminReviewsPage({
     createdAt: new Date(review.createdAt).toISOString(),
   }));
 
-  const pendingCount = rows.filter((row) => row.status === "pending").length;
-
   return (
     <AdminShell admin={admin}>
       <div className="admin-head">
@@ -72,6 +80,7 @@ export default async function AdminReviewsPage({
         canModerate={can(admin.permissions, "reviews:write")}
         canChangeSetting={can(admin.permissions, "settings:write")}
       />
+      <AdminPager path="/admin/reviews" page={page} pages={pages} params={{ status }} />
     </AdminShell>
   );
 }

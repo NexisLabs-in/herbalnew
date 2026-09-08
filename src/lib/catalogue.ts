@@ -59,6 +59,8 @@ export type ProductDetailView = ProductCardView & {
   } | null;
   safety: { targetGroup: TL; cautions: TL[]; seekAdvice: TL[] };
   seo: { title: TL; description: TL };
+  minOrderQty: number;
+  maxOrderQty: number | null;
 };
 
 export type CategoryView = {
@@ -319,32 +321,57 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailView 
       seekAdvice: (product.safety?.seekAdvice ?? []).map(tl),
     },
     seo: { title: tl(product.seo?.title), description: tl(product.seo?.description) },
+    minOrderQty: product.minOrderQty ?? 1,
+    maxOrderQty: product.maxOrderQty ?? null,
   };
 }
 
-/** Related products are computed from the category rather than hand-picked
- *  (plan §3): the section is then always populated and costs the admin nothing.
- *  Out-of-stock items are excluded — recommending something unbuyable wastes
- *  the click. */
-export async function getRelatedProducts(
-  product: ProductCardView,
-  limit = 3,
-): Promise<ProductCardView[]> {
+/** How many recommended cards to send at a time. Two rows of the product grid. */
+export const RECOMMENDED_PAGE = 8;
+
+export type RecommendedPage = {
+  products: ProductCardView[];
+  total: number;
+  page: number;
+  pages: number;
+};
+
+/** Every other published formula on the same shelf, highest rated first.
+ *
+ *  The current product is left out — recommending the page you are already on
+ *  is noise. Unrated formulas (average 0) fall to the end; a shared average
+ *  is broken by how many reviews earned it, so the order stays stable. */
+export async function getRecommendedProducts(
+  product: { id: string; categoryId: string },
+  page = 1,
+): Promise<RecommendedPage> {
   await connectDb();
   const settings = await getSettings();
 
-  const docs = await Product.find({
-    status: "published",
+  const safePage = Math.max(1, Math.floor(page) || 1);
+  const filter = {
+    status: "published" as const,
     categoryId: product.categoryId,
     _id: { $ne: product.id },
-    $or: [{ trackInventory: false }, { stock: { $gt: 0 } }],
-  })
-    .sort({ featured: -1, createdAt: -1 })
-    .limit(limit)
-    .lean<ProductDoc[]>();
+  };
 
-  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
-  return docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold));
+  const [total, docs, saleDiscounts, categories] = await Promise.all([
+    Product.countDocuments(filter),
+    Product.find(filter)
+      .sort({ ratingAvg: -1, reviewCount: -1, createdAt: -1 })
+      .skip((safePage - 1) * RECOMMENDED_PAGE)
+      .limit(RECOMMENDED_PAGE)
+      .lean<ProductDoc[]>(),
+    liveSaleDiscounts(),
+    categoryMap(),
+  ]);
+
+  return {
+    products: docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold)),
+    total,
+    page: safePage,
+    pages: Math.max(1, Math.ceil(total / RECOMMENDED_PAGE)),
+  };
 }
 
 /** The homepage Featured products section (C10), chosen in the admin panel. */

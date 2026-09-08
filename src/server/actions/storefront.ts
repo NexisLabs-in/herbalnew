@@ -3,8 +3,10 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getCustomer } from "@/lib/auth/guards";
+import { orderQtyLimits } from "@/lib/cart";
+import { SHOP } from "@/content/shop";
 import { connectDb } from "@/lib/db";
-import { isLocale, type Locale } from "@/lib/i18n";
+import { isLocale, t, type Locale } from "@/lib/i18n";
 import { PriceEnquiry } from "@/lib/models/PriceEnquiry";
 import { Product } from "@/lib/models/Product";
 import { ContactMessage } from "@/lib/models/ContactMessage";
@@ -71,6 +73,15 @@ export async function submitPriceEnquiry(
     pricingMode: "request",
   }).lean();
   if (!product) return { error: "That product is not available for enquiry." };
+
+  const locale = parsed.data.locale as Locale;
+  const limits = orderQtyLimits(product);
+  if (limits.impossible || parsed.data.qty < limits.min) {
+    return { error: t(SHOP.minOrder, locale).replace("{qty}", String(limits.min)) };
+  }
+  if (parsed.data.qty > limits.max) {
+    return { error: t(SHOP.maxOrder, locale).replace("{qty}", String(limits.max)) };
+  }
 
   // A signed-in enquirer is linked to their account so the quote can be
   // followed up in their order history later.

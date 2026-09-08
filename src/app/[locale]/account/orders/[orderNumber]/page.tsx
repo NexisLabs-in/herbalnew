@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BRAND } from "@/content/brand";
@@ -127,7 +128,17 @@ export default async function CustomerOrderPage({
                 {order.items.map((item, index) => (
                   <article className="cart-line" key={index}>
                     <div className="cart-line__media">
-                      <div className="cart-line__placeholder" aria-hidden="true" />
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={tl(item.name, locale)}
+                          width={96}
+                          height={96}
+                          unoptimized={!item.image.startsWith("/img/")}
+                        />
+                      ) : (
+                        <div className="cart-line__placeholder" aria-hidden="true" />
+                      )}
                     </div>
                     <div className="cart-line__body">
                       <h3 className="cart-line__name">

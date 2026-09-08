@@ -40,7 +40,7 @@ export async function prepareCheckout(): Promise<CheckoutPreparation> {
 
   if (cart.totals.itemCount === 0) return { ok: false, refusal: { reason: "empty" } };
 
-  const unavailable = cart.lines.filter((line) => line.unavailableReason !== null);
+  const unavailable = cart.lines.filter((line) => line.unavailableReason !== null || line.qtyLimit !== null);
   if (unavailable.length > 0) {
     return {
       ok: false,

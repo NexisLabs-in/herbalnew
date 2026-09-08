@@ -76,6 +76,12 @@ const productSchema = new Schema(
     // --- Inventory (C12) -----------------------------------------------------
     trackInventory: { type: Boolean, default: true },
     stock: { type: Number, default: 0, min: 0 },
+    /** Fewest units a customer may buy in one order. The basket cannot sit below
+     *  this except by removing the line. */
+    minOrderQty: { type: Number, default: 1, min: 1, max: 99 },
+    /** Most units in one order. Null means no product cap — stock and the
+     *  basket's own line limit still apply. */
+    maxOrderQty: { type: Number, default: null, min: 1, max: 99 },
     /** Set when the "stock is low" email goes out, cleared on restock, so the
      *  alert fires once per dip rather than on every order. There is no
      *  per-product threshold — one global number lives in Settings. */

@@ -202,7 +202,7 @@ export const CONTACT = {
     ar: "المكتب 503، مبنى بزنس بوينت، شارع 22ب - بورسعيد - ديرة - دبي، الإمارات العربية المتحدة",
   } as L,
   country: { en: "United Arab Emirates", ar: "الإمارات العربية المتحدة" } as L,
-  pendingTitle: { en: "Still to confirm", ar: "بانتظار الاعتماد" } as L,
+  pendingTitle: { en: "Coming soon", ar: "قريباً" } as L,
   pendingNote: { en: "Channels opening soon", ar: "قنوات قادمة قريباً" } as L,
   pending: [
     { en: "Telephone", ar: "الهاتف" },

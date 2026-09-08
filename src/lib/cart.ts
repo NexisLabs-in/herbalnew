@@ -36,6 +36,25 @@ import type { TL } from "./i18n";
 export const CART_COOKIE = "hb_cart";
 export const MAX_LINE_QTY = 99;
 
+/** The range a customer may put in one order of this product.
+ *
+ *  Minimum defaults to 1. An empty maximum means no product cap — stock and
+ *  the basket line limit still apply. If stock cannot cover the minimum, the
+ *  product cannot be ordered at all. */
+export function orderQtyLimits(product: {
+  minOrderQty?: number | null;
+  maxOrderQty?: number | null;
+  trackInventory?: boolean;
+  stock?: number;
+}): { min: number; max: number; impossible: boolean } {
+  const min = Math.min(MAX_LINE_QTY, Math.max(1, product.minOrderQty ?? 1));
+  const productMax =
+    product.maxOrderQty && product.maxOrderQty > 0 ? product.maxOrderQty : MAX_LINE_QTY;
+  let max = Math.min(MAX_LINE_QTY, productMax);
+  if (product.trackInventory) max = Math.min(max, Math.max(0, product.stock ?? 0));
+  return { min, max, impossible: max < min };
+}
+
 export type CartLineView = {
   productId: string;
   slug: string;
@@ -49,6 +68,11 @@ export type CartLineView = {
   /** How many are actually available, when that is less than the quantity in
    *  the basket. */
   availableQty: number | null;
+  /** Allowed order range for the stepper. */
+  minQty: number;
+  maxQty: number;
+  /** Set when the basket quantity is outside the product's order range. */
+  qtyLimit: "below_min" | "above_max" | null;
 };
 
 export type CartView = {
@@ -243,12 +267,24 @@ export async function priceCartView(cart: CartDocument | null): Promise<CartView
         priced: null,
         unavailableReason: "gone",
         availableQty: null,
+        minQty: 1,
+        maxQty: MAX_LINE_QTY,
+        qtyLimit: null,
       });
       continue;
     }
 
     const image = product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null;
-    const base = { productId: id, slug: product.slug, name: tl(product.name), image, qty: item.qty };
+    const limits = orderQtyLimits(product);
+    const base = {
+      productId: id,
+      slug: product.slug,
+      name: tl(product.name),
+      image,
+      qty: item.qty,
+      minQty: limits.min,
+      maxQty: limits.max,
+    };
 
     const unit = resolveUnitPrice(
       {
@@ -262,25 +298,28 @@ export async function priceCartView(cart: CartDocument | null): Promise<CartView
 
     if (!unit) {
       // Switched to request-price while sitting in a basket.
-      lines.push({ ...base, priced: null, unavailableReason: "request_price", availableQty: null });
+      lines.push({ ...base, priced: null, unavailableReason: "request_price", availableQty: null, qtyLimit: null });
       continue;
     }
 
     const stockState = stockStateOf(product, settings.inventory.lowStockThreshold);
-    if (stockState === "out") {
-      lines.push({ ...base, priced: null, unavailableReason: "out_of_stock", availableQty: 0 });
+    if (stockState === "out" || limits.impossible) {
+      lines.push({ ...base, priced: null, unavailableReason: "out_of_stock", availableQty: 0, qtyLimit: null });
       continue;
     }
 
     // More in the basket than on the shelf: price what can actually be sold and
     // tell the customer, rather than failing silently at checkout.
     const available = product.trackInventory ? Math.min(item.qty, product.stock) : item.qty;
+    const qtyLimit = item.qty < limits.min ? "below_min" : item.qty > limits.max ? "above_max" : null;
 
     lines.push({
       ...base,
-      priced: priceLine(id, available, unit),
+      // An out-of-range line is not priced, so it cannot slip into checkout.
+      priced: qtyLimit ? null : priceLine(id, available, unit),
       unavailableReason: null,
       availableQty: available < item.qty ? available : null,
+      qtyLimit,
     });
   }
 
@@ -305,7 +344,9 @@ export async function priceCartView(cart: CartDocument | null): Promise<CartView
       customerRedemptions,
     }),
     couponCode: cart.couponCode ?? null,
-    problems: lines.filter((line) => line.unavailableReason !== null || line.availableQty !== null),
+    problems: lines.filter(
+      (line) => line.unavailableReason !== null || line.availableQty !== null || line.qtyLimit !== null,
+    ),
   };
 }
 
