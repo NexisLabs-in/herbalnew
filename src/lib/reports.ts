@@ -1,5 +1,6 @@
 import "server-only";
 import { connectDb } from "./db";
+import { env } from "./env";
 import { Customer } from "./models/Customer";
 import { Order } from "./models/Order";
 import { Product } from "./models/Product";
@@ -62,7 +63,7 @@ export async function buildReport(range: DateRange): Promise<ReportSummary> {
         $group: {
           // Grouped by calendar day in the store's timezone, so a chart's days
           // line up with the shop's days rather than with UTC.
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$paidAt", timezone: process.env.TZ || "Asia/Dubai" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$paidAt", timezone: env.TimeZone } },
           revenue: { $sum: "$grandTotalFils" },
           orders: { $sum: 1 },
         },

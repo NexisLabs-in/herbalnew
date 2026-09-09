@@ -52,7 +52,7 @@ const schema = z.object({
     .string()
     .default("false")
     .transform((v) => v === "true" || v === "1"),
-  TZ: z.string().default("Asia/Dubai"),
+  TimeZone: z.string().default("Asia/Dubai"),
 
   SEED_ADMIN_EMAIL: z.string().default("admin@example.com"),
   SEED_ADMIN_PASSWORD: z.string().default(""),

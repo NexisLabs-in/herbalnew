@@ -75,7 +75,7 @@ S3_SECRET_ACCESS_KEY=
 S3_PUBLIC_BASE_URL=https://images.yourdomain.com
 
 NEXT_PUBLIC_SITE_URL=https://yourdomain.com
-TZ=Asia/Dubai
+TimeZone=Asia/Dubai
 
 # Exactly ONE container may have this true, or every job runs twice.
 CRON_ENABLED=true

@@ -56,7 +56,7 @@ export async function startScheduler(): Promise<void> {
   const settings = await getSettings().catch(() => null);
   const hour = settings?.notifications.digestHourLocal ?? 8;
 
-  const options = { timezone: env.TZ } as const;
+  const options = { timezone: env.TimeZone } as const;
 
   state.jobs.push(
     schedule(`0 ${hour} * * *`, () => void safely("lowStockDigest", lowStockDigest), options),
@@ -66,7 +66,7 @@ export async function startScheduler(): Promise<void> {
     schedule("5 * * * *", () => void safely("hourly", hourlyTasks), options),
   );
 
-  console.info(`[cron] started — digest at ${hour}:00 ${env.TZ}, hourly sweep at :05`);
+  console.info(`[cron] started — digest at ${hour}:00 ${env.TimeZone}, hourly sweep at :05`);
 }
 
 export function stopScheduler(): void {

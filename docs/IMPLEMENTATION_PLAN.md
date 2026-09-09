@@ -607,7 +607,7 @@ S3_PUBLIC_BASE_URL=
 
 NEXT_PUBLIC_SITE_URL=
 CRON_ENABLED=true
-TZ=Asia/Dubai
+TimeZone=Asia/Dubai
 SEED_ADMIN_EMAIL=
 SEED_ADMIN_PASSWORD=
 ```
@@ -653,6 +653,7 @@ Recorded so it is never re-litigated mid-build:
 | Date | Change |
 |---|---|
 | 2026-09-10 | **SMTP mail driver.** `MAIL_DRIVER=nodemailer` sends through any SMTP host (`SMTP_HOST` / port / user / pass). Resend and console stay available |
+| 2026-09-10 | Store timezone env renamed from `TZ` to `TimeZone` |
 | 2026-09-10 | **Herb Cabinet on phones.** Shelf/form/sort sit behind a Filters toggle (collapsed by default). The "Read before ordering" notice stays on desktop `/shop` only, so products appear in the first viewport |
 | 2026-09-09 | **Limited admin roles can reach their sections.** Sign-in and `/admin` send an admin to the first sidebar page their role allows. The denied screen keeps the sidebar, so Products and Reviews stay reachable without Dashboard |
 | 2026-09-09 | **Admin lists are paged.** Inventory, orders, products, customers, enquiries, reviews, messages, coupons, sales and admin users load 10 rows at a time. Filter query params are kept when paging. Dashboard, reports, categories, featured and CMS pages stay as they are — those screens need the whole small set, not a growing ledger |
