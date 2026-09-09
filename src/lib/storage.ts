@@ -91,8 +91,8 @@ export function buildKey(prefix: string, filename: string, contentType: AllowedI
 
 export function publicUrl(key: string): string {
   if (!live.storage) return `/uploads/${key}`;
-  const base = env.S3_PUBLIC_BASE_URL || `${env.S3_ENDPOINT}/${env.S3_BUCKET}`;
-  return `${base.replace(/\/$/, "")}/${key}`;
+  const base = `${env.S3_ENDPOINT.replace(/\/$/, "")}/${env.S3_BUCKET}`;
+  return `${base}/${key}`;
 }
 
 export function isAllowedType(value: string): value is AllowedImageType {

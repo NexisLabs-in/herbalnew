@@ -44,7 +44,6 @@ const schema = z.object({
   S3_BUCKET: z.string().default(""),
   S3_ACCESS_KEY_ID: z.string().default(""),
   S3_SECRET_ACCESS_KEY: z.string().default(""),
-  S3_PUBLIC_BASE_URL: z.string().default(""),
 
   NEXT_PUBLIC_SITE_URL: z.string().default("http://localhost:3000"),
 
