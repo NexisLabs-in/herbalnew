@@ -1,13 +1,14 @@
 import "server-only";
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 import { Resend } from "resend";
 import { env, live } from "./env";
 
 /** Transactional email behind one interface.
  *
- *  The plan defers real credentials to launch, so `MAIL_DRIVER=console` is the
- *  default and every message is logged instead of sent. Call sites never branch
- *  on the driver — they call `sendMail` and move on, which keeps the switch to
- *  Resend a one-line env change rather than an edit across every flow.
+ *  Call sites never branch on the driver — they call `sendMail` and move on.
+ *  `MAIL_DRIVER=console` logs instead of sending (default for local work).
+ *  `resend` and `nodemailer` deliver for real when their credentials are set.
  */
 
 export type MailMessage = {
@@ -21,29 +22,55 @@ export type MailMessage = {
 export type MailResult = { sent: boolean; id?: string; error?: string };
 
 let resend: Resend | null = null;
-function client(): Resend {
+function resendClient(): Resend {
   resend ??= new Resend(env.RESEND_API_KEY);
   return resend;
 }
 
+let smtp: Transporter | null = null;
+function smtpClient(): Transporter {
+  smtp ??= nodemailer.createTransport({
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_SECURE,
+    auth:
+      env.SMTP_USER || env.SMTP_PASS
+        ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
+        : undefined,
+  });
+  return smtp;
+}
+
 export async function sendMail(message: MailMessage): Promise<MailResult> {
   const to = Array.isArray(message.to) ? message.to : [message.to];
+  const text = message.text ?? stripTags(message.html);
 
   if (!live.mail) {
     console.info(
-      `[mail:console] to=${to.join(", ")} subject=${JSON.stringify(message.subject)}\n` +
-        (message.text ?? stripTags(message.html)),
+      `[mail:console] to=${to.join(", ")} subject=${JSON.stringify(message.subject)}\n` + text,
     );
     return { sent: false, id: "console" };
   }
 
   try {
-    const { data, error } = await client().emails.send({
+    if (env.MAIL_DRIVER === "nodemailer") {
+      const info = await smtpClient().sendMail({
+        from: env.MAIL_FROM,
+        to,
+        subject: message.subject,
+        html: message.html,
+        text,
+        replyTo: message.replyTo,
+      });
+      return { sent: true, id: typeof info.messageId === "string" ? info.messageId : undefined };
+    }
+
+    const { data, error } = await resendClient().emails.send({
       from: env.MAIL_FROM,
       to,
       subject: message.subject,
       html: message.html,
-      text: message.text ?? stripTags(message.html),
+      text,
       replyTo: message.replyTo,
     });
     if (error) return { sent: false, error: error.message };

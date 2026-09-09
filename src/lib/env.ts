@@ -22,9 +22,18 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().default(""),
 
-  MAIL_DRIVER: z.enum(["console", "resend"]).default("console"),
+  MAIL_DRIVER: z.enum(["console", "resend", "nodemailer"]).default("console"),
   RESEND_API_KEY: z.string().default(""),
   MAIL_FROM: z.string().default("Herbedia <orders@example.com>"),
+  // Used when MAIL_DRIVER=nodemailer (any SMTP host: Gmail, SES, Mailgun, …).
+  SMTP_HOST: z.string().default(""),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().default(""),
+  SMTP_PASS: z.string().default(""),
+  SMTP_SECURE: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
 
   // "local" writes into public/uploads so the catalogue can be built before a
   // bucket exists. S3 is the production driver (plan §3) — local disk does not
@@ -65,7 +74,9 @@ export const isProd = env.NODE_ENV === "production";
 export const live = {
   stripe: env.STRIPE_SECRET_KEY.length > 0,
   webhook: env.STRIPE_WEBHOOK_SECRET.length > 0,
-  mail: env.MAIL_DRIVER === "resend" && env.RESEND_API_KEY.length > 0,
+  mail:
+    (env.MAIL_DRIVER === "resend" && env.RESEND_API_KEY.length > 0) ||
+    (env.MAIL_DRIVER === "nodemailer" && env.SMTP_HOST.length > 0),
   storage: env.STORAGE_DRIVER === "s3" && env.S3_BUCKET.length > 0,
 };
 
@@ -75,7 +86,15 @@ export const live = {
 export function warnAboutStubs(log: (msg: string) => void = console.warn): string[] {
   const stubbed: string[] = [];
   if (!live.stripe) stubbed.push("Stripe (no STRIPE_SECRET_KEY — checkout will refuse)");
-  if (!live.mail) stubbed.push("email (MAIL_DRIVER=console — nothing is delivered)");
+  if (!live.mail) {
+    if (env.MAIL_DRIVER === "resend") {
+      stubbed.push("email (MAIL_DRIVER=resend but RESEND_API_KEY is empty)");
+    } else if (env.MAIL_DRIVER === "nodemailer") {
+      stubbed.push("email (MAIL_DRIVER=nodemailer but SMTP_HOST is empty)");
+    } else {
+      stubbed.push("email (MAIL_DRIVER=console — nothing is delivered)");
+    }
+  }
   if (!live.storage) stubbed.push("storage (STORAGE_DRIVER=local — uploads live on this server's disk)");
   if (stubbed.length && isProd) {
     log(`[env] PRODUCTION IS RUNNING ON STUBS: ${stubbed.join("; ")}`);

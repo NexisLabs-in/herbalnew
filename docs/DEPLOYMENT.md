@@ -17,7 +17,7 @@ of pretending, but a live shop needs all of them.
 | MongoDB connection string | Atlas, or a Mongo you run | Nothing works |
 | Stripe secret key (live) | Stripe dashboard → Developers → API keys | Checkout refuses |
 | Stripe webhook secret | Created in step 5 below | **Orders never get marked paid** |
-| Resend API key + verified domain | resend.com | No emails at all — including login codes |
+| Resend API key + verified domain, **or** SMTP host credentials | resend.com / your mail host | No emails at all — including login codes |
 | S3-compatible bucket | Cloudflare R2, AWS S3, Backblaze | Uploads live on the container's disk |
 | A domain with DNS pointed at the server | Your registrar | No HTTPS, and Stripe cannot reach the webhook |
 
@@ -58,6 +58,13 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 MAIL_DRIVER=resend
 RESEND_API_KEY=re_...
 MAIL_FROM="Herbedia <orders@yourdomain.com>"
+# Or SMTP instead of Resend:
+# MAIL_DRIVER=nodemailer
+# SMTP_HOST=smtp.example.com
+# SMTP_PORT=587
+# SMTP_USER=
+# SMTP_PASS=
+# SMTP_SECURE=false
 
 STORAGE_DRIVER=s3
 S3_ENDPOINT=https://<account>.r2.cloudflarestorage.com
@@ -192,7 +199,7 @@ nowhere else.
 |---|---|
 | `Failed to collect page data for /[locale]/shop/[slug]` at build | `MONGODB_URI` not exported into the Docker build (`set -a && . ./.env.production`), or Atlas blocking the build host |
 | Orders stuck on `pending` after payment | Webhook not configured, or the wrong signing secret |
-| No emails at all | `MAIL_DRIVER` still `console`, or the domain is not verified with Resend |
+| No emails at all | `MAIL_DRIVER` still `console`, Resend domain unverified, or SMTP host/auth wrong |
 | Login codes never arrive | Same as above — OTP is an email |
 | Every job runs twice | `CRON_ENABLED=true` on more than one container |
 | Rate limits trip for everyone at once | Proxy not sending `X-Forwarded-For` |

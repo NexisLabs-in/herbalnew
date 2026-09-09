@@ -106,7 +106,7 @@ Every question raised during planning, answered. Do not revisit these without as
 | App structure | **One Next.js app** — storefront + `/admin` + API in this repo |
 | Hosting | **VPS / Docker — a persistent Node server** (not Vercel serverless). Settled by the in-process cron choice below |
 | Scheduled jobs | **In-process `node-cron`**, started once from the server runtime |
-| Email | **Resend** — OTP, order confirmations, status updates, low-stock alerts, back-in-stock, abandoned cart, admin alerts |
+| Email | **Resend or SMTP (nodemailer)** — pick with `MAIL_DRIVER`. OTP, order confirmations, status updates, low-stock alerts, back-in-stock, abandoned cart, admin alerts |
 | File storage | **S3-compatible bucket** (Cloudflare R2 / AWS S3 / Backblaze) via presigned uploads — kept over local disk so images survive a server rebuild |
 | Payments | **Stripe Checkout (hosted page)** — redirect out, return to a confirmation page; the webhook is the source of truth |
 | Credentials | **Client provides Stripe, Resend domain and the bucket later.** Build against Stripe test mode, a console mail driver and a local storage stub; swap via env before launch |
@@ -169,7 +169,8 @@ mongoose                    MongoDB ODM
 zod                         input validation, shared client/server
 jose                        signed JWT session cookies
 stripe                      server SDK
-resend                      transactional email
+resend                      transactional email (MAIL_DRIVER=resend)
+nodemailer                  SMTP transactional email (MAIL_DRIVER=nodemailer)
 @react-email/components     email templates
 @aws-sdk/client-s3          presigned uploads (works with R2/Backblaze)
 @aws-sdk/s3-request-presigner
@@ -590,7 +591,12 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 
 RESEND_API_KEY=
 MAIL_FROM=
-MAIL_DRIVER=console|resend
+MAIL_DRIVER=console|resend|nodemailer
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_SECURE=false
 
 S3_ENDPOINT=
 S3_REGION=
@@ -646,6 +652,7 @@ Recorded so it is never re-litigated mid-build:
 
 | Date | Change |
 |---|---|
+| 2026-09-10 | **SMTP mail driver.** `MAIL_DRIVER=nodemailer` sends through any SMTP host (`SMTP_HOST` / port / user / pass). Resend and console stay available |
 | 2026-09-10 | **Herb Cabinet on phones.** Shelf/form/sort sit behind a Filters toggle (collapsed by default). The "Read before ordering" notice stays on desktop `/shop` only, so products appear in the first viewport |
 | 2026-09-09 | **Limited admin roles can reach their sections.** Sign-in and `/admin` send an admin to the first sidebar page their role allows. The denied screen keeps the sidebar, so Products and Reviews stay reachable without Dashboard |
 | 2026-09-09 | **Admin lists are paged.** Inventory, orders, products, customers, enquiries, reviews, messages, coupons, sales and admin users load 10 rows at a time. Filter query params are kept when paging. Dashboard, reports, categories, featured and CMS pages stay as they are — those screens need the whole small set, not a growing ledger |
