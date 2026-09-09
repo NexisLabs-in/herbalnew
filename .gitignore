@@ -3,6 +3,7 @@
 /.pnp
 .pnp.*
 
+
 # next.js
 /.next/
 /out/
