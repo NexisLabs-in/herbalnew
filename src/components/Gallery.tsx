@@ -20,6 +20,9 @@ export function Gallery({ views, label }: { views: GalleryView[]; label: string 
           width={current.photo ? 900 : 400}
           height={current.photo ? 900 : 660}
           priority
+          // Uploaded images live in the bucket and are not in next.config's
+          // image domains; the checked-in /img/* assets still get optimised.
+          unoptimized={!current.src.startsWith("/img/")}
         />
       </div>
       {views.length > 1 ? (
@@ -34,7 +37,7 @@ export function Gallery({ views, label }: { views: GalleryView[]; label: string 
             aria-label={view.alt}
             onClick={() => setActive(i)}
           >
-            <Image src={view.src} alt="" width={74} height={74} />
+            <Image src={view.src} alt="" width={74} height={74} unoptimized={!view.src.startsWith("/img/")} />
           </button>
         ))}
       </div>

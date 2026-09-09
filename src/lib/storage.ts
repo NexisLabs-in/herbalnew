@@ -91,7 +91,12 @@ export function buildKey(prefix: string, filename: string, contentType: AllowedI
 
 export function publicUrl(key: string): string {
   if (!live.storage) return `/uploads/${key}`;
-  const base = `${env.S3_ENDPOINT.replace(/\/$/, "")}/${env.S3_BUCKET}`;
+  // An explicit endpoint is an R2/B2-style host that serves the bucket as a path
+  // segment. Plain AWS has no endpoint configured — the SDK derives its own — so
+  // there the public host is built from the bucket and its region instead.
+  const base = env.S3_ENDPOINT
+    ? `${env.S3_ENDPOINT.replace(/\/$/, "")}/${env.S3_BUCKET}`
+    : `https://${env.S3_BUCKET}.s3.${env.S3_REGION}.amazonaws.com`;
   return `${base}/${key}`;
 }
 
