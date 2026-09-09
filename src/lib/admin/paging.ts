@@ -1,6 +1,6 @@
 /** How many rows an admin list loads at once. Dense enough to scan, small
  *  enough that a long history is not fetched in one query. */
-export const ADMIN_PAGE_SIZE = 20;
+export const ADMIN_PAGE_SIZE = 10;
 
 export function pageNumber(value: string | undefined): number {
   const n = Number(value);

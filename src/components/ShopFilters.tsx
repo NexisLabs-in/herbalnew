@@ -69,6 +69,14 @@ export function ShopFilters({
     { value: "name", label: t(SHOP.sortName, locale) },
   ];
 
+  const activeFilterCount =
+    (activeCategory !== "all" ? 1 : 0) +
+    (activeForm !== "all" ? 1 : 0) +
+    (activeSort !== "featured" ? 1 : 0);
+
+  const resultsLabel =
+    total === 1 ? t(SHOP.resultsOne, locale) : `${total} ${t(SHOP.resultsMany, locale)}`;
+
   return (
     <div className="shop-bar">
       {/* A GET form, so a search is a real URL that can be shared and revisited.
@@ -100,7 +108,28 @@ export function ShopFilters({
         ) : null}
       </form>
 
-      <div className="shop-bar__rows">
+      {/* Checkbox toggle: collapsed by default on phones, always visible on
+          desktop via CSS. No JS, so filtered URLs still work without it. */}
+      <input
+        type="checkbox"
+        id="shop-filters-toggle"
+        className="shop-bar__toggle"
+        aria-controls="shop-filters-panel"
+      />
+      <div className="shop-bar__mobile-tools">
+        <label className="shop-bar__toggle-label" htmlFor="shop-filters-toggle">
+          <span className="shop-bar__toggle-text">{t(SHOP.filtersToggle, locale)}</span>
+          {activeFilterCount > 0 ? (
+            <span className="shop-bar__toggle-count" aria-hidden="true">
+              {activeFilterCount}
+            </span>
+          ) : null}
+          <span className="shop-bar__toggle-chevron" aria-hidden="true" />
+        </label>
+        <span className="shop-bar__count">{resultsLabel}</span>
+      </div>
+
+      <div className="shop-bar__rows" id="shop-filters-panel">
         <div className="shop-bar__row">
           <span className="shop-bar__label">{t(SHOP.filterByShelf, locale)}</span>
           <div className="filters">
@@ -179,11 +208,8 @@ export function ShopFilters({
         </div>
 
         <div className="shop-bar__row shop-bar__row--end">
-          <span className="shop-bar__count">
-            {total === 1
-              ? t(SHOP.resultsOne, locale)
-              : `${total} ${t(SHOP.resultsMany, locale)}`}
-          </span>
+          <span className="shop-bar__label shop-bar__label--sort">{t(SHOP.sortBy, locale)}</span>
+          <span className="shop-bar__count shop-bar__count--desktop">{resultsLabel}</span>
           <div className="filters">
             {sorts.map((option) => (
               <Link
@@ -223,7 +249,7 @@ export function ShopPagination({
   return (
     <nav className="pager" aria-label={t(SHOP.page, locale)}>
       {page > 1 ? (
-        <Link className="btn btn--ghost btn--sm" scroll={false} href={shopHref(base, params, { page: String(page - 1) })}>
+        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page - 1) })}>
           {t(SHOP.previous, locale)}
         </Link>
       ) : (
@@ -237,7 +263,7 @@ export function ShopPagination({
       </span>
 
       {page < pages ? (
-        <Link className="btn btn--ghost btn--sm" scroll={false} href={shopHref(base, params, { page: String(page + 1) })}>
+        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page + 1) })}>
           {t(SHOP.next, locale)}
         </Link>
       ) : (

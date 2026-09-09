@@ -64,14 +64,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
 
       <section className="section--tight">
         <div className="shell shell--wide">
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: "minmax(0,.8fr) minmax(0,1.2fr)",
-              gap: "clamp(2rem,5vw,4rem)",
-              alignItems: "start",
-            }}
-          >
+          <div className="grid grid--split">
             <Reveal className="panel">
               <p className="eyebrow eyebrow--plain">{tl(asTL(copy.traditionsHeading), locale)}</p>
               <ul style={{ marginTop: "1rem" }}>

@@ -169,11 +169,10 @@ export default async function ProductPage({
                 />
               ) : (
                 <div className="buy-box">
-                  <p className="eyebrow eyebrow--plain">{form || t(UI.form, locale)}</p>
-                  <div style={{ marginTop: ".9rem" }}>
+                  <div className="buy-box__price">
                     <Price price={product.price} locale={locale} size="lg" />
                   </div>
-                  <div style={{ marginTop: ".8rem" }}>
+                  <div className="buy-box__stock">
                     <StockLine
                       state={product.stockState}
                       stock={product.stock}
@@ -183,7 +182,7 @@ export default async function ProductPage({
                   </div>
 
                   {outOfStock ? (
-                    <div style={{ marginTop: "1.4rem" }}>
+                    <div className="buy-box__action">
                       <NotifyMeForm
                         productId={product.id}
                         locale={locale}
@@ -191,7 +190,7 @@ export default async function ProductPage({
                       />
                     </div>
                   ) : (
-                    <div style={{ marginTop: "1.4rem" }}>
+                    <div className="buy-box__action">
                       <AddToCart
                         productId={product.id}
                         locale={locale}

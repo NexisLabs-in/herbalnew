@@ -91,11 +91,11 @@ export default async function ShopPage({
             </div>
           </dl>
 
-          <div style={{ marginTop: "2rem" }}>
+          <div className="shop-advisory">
             <Advisory locale={locale} />
           </div>
 
-          <div style={{ marginTop: "2.5rem" }}>
+          <div className="shop-toolbar">
             <ShopFilters
               base={base}
               params={query}

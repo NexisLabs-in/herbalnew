@@ -184,14 +184,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <section className="section bg-paper" style={{ borderBlock: "1px solid var(--color-line)" }}>
         <div className="shell shell--wide">
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: "minmax(0,.85fr) minmax(0,1.15fr)",
-              gap: "clamp(2rem,5vw,4.5rem)",
-              alignItems: "start",
-            }}
-          >
+          <div className="grid grid--split">
             <Reveal>
               <p className="eyebrow">{t(BRAND.tagline, locale)}</p>
               <h2 className="display d2" style={{ marginTop: "1rem" }}>

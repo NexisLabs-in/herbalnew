@@ -15,6 +15,7 @@ export const SHOP: Record<string, L> = {
   filterAll: { en: "All", ar: "الكل" },
   filterByShelf: { en: "Shelf", ar: "الرف" },
   filterByForm: { en: "Form", ar: "الشكل" },
+  filtersToggle: { en: "Filters", ar: "تصفية" },
   sortBy: { en: "Sort", ar: "الترتيب" },
   sortFeatured: { en: "Featured", ar: "المميزة" },
   sortNewest: { en: "Newest", ar: "الأحدث" },

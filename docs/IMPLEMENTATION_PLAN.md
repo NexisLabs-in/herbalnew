@@ -129,6 +129,7 @@ Every question raised during planning, answered. Do not revisit these without as
 | Product variants | **None.** One price, one SKU per product. Different sizes are separate products |
 | Bilingual products | Every text field has EN + AR inputs. **EN required, AR optional** — blank AR falls back to EN on `/ar` |
 | Categories | **Two levels**, from the client's own taxonomy (`docs/Products categories.docx`): four top-level groupings with seven subcategories. **Products sit on a subcategory only**; a parent means "everything beneath it". Still a filter on `/shop` — no `/categories/[slug]` landing pages |
+| Shop on mobile | **Filters collapsed by default**; the "Read before ordering" advisory is **desktop-only on `/shop`** so the first products sit in the first viewport. Desktop keeps filters open and the advisory visible |
 | Related products | **Automatic — other published, in-stock products from the same category.** No manual picking |
 | Out of stock | **Product stays visible and listed**, buy button disabled and labelled, plus a **"Notify me when back in stock"** email capture that fires when admin restocks |
 | Seed data | **Only the two real formulas** (`hair-growth`, `prostate-health`). Demo filler products and the three demo shelves are dropped |
@@ -645,7 +646,9 @@ Recorded so it is never re-litigated mid-build:
 
 | Date | Change |
 |---|---|
-| 2026-09-09 | **Admin lists are paged.** Inventory, orders, products, customers, enquiries, reviews, messages, coupons, sales and admin users load 20 rows at a time. Filter query params are kept when paging. Dashboard, reports, categories, featured and CMS pages stay as they are — those screens need the whole small set, not a growing ledger |
+| 2026-09-10 | **Herb Cabinet on phones.** Shelf/form/sort sit behind a Filters toggle (collapsed by default). The "Read before ordering" notice stays on desktop `/shop` only, so products appear in the first viewport |
+| 2026-09-09 | **Limited admin roles can reach their sections.** Sign-in and `/admin` send an admin to the first sidebar page their role allows. The denied screen keeps the sidebar, so Products and Reviews stay reachable without Dashboard |
+| 2026-09-09 | **Admin lists are paged.** Inventory, orders, products, customers, enquiries, reviews, messages, coupons, sales and admin users load 10 rows at a time. Filter query params are kept when paging. Dashboard, reports, categories, featured and CMS pages stay as they are — those screens need the whole small set, not a growing ledger |
 | 2026-09-09 | **Minimum and maximum order quantities.** Set on the product add and edit forms. A customer cannot add, change, enquire or pay a quote outside that range. Minimum defaults to 1; empty maximum means no product cap. A line already in the basket that falls outside a later change blocks checkout until the quantity is fixed |
 | 2026-09-09 | **Customer orders list is paged.** `/account/orders` loads 10 orders at a time, newest first, with previous/next. A long history is no longer fetched in one query |
 | 2026-09-09 | **Wishlist is paged the same way.** `/account/wishlist` loads 10 saved formulas at a time. Unpublished saves drop out before paging, so a page is not a short list of missing cards |

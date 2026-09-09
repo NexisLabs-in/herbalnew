@@ -5,11 +5,13 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { connectDb } from "@/lib/db";
+import { firstAdminPath } from "@/lib/admin/nav";
 import { getAdmin } from "@/lib/auth/guards";
 import { issueOtp, verifyOtp } from "@/lib/auth/otp";
 import { clearAdminSession, createAdminSession } from "@/lib/auth/session";
 import { adminResetCodeEmail } from "@/lib/emails/auth";
 import { sendMail } from "@/lib/mail";
+import { AdminRole } from "@/lib/models/AdminRole";
 import { AdminUser } from "@/lib/models/AdminUser";
 
 /** Admin authentication: password to sign in, emailed OTP to recover.
@@ -65,7 +67,10 @@ export async function adminSignIn(_prev: AdminAuthState, formData: FormData): Pr
   await admin.save();
 
   await createAdminSession({ adminId: String(admin._id), email: admin.email });
-  redirect(admin.mustChangePassword ? "/admin/set-password" : "/admin");
+  if (admin.mustChangePassword) redirect("/admin/set-password");
+
+  const role = await AdminRole.findById(admin.roleId).lean();
+  redirect(firstAdminPath(role?.permissions ?? []));
 }
 
 /** Step one of recovery. Always reports success, whether or not the address
@@ -164,7 +169,7 @@ export async function adminSetPassword(
   admin.mustChangePassword = false;
   await admin.save();
 
-  redirect("/admin");
+  redirect(firstAdminPath(context.permissions));
 }
 
 export async function adminSignOut(): Promise<void> {

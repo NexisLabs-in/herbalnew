@@ -47,17 +47,8 @@ export function PageHead({
           </nav>
         ) : null}
         <p className="eyebrow">{kicker}</p>
-        <h1 className={compact ? "display d3" : "display d2"} style={className ? undefined : { marginTop: compact ? ".7rem" : "1rem" }}>
-          {title}
-        </h1>
-        {sub ? (
-          <p
-            className={compact ? "body" : "lead"}
-            style={className ? undefined : { marginTop: compact ? ".7rem" : "1.1rem", maxWidth: "60ch" }}
-          >
-            {sub}
-          </p>
-        ) : null}
+        <h1 className={compact ? "display d3" : "display d2"}>{title}</h1>
+        {sub ? <p className={compact ? "body page-head__sub" : "lead page-head__sub"}>{sub}</p> : null}
       </div>
     </section>
   );

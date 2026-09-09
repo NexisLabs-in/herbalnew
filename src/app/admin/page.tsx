@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { firstAdminPath } from "@/lib/admin/nav";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
 import { formatFils } from "@/lib/i18n";
@@ -20,9 +22,16 @@ export const dynamic = "force-dynamic";
  *  clears it — a count that cannot be acted on is just decoration.
  *
  *  Figures count paid orders only. Attempts are not revenue.
+ *
+ *  `/admin` is also the default post-login URL. A role without dashboard access
+ *  is forwarded to the first sidebar section they can open, rather than the
+ *  denied page with nowhere to go.
  */
 export default async function AdminDashboardPage() {
-  const admin = await requireAdminPage("dashboard:read");
+  const admin = await requireAdminPage();
+  if (!can(admin.permissions, "dashboard:read")) {
+    redirect(firstAdminPath(admin.permissions));
+  }
 
   await connectDb();
   const settings = await getSettings();

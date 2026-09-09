@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SHOP } from "@/content/shop";
+import { Icon } from "@/components/Icon";
 import { addToCart } from "@/server/actions/cart";
 import { notifyCartChanged } from "./CartCount";
 import { localePath, t, type Locale } from "@/lib/i18n";
@@ -107,10 +108,13 @@ export function AddToCart({
 
       {state?.notice ? (
         <p className="addcart__done" role="status">
-          {state.notice}{" "}
-          <Link className="link-plain" href={localePath(locale, "/cart")}>
-            {t(SHOP.viewBasket, locale)}
-          </Link>
+          <Icon name="check" size={17} strokeWidth={2} className="addcart__done-icon" />
+          <span>
+            {state.notice}{" "}
+            <Link className="link-plain" href={localePath(locale, "/cart")}>
+              {t(SHOP.viewBasket, locale)}
+            </Link>
+          </span>
         </p>
       ) : null}
     </div>
