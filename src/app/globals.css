@@ -1502,6 +1502,31 @@ select.field__input{
 
 .admin-review__head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
 
+/* Product page soft-nav skeleton (shop card → PDP). */
+@keyframes skel-pulse{
+  0%,100%{opacity:.55}
+  50%{opacity:.9}
+}
+.skel{
+  border-radius:var(--radius-md);background:var(--color-paper-200);
+  animation:skel-pulse 1.2s var(--ease-brand) infinite;
+}
+.pdp-loading .page-head{padding-block-end:clamp(.6rem,1.5vw,1rem)}
+.skel--crumb{height:.55rem;width:min(16rem,55%);margin-bottom:1.1rem}
+.skel--eyebrow{height:.55rem;width:7rem;margin-bottom:.85rem}
+.skel--title{height:clamp(2rem,4vw,2.8rem);width:min(22rem,75%);margin-bottom:.9rem}
+.skel--lead{height:2.6rem;width:min(36rem,92%);max-width:60ch}
+.pdp-loading__gallery{display:grid;gap:.9rem}
+.skel--stage{aspect-ratio:1/1.02;width:100%;border-radius:var(--radius-xl)}
+.pdp-loading__thumbs{display:flex;gap:.7rem}
+.skel--thumb{width:74px;height:74px;border-radius:var(--radius-sm);flex:none}
+.pdp-loading__copy{display:grid;gap:1rem;align-content:start}
+.skel--chips{height:1.75rem;width:min(18rem,80%)}
+.skel--facts{height:7.5rem;width:100%}
+.skel--price{height:2.5rem;width:min(12rem,50%);margin-top:.4rem}
+.skel--cta{height:3rem;width:min(20rem,100%)}
+.skel--block{height:4.5rem;width:100%}
+
 }
 
 /* ---------- 21. CMS sections ---------------------------------------------- */

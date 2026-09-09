@@ -788,3 +788,42 @@
   border-color: #B4332B;
   box-shadow: 0 0 0 3px rgba(180, 51, 43, .12);
 }
+
+/* ---------- Loading skeletons --------------------------------------------- */
+
+@keyframes admin-skel-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.85; }
+}
+
+.admin-skel {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  animation: admin-skel-pulse 1.2s var(--ease-brand) infinite;
+}
+
+.admin-main .admin-skel {
+  background: var(--color-paper-200);
+}
+
+.admin-skel-stack {
+  display: grid;
+  gap: 0.45rem;
+  padding-inline: 0.35rem;
+}
+
+.admin-skel-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.admin-skel--brand { height: 1.1rem; width: 6.5rem; margin-inline: 0.6rem; }
+.admin-skel--label { height: 0.55rem; width: 4rem; margin-block: 0.85rem 0.2rem; opacity: 0.5; }
+.admin-skel--nav { height: 2rem; width: 100%; }
+.admin-skel--title { height: 1.75rem; width: min(14rem, 55%); }
+.admin-skel--sub { height: 0.85rem; width: min(22rem, 70%); margin-top: 0.65rem; }
+.admin-skel--card { height: 5.5rem; }
+.admin-skel--table { height: 16rem; margin-top: 1.5rem; }
+
