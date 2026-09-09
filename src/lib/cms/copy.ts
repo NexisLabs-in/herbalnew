@@ -117,9 +117,10 @@ export async function ensureFaqClosing(): Promise<void> {
   const page = await ContentPage.findOne({ slug: "faq" });
   if (!page) return;
   const sections = page.sections ?? [];
-  if (sections.some((section) => section.type === "ctaBanner")) return;
+  if (sections.some((section: { type?: string }) => section.type === "ctaBanner")) return;
 
-  const order = sections.reduce((max, section) => Math.max(max, section.order ?? 0), -1) + 1;
+  const order =
+    sections.reduce((max: number, section: { order?: number }) => Math.max(max, section.order ?? 0), -1) + 1;
   page.set("sections", [
     ...sections,
     {
