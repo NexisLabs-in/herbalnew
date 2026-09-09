@@ -13,11 +13,16 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # The build reads NEXT_PUBLIC_* values, so anything the browser needs must be
-# present here rather than only at run time.
+# present here rather than only at run time. Mongo is also needed at build:
+# the shop and CMS pages prerender against the live catalogue.
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ARG MONGODB_URI
+ARG MONGODB_DB=herbedia
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV MONGODB_URI=$MONGODB_URI
+ENV MONGODB_DB=$MONGODB_DB
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

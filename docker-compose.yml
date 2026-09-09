@@ -7,6 +7,10 @@ services:
       args:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        # Prerender dials the catalogue at build time. Without these the image
+        # build tries mongodb://127.0.0.1 and fails on /shop/[slug].
+        MONGODB_URI: ${MONGODB_URI}
+        MONGODB_DB: ${MONGODB_DB:-herbedia}
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"

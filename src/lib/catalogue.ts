@@ -410,9 +410,18 @@ export async function getProductsByIds(ids: string[]): Promise<ProductCardView[]
   return ids.map((id) => cards.get(id)).filter((card): card is ProductCardView => Boolean(card));
 }
 
-/** Slugs for `generateStaticParams` and the sitemap. */
+/** Slugs for `generateStaticParams` and the sitemap.
+ *
+ *  Returns an empty list when the database is unreachable (Docker builds that
+ *  forgot to pass MONGODB_URI, Atlas briefly down). Callers then skip
+ *  prerender and serve on first request instead of failing `next build`. */
 export async function getPublishedSlugs(): Promise<string[]> {
-  await connectDb();
-  const docs = await Product.find({ status: "published" }).select("slug").lean();
-  return docs.map((doc) => doc.slug);
+  try {
+    await connectDb();
+    const docs = await Product.find({ status: "published" }).select("slug").lean();
+    return docs.map((doc) => doc.slug);
+  } catch (error) {
+    console.warn("[catalogue] getPublishedSlugs skipped — database unavailable at build", error);
+    return [];
+  }
 }

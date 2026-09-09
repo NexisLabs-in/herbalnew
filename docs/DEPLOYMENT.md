@@ -76,13 +76,17 @@ CRON_ENABLED=true
 
 `NEXT_PUBLIC_*` values are baked in at build time, so they also go in the
 compose build args — which `docker-compose.yml` already reads from the shell.
+**`MONGODB_URI` is a build arg too:** the shop and CMS pages prerender against
+the live database during `next build`. Without it the image build dials
+`127.0.0.1` inside the container and dies on `/shop/[slug]`. Atlas must allow
+the build host (or `0.0.0.0/0` while you ship).
 
 ---
 
 ## 4. Build and start
 
 ```bash
-set -a && . ./.env.production && set +a   # export for the build args
+set -a && . ./.env.production && set +a   # export for the build args (incl. Mongo)
 docker compose up -d --build
 curl -s localhost:3000/api/health          # {"ok":true,"db":"connected"}
 ```
@@ -186,6 +190,7 @@ nowhere else.
 
 | Symptom | Cause |
 |---|---|
+| `Failed to collect page data for /[locale]/shop/[slug]` at build | `MONGODB_URI` not exported into the Docker build (`set -a && . ./.env.production`), or Atlas blocking the build host |
 | Orders stuck on `pending` after payment | Webhook not configured, or the wrong signing secret |
 | No emails at all | `MAIL_DRIVER` still `console`, or the domain is not verified with Resend |
 | Login codes never arrive | Same as above — OTP is an email |

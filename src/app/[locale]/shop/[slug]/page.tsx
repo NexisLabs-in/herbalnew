@@ -24,7 +24,9 @@ import { isLocale, locales, localePath, t, tl, type Locale } from "@/lib/i18n";
 export const revalidate = 300;
 
 /** Prerenders the published catalogue at build time; anything published later
- *  is rendered on first request and then cached (`dynamicParams` defaults on). */
+ *  is rendered on first request and then cached (`dynamicParams` defaults on).
+ *  An empty list (database unreachable during build) is fine — pages still
+ *  work on demand. */
 export async function generateStaticParams() {
   const slugs = await getPublishedSlugs();
   return locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
