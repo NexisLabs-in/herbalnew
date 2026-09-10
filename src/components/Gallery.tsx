@@ -1,11 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 export type GalleryView = { src: string; alt: string; photo?: boolean };
 
-export function Gallery({ views, label }: { views: GalleryView[]; label: string }) {
+export function Gallery({
+  views,
+  label,
+  action,
+}: {
+  views: GalleryView[];
+  label: string;
+  /** Rendered pinned to the top corner of the stage — the save-for-later
+   *  heart, so it reads as part of the product image rather than the form. */
+  action?: ReactNode;
+}) {
   const [active, setActive] = useState(0);
   const current = views[active];
 
@@ -24,6 +34,7 @@ export function Gallery({ views, label }: { views: GalleryView[]; label: string 
           // image domains; the checked-in /img/* assets still get optimised.
           unoptimized={!current.src.startsWith("/img/")}
         />
+        {action ? <div className="pdp__wish">{action}</div> : null}
       </div>
       {views.length > 1 ? (
       <div className="pdp__thumbs" role="tablist" aria-label={label}>

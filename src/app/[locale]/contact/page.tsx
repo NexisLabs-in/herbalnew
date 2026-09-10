@@ -54,7 +54,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const copy = page?.sections.find((section) => section.type === "contactCopy")?.data ?? {};
   const email = typeof copy.email === "string" ? copy.email : "";
   const website = typeof copy.website === "string" ? copy.website : "";
-  const licence = typeof copy.licence === "string" ? copy.licence : "";
+  const mobile = typeof copy.mobile === "string" && copy.mobile ? copy.mobile : CONTACT.mobile;
 
   const hours = tl(asTL(copy.hours), locale);
   const address = tl(asTL(copy.address), locale);
@@ -110,10 +110,14 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   </p>
                 </div>
               ) : null}
-              {licence ? (
+              {mobile ? (
                 <div className="contact__item">
-                  <p className="contact__label">{t(CONTACT.labels.licence, locale)}</p>
-                  <p className="contact__value">{licence}</p>
+                  <p className="contact__label">{t(CONTACT.labels.mobile, locale)}</p>
+                  <p className="contact__value">
+                    <a href={`tel:${mobile.replace(/\s/g, "")}`} dir="ltr">
+                      {mobile}
+                    </a>
+                  </p>
                 </div>
               ) : null}
               {website ? (

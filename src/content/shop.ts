@@ -14,6 +14,11 @@ export const SHOP: Record<string, L> = {
   clear: { en: "Clear", ar: "مسح" },
   filterAll: { en: "All", ar: "الكل" },
   filterByShelf: { en: "Shelf", ar: "الرف" },
+  categoryHeading: { en: "Shop by Category", ar: "تسوّق حسب الفئة" },
+  categorySub: {
+    en: "Find the right solution for your health needs",
+    ar: "اعثر على الحل المناسب لاحتياجاتك الصحية",
+  },
   filterByForm: { en: "Form", ar: "الشكل" },
   filtersToggle: { en: "Filters", ar: "تصفية" },
   sortBy: { en: "Sort", ar: "الترتيب" },

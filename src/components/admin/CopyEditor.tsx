@@ -33,7 +33,7 @@ type ContactCopy = {
   email: string;
   hours: TL;
   address: TL;
-  licence: string;
+  mobile: string;
   website: string;
   country: TL;
   pendingTitle: TL;
@@ -195,7 +195,12 @@ export function CopyEditor({
     email: typeof data.email === "string" ? data.email : "",
     hours: asTL(data.hours),
     address: asTL(data.address),
-    licence: typeof data.licence === "string" ? data.licence : "",
+    mobile:
+      typeof data.mobile === "string" && data.mobile
+        ? data.mobile
+        : typeof data.licence === "string"
+          ? data.licence
+          : "",
     website: typeof data.website === "string" ? data.website : "",
     country: asTL(data.country),
     pendingTitle: asTL(data.pendingTitle),
@@ -356,7 +361,7 @@ export function CopyEditor({
             value={contact.address}
             onChange={(address) => setContact({ ...contact, address })}
           />
-          <TextField label="Trade licence" value={contact.licence} onChange={(licence) => setContact({ ...contact, licence })} />
+          <TextField label="Mobile number" value={contact.mobile} onChange={(mobile) => setContact({ ...contact, mobile })} />
           <TextField label="Website" value={contact.website} onChange={(website) => setContact({ ...contact, website })} />
           <BilingualField label="Country" value={contact.country} onChange={(country) => setContact({ ...contact, country })} />
         </Fieldset>

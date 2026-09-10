@@ -378,7 +378,11 @@ body::before{
 }
 .product-card__img{height:70%;width:auto;max-width:60%;position:relative;z-index:1;transition:transform .7s var(--ease-brand)}
 .card--lift:hover .product-card__img{transform:translateY(-8px) scale(1.04)}
-.product-card__badges{position:absolute;inset:.8rem .8rem auto;display:flex;justify-content:space-between;gap:.5rem;z-index:2}
+
+.product-card__badges{
+  position:absolute;inset:.8rem .8rem auto;padding-inline-end:2.75rem;
+  display:flex;justify-content:space-between;gap:.5rem;z-index:2;pointer-events:none;
+}
 .product-card__body{display:flex;flex-direction:column;flex:1;padding:1.15rem 1.2rem 1.25rem}
 .product-card__concern{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--color-violet-600)}
 .product-card__name{font-family:var(--font-display);font-size:1.28rem;letter-spacing:-.015em;line-height:1.2;margin-top:.4rem}
@@ -386,9 +390,10 @@ body::before{
   font-size:.8125rem;color:var(--color-ink-3);line-height:1.6;margin-top:.55rem;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
-.product-card__specs{display:flex;gap:1.2rem;margin-top:.95rem;padding-top:.85rem;border-top:1px solid var(--color-line)}
+.product-card__specs{display:flex;justify-content:space-between;align-items:flex-start;gap:1.2rem;width:100%;margin-top:.95rem;padding-top:.85rem;border-top:1px solid var(--color-line)}
 .product-card__specs dt{font-family:var(--font-mono);font-size:.5625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted)}
 .product-card__specs dd{margin:.3rem 0 0;font-size:.8125rem;color:var(--color-ink-2)}
+.product-card__specs > div:last-child:not(:only-child){text-align:end}
 .product-card__foot{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:auto;padding-top:1rem}
 /* Phone cabinet: two across, a little smaller, without packing the type. */
 @media(max-width:800px){
@@ -403,9 +408,13 @@ body::before{
     flex-direction:column;align-items:flex-start;gap:.45rem;padding-top:.7rem;
   }
   .product-card__foot .link-arrow{font-size:.75rem}
-  /* Keep top/sides only — a full `inset` also sets bottom and stretches the
-     badges over the whole packshot, turning the chips into tall vertical pills. */
-  .product-card__badges{inset-block-start:.55rem;inset-inline:.55rem;inset-block-end:auto;flex-wrap:wrap}
+  /* The two-column cabinet leaves too little width to keep the form chip and
+     a second one (sale, out of stock) side by side clear of the heart, so on
+     phones they stack on the left instead of wrapping into its corner. */
+  .product-card__badges{
+    inset-block-start:.55rem;inset-inline-start:.55rem;inset-inline-end:auto;inset-block-end:auto;
+    flex-direction:column;align-items:flex-start;flex-wrap:nowrap;padding-inline-end:0;gap:.35rem;
+  }
   .product-card__badges .chip{padding:.28rem .55rem;font-size:.5rem;max-width:100%}
   .product-card__wish{inset-block-start:.55rem;inset-inline-end:.55rem}
 }
@@ -572,6 +581,14 @@ body::before{
 }
 .pdp__stage::after{content:"";position:absolute;left:50%;bottom:14%;transform:translateX(-50%);width:52%;height:26px;border-radius:50%;background:radial-gradient(ellipse,rgba(18,8,51,.24),transparent 70%);filter:blur(9px)}
 .pdp__img{height:74%;width:auto;max-width:62%;position:relative;z-index:1;transition:opacity .35s var(--ease-brand)}
+/* Save-for-later sits on the packshot itself, like the shop grid's heart,
+   rather than as a separate line competing with the buy box below. */
+.pdp__wish{position:absolute;inset-block-start:.9rem;inset-inline-end:.9rem;z-index:2}
+
+/* The chip labels above the spec grid ("Oil", "Hair Care & Growth") were sized
+   like the dense grid badges they were copied from; at full width they read
+   too small to be the first thing a visitor reads on the page. */
+.pdp__chips .chip{font-size:.75rem;letter-spacing:.08em;padding:.4rem .85rem}
 .pdp__thumbs{display:flex;gap:.7rem;margin-top:.9rem}
 .pdp__thumb{
   width:74px;height:74px;border-radius:var(--radius-sm);border:1px solid var(--color-line);
@@ -599,6 +616,10 @@ body::before{
 
 /* Request-price: a line to write on, not a stack of white boxes. */
 .enquire{padding-top:.15rem}
+/* The section title reused the sitewide micro-label size, which is fine as a
+   quiet kicker elsewhere but reads too small and blurry as this form's only
+   heading — it wants to be legible at a glance, not decorative. */
+.enquire > .eyebrow{font-size:.8125rem;letter-spacing:.16em}
 .enquire__lead{margin-top:.7rem;max-width:42ch;color:var(--color-ink-3);font-size:.9375rem;line-height:1.55}
 .enquire--done .body{margin-top:.7rem;max-width:42ch}
 .enquire__error{margin-top:1rem;margin-bottom:0}
@@ -608,8 +629,8 @@ body::before{
   border-bottom:1px solid var(--color-line);
 }
 .enquire__field span{
-  display:block;font-family:var(--font-mono);font-size:.5938rem;font-weight:500;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--color-muted);
+  display:block;font-family:var(--font-mono);font-size:.75rem;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--color-muted);
 }
 .enquire__field input,
 .enquire__field textarea{
@@ -660,6 +681,18 @@ body::before{
 .footer__bar{margin-top:clamp(2.5rem,5vw,4rem);border-top:1px solid rgba(179,164,238,.14);padding-block:1.6rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:rgba(240,237,251,.55)}
 .footer__logo{width:clamp(200px,34vw,380px);height:auto;opacity:.92;margin-bottom:1.75rem}
 
+/* Sign-in: full footer padding reads heavy below a single-field page, and the
+   near-black shade sits too close under the light card to feel this dark. */
+body:has(.auth-page) .disclaimer{padding-block:1.35rem;background:var(--color-violet-950)}
+body:has(.auth-page) .disclaimer__t{margin-bottom:.55rem}
+body:has(.auth-page) .disclaimer p{line-height:1.6}
+body:has(.auth-page) .footer{padding-top:clamp(2rem,4vw,2.75rem);background:var(--color-violet-950)}
+body:has(.auth-page) .footer__logo{width:clamp(160px,28vw,280px);margin-bottom:1.1rem}
+body:has(.auth-page) .footer__grid{gap:clamp(1.25rem,2.5vw,2rem)}
+body:has(.auth-page) .footer__h{margin-bottom:.85rem}
+body:has(.auth-page) .footer__li{padding-block:.45rem}
+body:has(.auth-page) .footer__bar{margin-top:clamp(1.35rem,2.5vw,2rem);padding-block:1rem}
+
 /* ---------- 17. Page header (interior) ----------------------------------- */
 .page-head{
   padding-block:calc(var(--header-h) + clamp(3rem,6vw,4.5rem)) clamp(2.5rem,5vw,4rem);
@@ -688,6 +721,12 @@ body::before{
 }
 .page-head--product + .section,
 .page-head--product + .section--tight{padding-block-start:clamp(.75rem,1.5vw,1.25rem)}
+/* Herb Cabinet: the stats, advisory and category panel sit right under the
+   intro, not a fresh section — the full treatment's bottom padding plus a
+   tight section's own top padding stacked into a noticeably empty band. */
+.page-head--shop{padding-block-end:clamp(1.5rem,3vw,2.25rem)}
+.page-head--shop + .section,
+.page-head--shop + .section--tight{padding-block-start:clamp(1.25rem,2.5vw,2rem)}
 .page-head .eyebrow + .display{margin-top:1rem}
 .page-head--compact .eyebrow + .display{margin-top:.75rem}
 .page-head__sub{margin-top:1.1rem;max-width:60ch}
@@ -945,7 +984,7 @@ select.field__input{
   display:grid;place-items:center;
   /* Tall enough to feel composed, short enough that the footer is not pushed
      absurdly far down on a laptop. */
-  min-height:min(78vh,720px);
+  min-height:min(62vh,580px);
   padding:clamp(2.5rem,7vw,5rem) var(--gutter);
   background:
     radial-gradient(70% 55% at 88% 6%,rgba(81,43,199,.10),transparent 66%),
@@ -967,8 +1006,8 @@ select.field__input{
 .auth-page__inner{position:relative;width:100%;max-width:460px}
 
 .auth-page__foot{
-  margin:1.25rem 0 0;text-align:center;
-  font-size:.8125rem;line-height:1.6;color:var(--color-muted);
+  margin:.85rem 0 0;text-align:center;
+  font-size:.8125rem;line-height:1.5;color:var(--color-muted);
 }
 .auth-page__foot a{color:var(--color-violet-600);text-decoration:underline;text-underline-offset:3px}
 
@@ -1052,6 +1091,63 @@ select.field__input{
 
 .shop-advisory{margin-top:2rem}
 .shop-toolbar{margin-top:2.5rem}
+
+
+.category-panel{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.85rem 1.5rem;
+  padding:.85rem 1.1rem;border-radius:var(--radius-lg);
+  background:linear-gradient(155deg,var(--color-paper-100),var(--color-paper-200));
+  border:1px solid var(--color-line);
+}
+.category-panel__intro{flex:0 0 auto;max-width:220px}
+.category-panel__intro .eyebrow{margin-bottom:.25rem}
+.category-panel__title{
+  font-family:var(--font-display);font-weight:400;font-size:clamp(.95rem,1.2vw,1.0625rem);
+  color:var(--color-ink);line-height:1.2;
+}
+.category-panel__sub{margin-top:.15rem;font-size:.6875rem;color:var(--color-ink-3);line-height:1.4}
+
+.category-panel__tiles{
+  flex:1 1 auto;min-width:0;display:flex;flex-wrap:nowrap;gap:.5rem;
+  overflow-x:auto;scrollbar-width:none;
+}
+.category-panel__tiles::-webkit-scrollbar{display:none}
+.category-tile{
+  flex:1 1 76px;min-width:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.4rem;padding:.7rem .4rem;border-radius:var(--radius-md);
+  background:#fff;border:1px solid var(--color-line);
+  text-decoration:none;color:var(--color-ink-2);text-align:center;
+  transition:border-color .25s var(--ease-brand),background .25s var(--ease-brand),
+    color .25s var(--ease-brand);
+}
+.category-tile:hover{border-color:var(--color-violet-400)}
+.category-tile__icon{
+  display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;flex:none;
+  background:var(--color-violet-100);color:var(--color-violet-600);
+  transition:background .25s var(--ease-brand),color .25s var(--ease-brand);
+}
+.category-tile__label{
+  font-size:.6875rem;font-weight:500;line-height:1.2;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.category-tile.is-active{background:var(--color-violet-600);border-color:var(--color-violet-600);color:#fff}
+.category-tile.is-active .category-tile__icon{background:rgba(255,255,255,.2);color:#fff}
+/* A parent whose shelves are showing stays marked even when a child is the
+   active filter, so the trail back up the level is never lost. */
+.category-tile.is-open:not(.is-active){border-color:var(--color-violet-400);color:var(--color-violet-700)}
+
+.category-panel__subs{
+  flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.5rem;
+  margin-top:0;padding-top:.75rem;border-top:1px solid var(--color-line-strong);
+}
+
+@media(max-width:720px){
+  .category-panel{flex-direction:column;align-items:stretch;padding:.85rem .9rem;gap:.65rem}
+  .category-panel__intro{max-width:none}
+  /* Edge-to-edge scroll on phones, rather than stopping at the panel's own
+     padding, so the row reads as a filmstrip you can drag. */
+  .category-panel__tiles{margin-inline:-.9rem;padding-inline:.9rem .25rem}
+}
 
 .shop-bar{display:grid;gap:1.25rem}
 .shop-bar__search{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
@@ -1437,7 +1533,7 @@ select.field__input{
 /* ---------- Wishlist heart ------------------------------------------------ */
 
 .product-card__frame{position:relative}
-.product-card__wish{position:absolute;inset-block-start:.75rem;inset-inline-end:.75rem;z-index:2}
+.product-card__wish{position:absolute;inset-block-start:.75rem;inset-inline-end:.75rem;z-index:3}
 
 .wish{
   display:inline-flex;align-items:center;justify-content:center;gap:.5rem;

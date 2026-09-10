@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { SHOP } from "@/content/shop";
+import { Icon, type IconName } from "@/components/Icon";
 import type { CategoryTreeNode, CategoryView, ShopSort } from "@/lib/catalogue";
 import { t, tl, type Locale } from "@/lib/i18n";
+
+const SHELF_ICONS: Record<string, IconName> = {
+  "beauty-personal-care": "drop",
+  "wellness-lifestyle": "leaf",
+  "body-systems": "shield",
+  "reproductive-hormonal": "heart",
+};
+const shelfIcon = (slug: string): IconName => SHELF_ICONS[slug] ?? "leaf";
 
 /** The catalogue toolbar: search, shelf, form and sort.
  *
@@ -79,6 +88,70 @@ export function ShopFilters({
 
   return (
     <div className="shop-bar">
+      {/* Categories are the primary way in — always visible, not tucked behind
+          the mobile filters toggle with search/form/sort. */}
+      <div className="category-panel">
+        <div className="category-panel__intro">
+          <p className="eyebrow eyebrow--plain">{t(SHOP.filterByShelf, locale)}</p>
+          <h2 className="category-panel__title">{t(SHOP.categoryHeading, locale)}</h2>
+          <p className="category-panel__sub">{t(SHOP.categorySub, locale)}</p>
+        </div>
+
+        <div className="category-panel__tiles">
+          <Link
+            scroll={false}
+            className={`category-tile${activeCategory === "all" ? " is-active" : ""}`}
+            href={shopHref(base, params, { category: undefined })}
+            aria-current={activeCategory === "all" ? "true" : undefined}
+          >
+            <span className="category-tile__icon">
+              <Icon name="leaf" size={16} />
+            </span>
+            <span className="category-tile__label">{t(SHOP.filterAll, locale)}</span>
+          </Link>
+          {tree.map((parent) => (
+            <Link
+              scroll={false}
+              key={parent.id}
+              className={`category-tile${
+                openParent?.id === parent.id ? " is-open" : ""
+              }${activeCategory === parent.slug ? " is-active" : ""}`}
+              href={shopHref(base, params, { category: parent.slug })}
+              aria-current={activeCategory === parent.slug ? "true" : undefined}
+            >
+              <span className="category-tile__icon">
+                <Icon name={shelfIcon(parent.slug)} size={16} />
+              </span>
+              <span className="category-tile__label">{tl(parent.name, locale)}</span>
+            </Link>
+          ))}
+        </div>
+
+        {openParent && openParent.children.length ? (
+          <div className="category-panel__subs">
+            <Link
+              scroll={false}
+              className={`filter filter--sub${activeCategory === openParent.slug ? " is-active" : ""}`}
+              href={shopHref(base, params, { category: openParent.slug })}
+              aria-current={activeCategory === openParent.slug ? "true" : undefined}
+            >
+              {t(SHOP.filterAll, locale)}
+            </Link>
+            {openParent.children.map((child: CategoryView) => (
+              <Link
+                scroll={false}
+                key={child.id}
+                className={`filter filter--sub${activeCategory === child.slug ? " is-active" : ""}`}
+                href={shopHref(base, params, { category: child.slug })}
+                aria-current={activeCategory === child.slug ? "true" : undefined}
+              >
+                {tl(child.name, locale)}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       {/* A GET form, so a search is a real URL that can be shared and revisited.
           The other filters ride along as hidden fields rather than being lost
           the moment somebody searches within a shelf. */}
@@ -130,60 +203,6 @@ export function ShopFilters({
       </div>
 
       <div className="shop-bar__rows" id="shop-filters-panel">
-        <div className="shop-bar__row">
-          <span className="shop-bar__label">{t(SHOP.filterByShelf, locale)}</span>
-          <div className="filters">
-            <Link
-              scroll={false}
-              className={`filter${activeCategory === "all" ? " is-active" : ""}`}
-              href={shopHref(base, params, { category: undefined })}
-              aria-current={activeCategory === "all" ? "true" : undefined}
-            >
-              {t(SHOP.filterAll, locale)}
-            </Link>
-            {tree.map((parent) => (
-              <Link
-                scroll={false}
-                key={parent.id}
-                className={`filter${openParent?.id === parent.id ? " is-open" : ""}${
-                  activeCategory === parent.slug ? " is-active" : ""
-                }`}
-                href={shopHref(base, params, { category: parent.slug })}
-                aria-current={activeCategory === parent.slug ? "true" : undefined}
-              >
-                {tl(parent.name, locale)}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {openParent && openParent.children.length ? (
-          <div className="shop-bar__row shop-bar__row--sub">
-            <span className="shop-bar__label" />
-            <div className="filters">
-              <Link
-                scroll={false}
-                className={`filter filter--sub${activeCategory === openParent.slug ? " is-active" : ""}`}
-                href={shopHref(base, params, { category: openParent.slug })}
-                aria-current={activeCategory === openParent.slug ? "true" : undefined}
-              >
-                {t(SHOP.filterAll, locale)}
-              </Link>
-              {openParent.children.map((child: CategoryView) => (
-                <Link
-                  scroll={false}
-                  key={child.id}
-                  className={`filter filter--sub${activeCategory === child.slug ? " is-active" : ""}`}
-                  href={shopHref(base, params, { category: child.slug })}
-                  aria-current={activeCategory === child.slug ? "true" : undefined}
-                >
-                  {tl(child.name, locale)}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
         <div className="shop-bar__row">
           <span className="shop-bar__label">{t(SHOP.filterByForm, locale)}</span>
           <div className="filters">

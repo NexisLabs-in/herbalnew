@@ -110,7 +110,9 @@ export function ProductCard({
         <div className="product-card__foot">
           <span className="product-card__price">
             <Price price={product.price} locale={locale} size="sm" />
-            <StockLine state={product.stockState} stock={product.stock} locale={locale} />
+            {product.stockState !== "out" ? (
+              <StockLine state={product.stockState} stock={product.stock} locale={locale} />
+            ) : null}
           </span>
           <Link className="link-arrow" href={href}>
             <span>{t(UI.viewFormula, locale)}</span>

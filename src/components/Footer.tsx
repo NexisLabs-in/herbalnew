@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { BRAND, DISCLAIMER, DISCLAIMER_TITLE, LEGAL_NAV, NAV } from "@/content/brand";
 import { CONTACT } from "@/content/pages";
+import { ensurePageCopy } from "@/lib/cms/copy";
+import { getPage } from "@/lib/cms/pages";
 import { localePath, t, type L, type Locale } from "@/lib/i18n";
 
 export function Disclaimer({ locale }: { locale: Locale }) {
@@ -21,7 +23,11 @@ const ACCOUNT_LINKS: { label: L; href: string }[] = [
   { label: { en: "Saved items", ar: "العناصر المحفوظة" }, href: "/account/wishlist" },
 ];
 
-export function Footer({ locale }: { locale: Locale }) {
+export async function Footer({ locale }: { locale: Locale }) {
+  await ensurePageCopy("contact");
+  const page = await getPage("contact");
+  const copy = page?.sections.find((section) => section.type === "contactCopy")?.data ?? {};
+  const mobile = typeof copy.mobile === "string" && copy.mobile ? copy.mobile : CONTACT.mobile;
   const links = [...NAV.map((n) => ({ label: n.label, href: n.href })), LEGAL_NAV];
 
   return (
@@ -62,10 +68,14 @@ export function Footer({ locale }: { locale: Locale }) {
                   <strong>{t(CONTACT.labels.address, locale)}</strong>
                   {t(CONTACT.address, locale)}
                 </p>
-                <p>
-                  <strong>{t(CONTACT.labels.licence, locale)}</strong>
-                  {CONTACT.licence}
-                </p>
+                {mobile ? (
+                  <p>
+                    <strong>{t(CONTACT.labels.mobile, locale)}</strong>
+                    <a href={`tel:${mobile.replace(/\s/g, "")}`} dir="ltr">
+                      {mobile}
+                    </a>
+                  </p>
+                ) : null}
               </div>
             </div>
 

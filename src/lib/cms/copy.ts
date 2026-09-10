@@ -33,7 +33,7 @@ export function contactCopyData() {
     email: CONTACT.email,
     hours: tl(CONTACT.hours),
     address: tl(CONTACT.address),
-    licence: CONTACT.licence,
+    mobile: CONTACT.mobile,
     website: CONTACT.site,
     country: tl(CONTACT.country),
     pendingTitle: tl(CONTACT.pendingTitle),
@@ -52,7 +52,10 @@ export async function ensurePageCopy(slug: "method" | "contact"): Promise<void> 
 
   const already = (page.sections ?? []).some((section: { type?: string }) => section.type === type);
   if (already) {
-    if (slug === "contact") await fillContactChannels(page);
+    if (slug === "contact") {
+      await migrateContactMobile(page);
+      await fillContactChannels(page);
+    }
     return;
   }
 
@@ -64,6 +67,27 @@ export async function ensurePageCopy(slug: "method" | "contact"): Promise<void> 
       data: slug === "method" ? methodCopyData() : contactCopyData(),
     },
   ]);
+  await page.save();
+}
+
+/** Retire the old trade-licence field in favour of mobile number. */
+async function migrateContactMobile(page: {
+  sections?: { type?: string; data?: Record<string, unknown> }[];
+  set: (path: string, value: unknown) => void;
+  markModified: (path: string) => void;
+  save: () => Promise<unknown>;
+}) {
+  const section = (page.sections ?? []).find((item) => item.type === "contactCopy");
+  const data = (section?.data ?? {}) as Record<string, unknown>;
+  if (!("licence" in data)) return;
+
+  const sections = (page.sections ?? []).map((item) => {
+    if (item.type !== "contactCopy") return item;
+    const { licence: _removed, ...rest } = data;
+    return { ...item, data: { ...rest, mobile: CONTACT.mobile } };
+  });
+  page.set("sections", sections);
+  page.markModified("sections");
   await page.save();
 }
 
@@ -82,7 +106,10 @@ async function fillContactChannels(page: {
   const pending = Array.isArray(data.pending) ? data.pending : [];
   const linksMissing = pending.some((item) => !item || typeof item !== "object" || !("href" in item));
   const missingList = pending.length === 0;
-  if (!titleIsDraft && !missingList && !linksMissing) return;
+  // A stray effect of the trade-licence -> mobile migration: it always wrote
+  // an empty string, even where a placeholder was available to fall back to.
+  const mobileMissing = !data.mobile && Boolean(CONTACT.mobile);
+  if (!titleIsDraft && !missingList && !linksMissing && !mobileMissing) return;
 
   const seeded = contactCopyData();
   const withLinks = pending.map((item) => {
@@ -101,6 +128,7 @@ async function fillContactChannels(page: {
         pendingTitle: titleIsDraft ? seeded.pendingTitle : data.pendingTitle,
         pendingNote: data.pendingNote ?? seeded.pendingNote,
         pending: missingList ? seeded.pending : withLinks,
+        mobile: mobileMissing ? seeded.mobile : data.mobile,
       },
     };
   });

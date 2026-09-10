@@ -65,6 +65,7 @@ export default async function ShopPage({
   return (
     <>
       <PageHead
+        className="page-head--shop"
         kicker={t(BRAND.tagline, locale)}
         title={t(NAV[0].label, locale)}
         sub={t(BRAND.supporting, locale)}

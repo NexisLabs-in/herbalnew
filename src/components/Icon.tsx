@@ -1,7 +1,7 @@
 export type IconName =
   | "research" | "balance" | "shield" | "doc" | "arrow" | "leaf" | "check"
   | "mail" | "pin" | "clock" | "id" | "user"
-  | "bag" | "menu" | "globe";
+  | "bag" | "menu" | "globe" | "drop" | "heart";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   research: <path d="M11 3a8 8 0 105.29 14.01l4.35 4.35 1.41-1.41-4.35-4.35A8 8 0 0011 3zm0 2a6 6 0 110 12 6 6 0 010-12z" />,
@@ -69,6 +69,8 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" />
     </>
   ),
+  drop: <path d="M12 3s6.5 7.2 6.5 12a6.5 6.5 0 11-13 0C5.5 10.2 12 3 12 3z" />,
+  heart: <path d="M12 20.5 3.8 12.3a5 5 0 0 1 7-7.1l1.2 1.1 1.2-1.1a5 5 0 1 1 7 7.1z" />,
 };
 
 export function Icon({

@@ -106,10 +106,24 @@ export default async function ProductPage({
       <section className="section--tight">
         <div className="shell shell--wide">
           <div className="pdp">
-            {views.length ? <Gallery views={views} label={name} /> : <div />}
+            {views.length ? (
+              <Gallery
+                views={views}
+                label={name}
+                action={
+                  <WishlistButton
+                    productId={product.id}
+                    locale={locale}
+                    returnTo={localePath(locale, `/shop/${product.slug}`)}
+                  />
+                }
+              />
+            ) : (
+              <div />
+            )}
 
             <div className="stack" style={{ ["--stack" as string]: "clamp(1.75rem,3vw,2.5rem)" }}>
-              <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
+              <div className="pdp__chips" style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
                 {form ? <span className="chip chip--brand">{form}</span> : null}
                 {product.categoryName ? (
                   <span className="chip">{tl(product.categoryName, locale)}</span>
@@ -122,12 +136,6 @@ export default async function ProductPage({
               </div>
 
               <dl className="spec-grid">
-                {form ? (
-                  <div className="spec">
-                    <dt>{t(UI.form, locale)}</dt>
-                    <dd>{form}</dd>
-                  </div>
-                ) : null}
                 {tl(product.safety.targetGroup, locale) ? (
                   <div className="spec">
                     <dt>{t(UI.targetGroup, locale)}</dt>
@@ -140,6 +148,12 @@ export default async function ProductPage({
                     <dd>
                       {product.shelfLifeMonths} {t(UI.months, locale)}
                     </dd>
+                  </div>
+                ) : null}
+                {form ? (
+                  <div className="spec">
+                    <dt>{t(UI.form, locale)}</dt>
+                    <dd>{form}</dd>
                   </div>
                 ) : null}
                 <div className="spec">
@@ -207,18 +221,6 @@ export default async function ProductPage({
                   )}
                 </div>
               )}
-
-              {/* Outside the price-mode branch on purpose: a customer asking
-                  for a price has as much reason to save the product as one
-                  buying it outright. */}
-              <div>
-                <WishlistButton
-                  productId={product.id}
-                  locale={locale}
-                  returnTo={localePath(locale, `/shop/${product.slug}`)}
-                  variant="full"
-                />
-              </div>
 
               {tl(product.composition, locale) ? (
                 <section>
