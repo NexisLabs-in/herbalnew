@@ -37,7 +37,10 @@ export async function Footer({ locale }: { locale: Locale }) {
         <div className="shell shell--wide">
           <Image
             className="footer__logo"
-            src="/brand/logo-light.png"
+            // Same mark as before, in the variant drawn for a light ground —
+            // logo-light.png is the white knock-out for dark backgrounds and
+            // would be invisible on paper. The header switches the same way.
+            src="/brand/logo.png"
             alt={BRAND.name}
             width={850}
             height={194}
@@ -48,7 +51,7 @@ export async function Footer({ locale }: { locale: Locale }) {
               <p className="footer__h">{t(BRAND.slogan, locale)}</p>
               <p
                 className="footer__meta"
-                style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-violet-300)" }}
+                style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-violet-800)" }}
               >
                 {t(BRAND.tagline, locale)}
               </p>

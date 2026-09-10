@@ -45,7 +45,7 @@ export function ProductCard({
 
         <Link href={href} aria-label={name}>
           <div className={`product-card__media${isPhoto ? " product-card__media--photo" : ""}`}>
-          <div className="product-card__badges">
+          <div className={`product-card__badges${wishlist ? " product-card__badges--wish" : ""}`}>
             {product.formLabel.en || product.formLabel.ar ? (
               <span className="chip chip--brand">{tl(product.formLabel, locale)}</span>
             ) : null}

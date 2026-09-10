@@ -110,6 +110,7 @@ export default async function ProductPage({
               <Gallery
                 views={views}
                 label={name}
+                locale={locale}
                 action={
                   <WishlistButton
                     productId={product.id}

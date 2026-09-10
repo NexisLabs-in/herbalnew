@@ -380,9 +380,17 @@ body::before{
 .card--lift:hover .product-card__img{transform:translateY(-8px) scale(1.04)}
 
 .product-card__badges{
-  position:absolute;inset:.8rem .8rem auto;padding-inline-end:2.75rem;
+  position:absolute;inset:.8rem .8rem auto;
   display:flex;justify-content:space-between;gap:.5rem;z-index:2;pointer-events:none;
 }
+/* Reserve the heart's corner only where a heart is actually drawn. The featured
+   rows render the card without one, and the empty gutter dragged the stock chip
+   inward until it read as centred over the pack. */
+.product-card__badges--wish{padding-inline-end:2.75rem}
+/* Out of stock is always the last chip but not always the second: on a product
+   with no form label it is the only one, and space-between would leave it at
+   the start. */
+.product-card__badges .chip--muted{margin-inline-start:auto}
 .product-card__body{display:flex;flex-direction:column;flex:1;padding:1.15rem 1.2rem 1.25rem}
 .product-card__concern{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--color-violet-600)}
 .product-card__name{font-family:var(--font-display);font-size:1.28rem;letter-spacing:-.015em;line-height:1.2;margin-top:.4rem}
@@ -415,7 +423,9 @@ body::before{
     inset-block-start:.55rem;inset-inline-start:.55rem;inset-inline-end:auto;inset-block-end:auto;
     flex-direction:column;align-items:flex-start;flex-wrap:nowrap;padding-inline-end:0;gap:.35rem;
   }
-  .product-card__badges .chip{padding:.28rem .55rem;font-size:.5rem;max-width:100%}
+  /* Stacked in a column here, so the auto margin that right-aligns the stock
+     chip on desktop would push it off to the far edge instead. */
+  .product-card__badges .chip{padding:.28rem .55rem;font-size:.5rem;max-width:100%;margin-inline-start:0}
   .product-card__wish{inset-block-start:.55rem;inset-inline-end:.55rem}
 }
 .price{font-family:var(--font-display);font-size:1.05rem;color:var(--color-ink-2)}
@@ -545,8 +555,11 @@ body::before{
 .panel--dark .body,.panel--dark p{color:rgba(240,237,251,.76)}
 .panel--dark .display{color:var(--color-paper-50)}
 
-.disclaimer{background:var(--color-shade-950);color:rgba(240,237,251,.62);padding-block:2.5rem;border-top:1px solid rgba(179,164,238,.14)}
-.disclaimer__t{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--color-violet-400);margin-bottom:.9rem}
+/* Sits directly on top of the footer and reads as one block with it, so it
+   carries the same light ground — a dark band here would just look like a
+   stripe across the bottom of the page. */
+.disclaimer{background:var(--color-paper-100);color:var(--color-ink-3);padding-block:2.5rem;border-top:1px solid var(--color-line)}
+.disclaimer__t{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--color-violet-600);margin-bottom:.9rem}
 .disclaimer p{font-size:.8125rem;line-height:1.75;max-width:92ch}
 
 /* ---------- 14. Accordion ------------------------------------------------ */
@@ -583,7 +596,19 @@ body::before{
 .pdp__img{height:74%;width:auto;max-width:62%;position:relative;z-index:1;transition:opacity .35s var(--ease-brand)}
 /* Save-for-later sits on the packshot itself, like the shop grid's heart,
    rather than as a separate line competing with the buy box below. */
-.pdp__wish{position:absolute;inset-block-start:.9rem;inset-inline-end:.9rem;z-index:2}
+.pdp__wish{position:absolute;inset-block-start:.9rem;inset-inline-end:.9rem;z-index:3}
+
+/* Opposite corner to the heart, and always visible: an affordance that only
+   appears on hover is one a touch visitor never finds. */
+.pdp__zoom{
+  position:absolute;z-index:2;inset-block-end:.9rem;inset-inline-end:.9rem;
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid var(--color-line-strong);background:rgba(255,255,255,.82);
+  color:var(--color-ink-3);backdrop-filter:blur(6px);cursor:zoom-in;
+  transition:.25s var(--ease-brand);
+}
+.pdp__zoom:hover{color:var(--color-violet-800);border-color:var(--color-violet-400)}
+.pdp__zoom svg{width:18px;height:18px}
 
 /* The chip labels above the spec grid ("Oil", "Hair Care & Growth") were sized
    like the dense grid badges they were copied from; at full width they read
@@ -599,9 +624,57 @@ body::before{
 .pdp__thumb.is-active{border-color:var(--color-violet-800);box-shadow:0 0 0 1px var(--color-violet-800)}
 .pdp__thumb img,.pdp__thumb svg{width:100%;height:100%;object-fit:contain}
 
+/* ---------- Full-screen image viewer -------------------------------------
+   A native <dialog>, so the browser supplies the focus trap, the ESC key and
+   the inert page behind it rather than this reimplementing all three. */
+.lightbox{
+  width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;
+  margin:0;padding:0;border:0;background:transparent;overflow:hidden;
+}
+.lightbox::backdrop{background:rgba(18,8,51,.9);backdrop-filter:blur(8px)}
+.lightbox__inner{
+  position:relative;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(.75rem,2vw,1.25rem);padding:clamp(1rem,4vw,2.5rem);
+}
+/* min-height:0 lets the stage shrink inside the flex column instead of pushing
+   the pager off the bottom of the viewport. */
+.lightbox__stage{flex:1;min-height:0;width:100%;display:grid;place-items:center}
+/* Capped rather than filling the viewport. A packshot is a tall bottle on a
+   plain ground: scaled to the full height of a large screen it is enormous
+   without showing any more detail than this does. */
+.lightbox__img{
+  max-width:min(100%,680px);max-height:min(100%,68dvh);
+  width:auto;height:auto;object-fit:contain;
+}
+.lightbox__close{
+  position:absolute;z-index:1;
+  inset-block-start:clamp(.75rem,2vw,1.25rem);inset-inline-end:clamp(.75rem,2vw,1.25rem);
+}
+.lightbox__bar{display:flex;align-items:center;gap:1.1rem;flex:none}
+.lightbox__close,.lightbox__nav{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);
+  color:#FFFFFF;transition:.25s var(--ease-brand);
+}
+.lightbox__close:hover,.lightbox__nav:hover{background:rgba(255,255,255,.22)}
+.lightbox__close svg,.lightbox__nav svg{width:20px;height:20px}
+/* The pager reverses with the flex row in Arabic, so the chevrons have to turn
+   with it or "previous" would point at the image it moves away from. */
+[dir="rtl"] .lightbox__nav svg{transform:scaleX(-1)}
+.lightbox__count{
+  font-family:var(--font-mono);font-size:.75rem;letter-spacing:.12em;
+  color:rgba(255,255,255,.75);min-width:5ch;text-align:center;
+}
+
 .spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--color-line);border:1px solid var(--color-line);border-radius:var(--radius-md);overflow:hidden}
 .spec{background:var(--color-surface);padding:1.05rem 1.15rem}
-.spec dt{font-family:var(--font-mono);font-size:.5938rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted)}
+/* Same story as the chips above: 9.5px of wide-tracked uppercase mono was
+   borrowed from the card grid, where the label is a glance. Here it names the
+   product's actual specification and has to be read, so it takes the same step
+   up the chips did, with tighter tracking and ink rather than muted grey —
+   4.5:1 was scraping AA at a size that needs better than the minimum. */
+.spec dt{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--color-ink-3)}
 .spec dd{margin:.42rem 0 0;font-size:.9375rem;color:var(--color-ink)}
 
 /* Buy zone: open composition under the facts sheet — no filled card,
@@ -666,27 +739,35 @@ body::before{
 .tick__i{flex:none;width:17px;height:17px;margin-top:.28rem;color:var(--color-violet-600)}
 
 /* ---------- 16. Footer --------------------------------------------------- */
-.footer{background:var(--color-shade-950);color:var(--color-paper-100);padding-top:clamp(3.5rem,7vw,5.5rem)}
-.footer__grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:clamp(2rem,4vw,3.5rem)}
-@media(max-width:860px){.footer__grid{grid-template-columns:1fr 1fr}}
+.footer{background:var(--color-paper-50);color:var(--color-ink-2);padding-top:clamp(3.5rem,7vw,5.5rem)}
+/* One track per block — brand, contact, site links, account — so all four sit
+   on a single row. With three tracks the fourth wrapped underneath. */
+.footer__grid{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:clamp(2rem,4vw,3.5rem)}
+/* Four columns need more room than three did before they start setting two
+   words per line, so they pair up earlier than the old 860px. */
+@media(max-width:1024px){.footer__grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.footer__grid{grid-template-columns:1fr}}
-.footer__h{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--color-violet-400);margin-bottom:1.25rem}
-.footer a{color:rgba(240,237,251,.78);font-size:.9062rem;transition:color .3s var(--ease-brand)}
-.footer a:hover{color:var(--color-violet-300)}
-.footer__li{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.6rem;border-bottom:1px solid rgba(179,164,238,.12)}
+.footer__h{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--color-violet-600);margin-bottom:1.25rem}
+.footer a{color:var(--color-ink-2);font-size:.9062rem;transition:color .3s var(--ease-brand)}
+.footer a:hover{color:var(--color-violet-700)}
+.footer__li{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.6rem;border-bottom:1px solid var(--color-line)}
 .footer__li span:last-child{color:var(--color-violet-500);transition:transform .35s var(--ease-brand)}
 .footer__li:hover span:last-child{transform:translateX(4px)}
-.footer__meta{font-size:.8125rem;color:rgba(240,237,251,.6);line-height:1.7}
-.footer__meta strong{display:block;font-family:var(--font-mono);font-size:.5938rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-violet-500);font-weight:500;margin-bottom:.3rem}
-.footer__bar{margin-top:clamp(2.5rem,5vw,4rem);border-top:1px solid rgba(179,164,238,.14);padding-block:1.6rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:rgba(240,237,251,.55)}
-.footer__logo{width:clamp(200px,34vw,380px);height:auto;opacity:.92;margin-bottom:1.75rem}
+.footer__meta{font-size:.8125rem;color:var(--color-ink-3);line-height:1.7}
+.footer__meta strong{display:block;font-family:var(--font-mono);font-size:.5938rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-violet-600);font-weight:500;margin-bottom:.3rem}
+.footer__bar{margin-top:clamp(2.5rem,5vw,4rem);border-top:1px solid var(--color-line);padding-block:1.6rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:var(--color-muted)}
+/* Full opacity on a light ground: the .92 was knocking back a white logo on
+   near-black, which on paper just makes the mark look faded. */
+.footer__logo{width:clamp(200px,34vw,380px);height:auto;margin-bottom:1.75rem}
 
 /* Sign-in: full footer padding reads heavy below a single-field page, and the
    near-black shade sits too close under the light card to feel this dark. */
-body:has(.auth-page) .disclaimer{padding-block:1.35rem;background:var(--color-violet-950)}
+/* The auth variant only compacts the footer; the ground comes from the base
+   rules so a sign-in page does not keep a dark footer of its own. */
+body:has(.auth-page) .disclaimer{padding-block:1.35rem}
 body:has(.auth-page) .disclaimer__t{margin-bottom:.55rem}
 body:has(.auth-page) .disclaimer p{line-height:1.6}
-body:has(.auth-page) .footer{padding-top:clamp(2rem,4vw,2.75rem);background:var(--color-violet-950)}
+body:has(.auth-page) .footer{padding-top:clamp(2rem,4vw,2.75rem)}
 body:has(.auth-page) .footer__logo{width:clamp(160px,28vw,280px);margin-bottom:1.1rem}
 body:has(.auth-page) .footer__grid{gap:clamp(1.25rem,2.5vw,2rem)}
 body:has(.auth-page) .footer__h{margin-bottom:.85rem}
