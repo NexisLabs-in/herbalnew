@@ -1,5 +1,6 @@
 # HERBEDIA — Premium Theme (Next.js)
 
+
 The premium redesign of `herb.nexislabs.in`, built on the same stack as the
 existing app: **Next.js 15 (App Router) · React 19 · TypeScript · Tailwind v4**.
 
