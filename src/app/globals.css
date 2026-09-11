@@ -1878,6 +1878,62 @@ select.field__input{
 .skel--filter-pill{height:2.5rem;width:5.5rem;border-radius:999px}
 
 .shop-loading__grid{margin-top:clamp(2rem,4vw,3rem)}
+
+/* FAQ, Contact, Method route loading.tsx skeletons */
+.page-loading__acc{border-block:1px solid var(--color-line)}
+.page-loading__acc-row{
+  display:flex;align-items:baseline;gap:1.15rem;
+  padding-block:1.15rem 1.2rem;border-bottom:1px solid var(--color-line);
+}
+.page-loading__acc-num{width:1.6rem;height:.75rem;flex:none;border-radius:var(--radius-sm)}
+.page-loading__acc-q{flex:1;height:1.1rem;border-radius:var(--radius-sm)}
+.page-loading__faq-close{
+  margin-top:2.5rem;height:5.5rem;width:100%;border-radius:var(--radius-lg);
+}
+.page-loading__contact-details{
+  display:grid;gap:1.15rem 1.5rem;grid-template-columns:1fr 1fr;
+  margin-top:1.85rem;padding-top:1.5rem;border-top:1px solid var(--color-line);
+}
+.page-loading__contact-field{display:grid;gap:.45rem}
+.page-loading__contact-field--wide{grid-column:1 / -1}
+.page-loading__contact-email{height:1.45rem;width:min(18rem,100%);border-radius:var(--radius-sm)}
+.page-loading__contact-value{height:.9rem;width:80%;border-radius:var(--radius-sm)}
+.page-loading__contact-form{display:grid;gap:1rem}
+.page-loading__form-field{display:grid;gap:.45rem}
+.page-loading__form-input{height:2.5rem;width:100%;border-radius:var(--radius-md)}
+.page-loading__form-btn{height:2.75rem;width:min(10rem,100%);margin-top:.35rem;border-radius:999px}
+.page-loading__panel-box{display:grid;gap:.85rem}
+.page-loading__tick{display:flex;align-items:center;gap:.8rem;margin-top:.15rem}
+.page-loading__tick-icon{width:17px;height:17px;border-radius:50%;flex:none}
+.page-loading__tick-text{height:.875rem;width:72%;border-radius:var(--radius-sm)}
+.page-loading__steps{margin-top:clamp(1.5rem,3vw,2.5rem);display:grid;gap:.25rem}
+.page-loading__step{display:grid;grid-template-columns:56px 1fr;gap:1.6rem;padding-block:1.2rem}
+.page-loading__step-dot{width:56px;height:56px;border-radius:50%;flex:none}
+.page-loading__step-copy{display:grid;gap:.55rem;padding-top:.15rem}
+.page-loading__step-title{height:1.25rem;width:min(14rem,70%);border-radius:var(--radius-sm)}
+.page-loading__step-detail{height:.85rem;width:100%;border-radius:var(--radius-sm)}
+.page-loading__values{
+  margin-top:clamp(1.5rem,3vw,2.5rem);
+  border-block-start:1px solid var(--color-line);
+}
+.page-loading__values-row{
+  display:grid;grid-template-columns:2.5rem minmax(0,1fr);gap:1rem;align-items:baseline;
+  padding-block:1.55rem 1.65rem;border-block-end:1px solid var(--color-line);
+}
+.page-loading__values-num{width:1.5rem;height:.75rem;border-radius:var(--radius-sm)}
+.page-loading__values-text{height:1rem;width:min(36ch,92%);border-radius:var(--radius-sm)}
+.page-loading__method-cta{
+  margin-top:clamp(2.5rem,5vw,3.5rem);height:6.5rem;width:100%;border-radius:var(--radius-lg);
+}
+@media(max-width:860px){
+  .page-loading__contact-details{grid-template-columns:1fr}
+  .page-loading__contact-field--wide{grid-column:auto}
+}
+@media(max-width:720px){
+  .page-loading__step{grid-template-columns:40px 1fr;gap:1.1rem}
+  .page-loading__step-dot{width:40px;height:40px}
+}
+
 .skel-card{border-radius:var(--radius-lg);border:1px solid var(--color-line);overflow:hidden}
 .skel--card-media{aspect-ratio:1/1}
 .skel-card__body{padding:1.15rem 1.2rem 1.25rem;display:grid;gap:.6rem}
