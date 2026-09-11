@@ -14,6 +14,7 @@ export function ProductCard({
   locale,
   delay = 0,
   wishlist,
+  variant = "full",
 }: {
   product: ProductCardView;
   locale: Locale;
@@ -21,7 +22,10 @@ export function ProductCard({
   /** Show the save-for-later heart. Omitted where it would be noise — the
    *  homepage, related products. The button loads its own state. */
   wishlist?: boolean;
+  /** Cabinet grid: category, name and summary only — no price row or specs. */
+  variant?: "full" | "cabinet";
 }) {
+  const cabinet = variant === "cabinet";
   const href = localePath(locale, `/shop/${product.slug}`);
   const name = tl(product.name, locale);
   const image = product.image;
@@ -32,7 +36,12 @@ export function ProductCard({
   const alt = image ? tl(image.alt, locale) || name : name;
 
   return (
-    <Reveal as="article" className="card card--lift product-card" data-form={product.form} delay={delay}>
+    <Reveal
+      as="article"
+      className={`card card--lift product-card${cabinet ? " product-card--cabinet" : ""}`}
+      data-form={product.form}
+      delay={delay}
+    >
       {/* The heart sits over the media but outside the link: a button nested
           inside an anchor is invalid, and the click would navigate instead of
           saving. */}
@@ -90,35 +99,39 @@ export function ProductCard({
           <p className="product-card__sum">{tl(product.summary, locale)}</p>
         ) : null}
 
-        <dl className="product-card__specs">
-          {tl(product.targetGroup, locale) ? (
-            <div>
-              <dt>{t(UI.targetGroup, locale)}</dt>
-              <dd>{tl(product.targetGroup, locale)}</dd>
-            </div>
-          ) : null}
-          {product.shelfLifeMonths ? (
-            <div>
-              <dt>{t(UI.shelfLife, locale)}</dt>
-              <dd>
-                {product.shelfLifeMonths} {t(UI.months, locale)}
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-
-        <div className="product-card__foot">
-          <span className="product-card__price">
-            <Price price={product.price} locale={locale} size="sm" />
-            {product.stockState !== "out" ? (
-              <StockLine state={product.stockState} stock={product.stock} locale={locale} />
+        {!cabinet ? (
+          <dl className="product-card__specs">
+            {tl(product.targetGroup, locale) ? (
+              <div>
+                <dt>{t(UI.targetGroup, locale)}</dt>
+                <dd>{tl(product.targetGroup, locale)}</dd>
+              </div>
             ) : null}
-          </span>
-          <Link className="link-arrow" href={href}>
-            <span>{t(UI.viewFormula, locale)}</span>
-            <span aria-hidden="true">&rarr;</span>
-          </Link>
-        </div>
+            {product.shelfLifeMonths ? (
+              <div>
+                <dt>{t(UI.shelfLife, locale)}</dt>
+                <dd>
+                  {product.shelfLifeMonths} {t(UI.months, locale)}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
+
+        {!cabinet ? (
+          <div className="product-card__foot">
+            <span className="product-card__price">
+              <Price price={product.price} locale={locale} size="sm" />
+              {product.stockState !== "out" ? (
+                <StockLine state={product.stockState} stock={product.stock} locale={locale} />
+              ) : null}
+            </span>
+            <Link className="link-arrow" href={href}>
+              <span>{t(UI.viewFormula, locale)}</span>
+              <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        ) : null}
       </div>
     </Reveal>
   );

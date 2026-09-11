@@ -7,7 +7,22 @@ import type { L } from "@/lib/i18n";
  * site. Everything here is new writing for surfaces the old site did not have —
  * filters, baskets, stock notices — in both languages.
  */
+/** Herb Cabinet hero trust badges — shop-only copy. */
+export const SHOP_TRUST: { icon: "leaf" | "shield" | "research" | "heart"; label: L }[] = [
+  { icon: "leaf", label: { en: "100% Natural Ingredients", ar: "مكونات طبيعية 100%" } },
+  { icon: "shield", label: { en: "Safe & Trusted", ar: "آمن وموثوق" } },
+  { icon: "research", label: { en: "Scientifically Formulated", ar: "تركيب علمي مدروس" } },
+  { icon: "heart", label: { en: "For a Healthier You", ar: "من أجل صحة أفضل" } },
+];
+
 export const SHOP: Record<string, L> = {
+  // --- Herb Cabinet hero ----------------------------------------------------
+  heroTitle: { en: "Pure Herbs. Real Wellness.", ar: "أعشاب نقية. عافية حقيقية." },
+  heroSub: {
+    en: "Explore our carefully crafted herbal products designed for your health and well-being. Each formula is made with nature's finest ingredients, ensuring safe, effective and holistic care.",
+    ar: "استكشف منتجاتنا العشبية المصنوعة بعناية لصحتك وعافيتك. كل تركيبة تُعد من أجود المكوّنات الطبيعية، لرعاية آمنة وفعّالة وشاملة.",
+  },
+
   // --- Catalogue ------------------------------------------------------------
   search: { en: "Search", ar: "بحث" },
   searchPlaceholder: { en: "Search the cabinet", ar: "ابحث في الخزانة" },
@@ -16,19 +31,21 @@ export const SHOP: Record<string, L> = {
   filterByShelf: { en: "Shelf", ar: "الرف" },
   categoryHeading: { en: "Shop by Category", ar: "تسوّق حسب الفئة" },
   categorySub: {
-    en: "Find the right solution for your health needs",
-    ar: "اعثر على الحل المناسب لاحتياجاتك الصحية",
+    en: "Find the right solution for your health needs.",
+    ar: "اعثر على الحل المناسب لاحتياجاتك الصحية.",
   },
   filterByForm: { en: "Form", ar: "الشكل" },
   filtersToggle: { en: "Filters", ar: "تصفية" },
   sortBy: { en: "Sort", ar: "الترتيب" },
   sortFeatured: { en: "Featured", ar: "المميزة" },
   sortNewest: { en: "Newest", ar: "الأحدث" },
-  sortPriceAsc: { en: "Price: low to high", ar: "السعر: من الأقل" },
-  sortPriceDesc: { en: "Price: high to low", ar: "السعر: من الأعلى" },
+  sortPriceAsc: { en: "Price: Low to High", ar: "السعر: من الأقل للأعلى" },
+  sortPriceDesc: { en: "Price: High to Low", ar: "السعر: من الأعلى للأقل" },
   sortName: { en: "Name", ar: "الاسم" },
   resultsOne: { en: "1 formula", ar: "تركيبة واحدة" },
   resultsMany: { en: "formulas", ar: "تركيبة" },
+  productsOne: { en: "1 Product", ar: "منتج واحد" },
+  productsMany: { en: "Products", ar: "منتج" },
   noResults: { en: "Nothing matches that search.", ar: "لا توجد نتائج مطابقة." },
   noResultsHint: {
     en: "Try a different word, or browse the whole cabinet.",

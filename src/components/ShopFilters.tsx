@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SHOP } from "@/content/shop";
 import { Icon, type IconName } from "@/components/Icon";
+import { ShopFilterLink } from "@/components/ShopFilterLink";
 import type { CategoryTreeNode, CategoryView, ShopSort } from "@/lib/catalogue";
 import { t, tl, type Locale } from "@/lib/i18n";
 
@@ -9,8 +10,15 @@ const SHELF_ICONS: Record<string, IconName> = {
   "wellness-lifestyle": "leaf",
   "body-systems": "shield",
   "reproductive-hormonal": "heart",
+  "hair-care-growth": "drop",
+  "skin-cleansing-glow": "drop",
+  "detox-cleansing": "leaf",
+  "weight-management": "leaf",
+  "digestive-health": "shield",
+  "heart-blood-pressure": "shield",
+  "fertility-vitality": "heart",
 };
-const shelfIcon = (slug: string): IconName => SHELF_ICONS[slug] ?? "leaf";
+const tileIcon = (slug: string): IconName => SHELF_ICONS[slug] ?? "leaf";
 
 /** The catalogue toolbar: search, shelf, form and sort.
  *
@@ -44,6 +52,27 @@ export function shopHref(base: string, params: ShopParams, change: Partial<ShopP
   return query ? `${base}?${query}` : base;
 }
 
+/** Flat category tiles: parent shelves plus the subcategories products sit on. */
+function categoryTiles(tree: CategoryTreeNode[]): CategoryView[] {
+  const tiles: CategoryView[] = [];
+  const seen = new Set<string>();
+
+  for (const parent of tree) {
+    if (!seen.has(parent.id)) {
+      tiles.push(parent);
+      seen.add(parent.id);
+    }
+    for (const child of parent.children) {
+      if (!seen.has(child.id)) {
+        tiles.push(child);
+        seen.add(child.id);
+      }
+    }
+  }
+
+  return tiles;
+}
+
 export function ShopFilters({
   base,
   params,
@@ -58,17 +87,9 @@ export function ShopFilters({
   total: number;
 }) {
   const activeCategory = params.category ?? "all";
-
-  /** Which parent's shelves to reveal. Selecting a subcategory keeps its parent
-   *  open, so a customer can move sideways between shelves without going back
-   *  up a level first. */
-  const openParent: CategoryTreeNode | undefined = tree.find(
-    (parent) =>
-      parent.slug === activeCategory ||
-      parent.children.some((child: CategoryView) => child.slug === activeCategory),
-  );
   const activeForm = params.form ?? "all";
   const activeSort = (params.sort ?? "featured") as ShopSort;
+  const tiles = categoryTiles(tree);
 
   const sorts: { value: ShopSort; label: string }[] = [
     { value: "featured", label: t(SHOP.sortFeatured, locale) },
@@ -84,105 +105,89 @@ export function ShopFilters({
     (activeSort !== "featured" ? 1 : 0);
 
   const resultsLabel =
-    total === 1 ? t(SHOP.resultsOne, locale) : `${total} ${t(SHOP.resultsMany, locale)}`;
+    total === 1 ? t(SHOP.productsOne, locale) : `${total} ${t(SHOP.productsMany, locale)}`;
+
+  const searchForm = (
+    <form className="shop-bar__search" action={base} method="get" role="search">
+      {activeCategory !== "all" ? <input type="hidden" name="category" value={activeCategory} /> : null}
+      {activeForm !== "all" ? <input type="hidden" name="form" value={activeForm} /> : null}
+      {activeSort !== "featured" ? <input type="hidden" name="sort" value={activeSort} /> : null}
+
+      <label className="visually-hidden" htmlFor="shop-q">
+        {t(SHOP.search, locale)}
+      </label>
+      <input
+        className="field__input"
+        id="shop-q"
+        type="search"
+        name="q"
+        defaultValue={params.q ?? ""}
+        placeholder={t(SHOP.searchPlaceholder, locale)}
+      />
+      <button className="btn btn--ghost btn--sm" type="submit">
+        {t(SHOP.search, locale)}
+      </button>
+      {params.q ? (
+        <Link className="link-plain" scroll={false} href={shopHref(base, params, { q: undefined })}>
+          {t(SHOP.clear, locale)}
+        </Link>
+      ) : null}
+    </form>
+  );
 
   return (
     <div className="shop-bar">
-      {/* Categories are the primary way in — always visible, not tucked behind
-          the mobile filters toggle with search/form/sort. */}
       <div className="category-panel">
         <div className="category-panel__intro">
-          <p className="eyebrow eyebrow--plain">{t(SHOP.filterByShelf, locale)}</p>
           <h2 className="category-panel__title">{t(SHOP.categoryHeading, locale)}</h2>
           <p className="category-panel__sub">{t(SHOP.categorySub, locale)}</p>
         </div>
 
         <div className="category-panel__tiles">
-          <Link
-            scroll={false}
+          <ShopFilterLink
             className={`category-tile${activeCategory === "all" ? " is-active" : ""}`}
             href={shopHref(base, params, { category: undefined })}
             aria-current={activeCategory === "all" ? "true" : undefined}
           >
             <span className="category-tile__icon">
-              <Icon name="leaf" size={16} />
+              <Icon name="leaf" size={18} />
             </span>
             <span className="category-tile__label">{t(SHOP.filterAll, locale)}</span>
-          </Link>
-          {tree.map((parent) => (
-            <Link
-              scroll={false}
-              key={parent.id}
-              className={`category-tile${
-                openParent?.id === parent.id ? " is-open" : ""
-              }${activeCategory === parent.slug ? " is-active" : ""}`}
-              href={shopHref(base, params, { category: parent.slug })}
-              aria-current={activeCategory === parent.slug ? "true" : undefined}
+          </ShopFilterLink>
+          {tiles.map((category) => (
+            <ShopFilterLink
+              key={category.id}
+              className={`category-tile${activeCategory === category.slug ? " is-active" : ""}`}
+              href={shopHref(base, params, { category: category.slug })}
+              aria-current={activeCategory === category.slug ? "true" : undefined}
             >
               <span className="category-tile__icon">
-                <Icon name={shelfIcon(parent.slug)} size={16} />
+                <Icon name={tileIcon(category.slug)} size={18} />
               </span>
-              <span className="category-tile__label">{tl(parent.name, locale)}</span>
-            </Link>
+              <span className="category-tile__label">{tl(category.name, locale)}</span>
+            </ShopFilterLink>
           ))}
         </div>
-
-        {openParent && openParent.children.length ? (
-          <div className="category-panel__subs">
-            <Link
-              scroll={false}
-              className={`filter filter--sub${activeCategory === openParent.slug ? " is-active" : ""}`}
-              href={shopHref(base, params, { category: openParent.slug })}
-              aria-current={activeCategory === openParent.slug ? "true" : undefined}
-            >
-              {t(SHOP.filterAll, locale)}
-            </Link>
-            {openParent.children.map((child: CategoryView) => (
-              <Link
-                scroll={false}
-                key={child.id}
-                className={`filter filter--sub${activeCategory === child.slug ? " is-active" : ""}`}
-                href={shopHref(base, params, { category: child.slug })}
-                aria-current={activeCategory === child.slug ? "true" : undefined}
-              >
-                {tl(child.name, locale)}
-              </Link>
-            ))}
-          </div>
-        ) : null}
       </div>
 
-      {/* A GET form, so a search is a real URL that can be shared and revisited.
-          The other filters ride along as hidden fields rather than being lost
-          the moment somebody searches within a shelf. */}
-      <form className="shop-bar__search" action={base} method="get" role="search">
-        {activeCategory !== "all" ? <input type="hidden" name="category" value={activeCategory} /> : null}
-        {activeForm !== "all" ? <input type="hidden" name="form" value={activeForm} /> : null}
-        {activeSort !== "featured" ? <input type="hidden" name="sort" value={activeSort} /> : null}
+      <div className="shop-controls">
+        <p className="shop-controls__count">{resultsLabel}</p>
+        <div className="shop-controls__sort filters filters--sort">
+          {sorts.map((option) => (
+            <ShopFilterLink
+              key={option.value}
+              className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
+              href={shopHref(base, params, {
+                sort: option.value === "featured" ? undefined : option.value,
+              })}
+              aria-current={activeSort === option.value ? "true" : undefined}
+            >
+              {option.label}
+            </ShopFilterLink>
+          ))}
+        </div>
+      </div>
 
-        <label className="visually-hidden" htmlFor="shop-q">
-          {t(SHOP.search, locale)}
-        </label>
-        <input
-          className="field__input"
-          id="shop-q"
-          type="search"
-          name="q"
-          defaultValue={params.q ?? ""}
-          placeholder={t(SHOP.searchPlaceholder, locale)}
-        />
-        <button className="btn btn--ghost btn--sm" type="submit">
-          {t(SHOP.search, locale)}
-        </button>
-        {params.q ? (
-          <Link className="link-plain" scroll={false} href={shopHref(base, params, { q: undefined })}>
-            {t(SHOP.clear, locale)}
-          </Link>
-        ) : null}
-      </form>
-
-      {/* Checkbox toggle: collapsed by default on phones, always visible on
-          desktop via CSS. No JS, so filtered URLs still work without it. */}
       <input
         type="checkbox"
         id="shop-filters-toggle"
@@ -203,6 +208,8 @@ export function ShopFilters({
       </div>
 
       <div className="shop-bar__rows" id="shop-filters-panel">
+        {searchForm}
+
         <div className="shop-bar__row">
           <span className="shop-bar__label">{t(SHOP.filterByForm, locale)}</span>
           <div className="filters">
@@ -211,8 +218,7 @@ export function ShopFilters({
               { value: "oil", label: locale === "ar" ? "زيت" : "Oil" },
               { value: "powder", label: locale === "ar" ? "مسحوق" : "Powder" },
             ].map((option) => (
-              <Link
-                scroll={false}
+              <ShopFilterLink
                 key={option.value}
                 className={`filter${activeForm === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
@@ -221,18 +227,16 @@ export function ShopFilters({
                 aria-current={activeForm === option.value ? "true" : undefined}
               >
                 {option.label}
-              </Link>
+              </ShopFilterLink>
             ))}
           </div>
         </div>
 
         <div className="shop-bar__row shop-bar__row--end">
           <span className="shop-bar__label shop-bar__label--sort">{t(SHOP.sortBy, locale)}</span>
-          <span className="shop-bar__count shop-bar__count--desktop">{resultsLabel}</span>
           <div className="filters">
             {sorts.map((option) => (
-              <Link
-                scroll={false}
+              <ShopFilterLink
                 key={option.value}
                 className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
@@ -241,7 +245,7 @@ export function ShopFilters({
                 aria-current={activeSort === option.value ? "true" : undefined}
               >
                 {option.label}
-              </Link>
+              </ShopFilterLink>
             ))}
           </div>
         </div>
