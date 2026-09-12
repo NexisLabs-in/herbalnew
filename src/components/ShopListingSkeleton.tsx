@@ -7,20 +7,13 @@ export function ShopListingSkeleton() {
   return (
     <div className="shop-listing-skeleton" aria-busy="true" aria-live="polite">
       <div className="shop-category-section">
-        <div className="shop-category-section__head">
-          <div className="shop-category-section__intro">
-            <div className="skel skel--eyebrow" />
-            <div className="skel skel--panel-title" style={{ marginTop: ".55rem" }} />
-          </div>
+        <div className="shop-category-section__intro">
+          <div className="skel" style={{ width: "8.5rem", height: ".9rem" }} />
+          <div className="skel" style={{ width: "13rem", height: ".7rem", marginTop: ".35rem" }} />
         </div>
-        <div className="shop-shelf-grid">
+        <div className="shop-cat-row">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div className="skel shop-shelf-card-skeleton" key={i} />
-          ))}
-        </div>
-        <div className="shop-sub-pills">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div className="skel skel--filter-pill" key={i} style={{ width: "9rem", height: "2.1rem", borderRadius: "999px" }} />
+            <div className="skel shop-cat-skeleton" key={i} />
           ))}
         </div>
       </div>

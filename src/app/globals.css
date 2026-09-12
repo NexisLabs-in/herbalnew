@@ -1319,14 +1319,9 @@ select.field__input{
   .shop-page__grid{margin-top:.75rem}
   .shop-bar{gap:.75rem}
   .shop-category-section{padding-inline:0}
-  .shop-sub-pills{gap:.45rem}
-  .shop-sub-pill{font-size:.75rem;padding:.45rem .65rem}
   .shop-listing-toolbar{gap:.6rem}
-  .shop-listing-toolbar__sort{
-    width:100%;margin-inline-start:0;justify-content:flex-start;
-    overflow-x:auto;flex-wrap:nowrap;padding-bottom:.15rem;
-  }
-  .shop-page .shell,.shop-bar{max-width:100%;overflow-x:clip}
+  .shop-page .shell{max-width:100%;overflow:visible}
+  .shop-bar{max-width:100%;overflow:visible}
 }
 
 /* ---------- Shop toolbar -------------------------------------------------- */
@@ -1337,109 +1332,105 @@ select.field__input{
 
 .shop-listing-skeleton{position:relative}
 
-.shop-category-section{display:grid;gap:clamp(1rem,2vw,1.35rem);width:100%}
-.shop-category-section__head{
-  display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+.shop-category-section{
+  position:relative;z-index:4;display:grid;gap:.75rem;width:100%;
 }
 .shop-category-section__intro{min-width:0}
-.shop-category-section__eyebrow{
-  margin:0;font-family:var(--font-mono);font-size:.625rem;font-weight:500;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--color-violet-600);
-}
-.shop-category-section__eyebrow::before{
-  content:"";display:inline-block;width:1.75rem;height:1px;margin-inline-end:.55rem;
-  vertical-align:middle;background:var(--color-violet-400);
-}
 .shop-category-section__title{
-  margin:.45rem 0 0;font-family:var(--font-display);font-weight:400;
-  font-size:clamp(1.15rem,1.75vw,1.45rem);color:var(--color-ink);line-height:1.2;
+  margin:0;font-family:var(--font-sans);font-weight:500;
+  font-size:.9375rem;line-height:1.3;color:var(--color-ink);
 }
-.shop-shelf-grid{
-  display:grid;gap:clamp(.55rem,1vw,.75rem);
-  /* Two-up by default. Four columns on a phone is what crushed the titles. */
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  /* One shared row height so a short title (Beauty) does not sit in a
-     smaller box than Body Systems on the line below. */
-  grid-auto-rows:1fr;
+.shop-category-section__sub{
+  margin:.2rem 0 0;font-size:.75rem;line-height:1.4;color:var(--color-muted);
 }
-/* One compact row per shelf — icon, two-line label, chevron. The earlier
-   stacked card left a dead column of white to the right of every title. */
-.shop-shelf-card{
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
-  height:100%;box-sizing:border-box;
-  gap:.65rem;text-decoration:none;text-align:start;
-  padding:.6rem .7rem;
-  border:1px solid var(--color-line);border-radius:var(--radius-md);
-  background:#fff;box-shadow:var(--shadow-sm);
-  transition:border-color .25s var(--ease-brand),background .25s var(--ease-brand),
-    box-shadow .25s var(--ease-brand),transform .25s var(--ease-brand);
+.shop-cat-row{
+  display:flex;flex-wrap:wrap;align-items:flex-start;gap:.35rem;
 }
-.shop-shelf-card:hover{
-  border-color:var(--color-violet-300);
-  box-shadow:0 6px 18px rgba(81,43,199,.07);
-  transform:translateY(-1px);
+.shop-cat{position:relative}
+.shop-cat__btn{
+  display:flex;align-items:center;gap:.5rem;
+  min-height:44px;padding:.4rem .7rem .4rem .4rem;
+  border:0;border-radius:999px;background:transparent;
+  color:var(--color-ink);text-decoration:none;text-align:start;
+  transition:background .2s var(--ease-brand),color .2s var(--ease-brand);
 }
-.shop-shelf-card.is-active{
-  border-color:var(--color-violet-500);background:var(--color-violet-50);
+.shop-cat__icon{
+  display:grid;place-items:center;width:28px;height:28px;border-radius:50%;flex:none;
+  transition:background .2s var(--ease-brand),color .2s var(--ease-brand);
 }
-.shop-shelf-card__icon{
-  display:grid;place-items:center;width:34px;height:34px;border-radius:50%;flex:none;
+.shop-cat__icon--beauty{background:#F0EAFB;color:#7C4DDA}
+.shop-cat__icon--wellness{background:#E8F5EC;color:#3E8B57}
+.shop-cat__icon--body{background:#F7EFE6;color:#A9773F}
+.shop-cat__icon--repro{background:#FCEBEF;color:#C15771}
+.shop-cat__icon svg{width:15px;height:15px}
+.shop-cat__name{
+  max-width:8.75rem;font-size:.8125rem;font-weight:500;line-height:1.2;
 }
-.shop-shelf-card__icon--beauty{background:#F0EAFB;color:#7C4DDA}
-.shop-shelf-card__icon--wellness{background:#E8F5EC;color:#3E8B57}
-.shop-shelf-card__icon--body{background:#F7EFE6;color:#A9773F}
-.shop-shelf-card__icon--repro{background:#FCEBEF;color:#C15771}
-.shop-shelf-card__text{display:grid;gap:.1rem;min-width:0}
-.shop-shelf-card__title{
-  font-size:.8125rem;font-weight:500;line-height:1.25;color:var(--color-ink);
+.shop-cat__chev{
+  display:grid;place-items:center;color:var(--color-muted);flex:none;
+  transition:transform .25s var(--ease-brand),color .2s var(--ease-brand);
 }
-.shop-shelf-card__meta{font-size:.6875rem;color:var(--color-muted);line-height:1.3}
-.shop-shelf-card__chev{
-  display:grid;place-items:center;color:var(--color-muted);opacity:.65;
-  transition:color .2s var(--ease-brand),opacity .2s var(--ease-brand);
-}
-.shop-shelf-card:hover .shop-shelf-card__chev,
-.shop-shelf-card.is-active .shop-shelf-card__chev{color:var(--color-violet-600);opacity:1}
+.shop-cat__chev{transform:rotate(90deg)}
+[dir="rtl"] .shop-cat__chev{transform:scaleX(-1) rotate(-90deg)}
+.shop-cat.is-open .shop-cat__chev{transform:rotate(-90deg)}
+[dir="rtl"] .shop-cat.is-open .shop-cat__chev{transform:scaleX(-1) rotate(90deg)}
 
-.shop-sub-pills{
-  display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;
+.shop-cat.is-selected{z-index:5}
+.shop-cat.is-selected .shop-cat__btn{
+  background:var(--color-violet-600);color:#fff;box-shadow:none;
 }
-.shop-sub-pill{
-  display:inline-flex;align-items:center;gap:.55rem;text-decoration:none;
-  padding:.55rem .85rem;border-radius:999px;
-  background:var(--color-violet-100);color:var(--color-violet-800);
-  font-size:.8125rem;font-weight:500;line-height:1;
-  transition:background .2s var(--ease-brand),color .2s var(--ease-brand),transform .2s var(--ease-brand);
+.shop-cat.is-selected .shop-cat__icon{
+  background:#fff;color:var(--color-violet-600);
 }
-.shop-sub-pill:hover{background:var(--color-violet-200);color:var(--color-violet-900)}
-.shop-sub-pill.is-active{
-  background:var(--color-violet-700);color:#fff;
-}
-.shop-sub-pill__count{
-  display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .25rem;
-  border-radius:999px;background:#fff;color:var(--color-violet-800);
-  font-size:.6875rem;font-weight:600;line-height:1;
-}
-.shop-sub-pill.is-active .shop-sub-pill__count{color:var(--color-violet-800)}
+.shop-cat.is-selected .shop-cat__chev{color:#fff}
 
-.shop-shelf-card-skeleton{min-height:3.4rem;border-radius:var(--radius-md)}
+.shop-cat__menu{
+  position:absolute;z-index:6;inset-inline-start:0;top:calc(100% + .4rem);
+  min-width:100%;width:max(100%,13.5rem);
+  padding:.35rem .4rem;border-radius:14px;background:#fff;
+  box-shadow:0 10px 28px rgba(18,8,51,.12);
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateY(-4px);
+  transition:opacity .2s var(--ease-brand),transform .2s var(--ease-brand),visibility .2s;
+}
+.shop-cat.is-open .shop-cat__menu{
+  opacity:1;visibility:visible;pointer-events:auto;transform:none;
+}
+.shop-sub{
+  display:flex;align-items:center;gap:.5rem;
+  min-height:36px;padding:.35rem .45rem;border-radius:8px;
+  text-decoration:none;color:var(--color-ink-2);font-size:.8125rem;line-height:1.3;
+}
+.shop-sub:hover{color:var(--color-ink);background:var(--color-paper-100)}
+.shop-sub.is-active{color:var(--color-ink);font-weight:700}
+.shop-sub__dot{
+  width:6px;height:6px;border-radius:50%;flex:none;background:var(--color-violet-500);
+}
+.shop-sub__label{min-width:0;flex:1}
+.shop-sub__count{
+  flex:none;font-family:var(--font-mono);font-size:.6875rem;color:var(--color-muted);
+}
+
+.shop-cat-skeleton{width:9.5rem;height:2.75rem;border-radius:999px}
 
 @media(max-width:720px){
-  .shop-shelf-grid{gap:.5rem}
-  .shop-shelf-card{padding:.55rem .6rem;gap:.5rem}
-  .shop-shelf-card__icon{width:32px;height:32px}
-  .shop-shelf-card__icon svg{width:17px;height:17px}
-  .shop-shelf-card__chev{display:none}
+  .shop-cat-row{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.45rem .35rem;width:100%;
+  }
+  .shop-cat__btn{width:100%;padding-inline-end:.45rem}
+  .shop-cat__name{max-width:none;font-size:.75rem}
+  .shop-cat__menu{width:100%;min-width:0}
+  .shop-cat-skeleton{width:100%}
 }
 
-@media(min-width:1101px){
-  .shop-shelf-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(prefers-reduced-motion:reduce){
+  .shop-cat__menu,.shop-cat__chev,.shop-cat__btn,.shop-cat__icon{transition:none}
 }
 
 .shop-listing-toolbar{
   display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
-  margin-top:clamp(1rem,2vw,1.35rem);padding-block:.65rem 0;
-  border-top:1px solid var(--color-line);
+  margin-top:.35rem;padding-block:.35rem 0;
   /* Clears the fixed header when a page link scrolls back to this row. */
   scroll-margin-block-start:calc(var(--header-h) + 1rem);
 }
@@ -1450,7 +1441,6 @@ select.field__input{
 .shop-listing-toolbar__sort{
   display:flex;flex-wrap:wrap;gap:.35rem;justify-content:flex-end;margin-inline-start:auto;
 }
-.shop-product-grid-skeleton .shop-page__grid{margin-top:0}
 .filters--sort .filter--sort{
   padding:.45rem .85rem;border-color:transparent;background:transparent;
   font-size:.8125rem;color:var(--color-ink-3);white-space:nowrap;
@@ -1458,6 +1448,27 @@ select.field__input{
 .filters--sort .filter--sort:hover{border-color:transparent;color:var(--color-violet-700);background:transparent}
 .filters--sort .filter--sort.is-active{
   background:var(--color-violet-600);border-color:var(--color-violet-600);color:#fff;
+}
+.sort-label--short{display:none}
+
+@media(max-width:720px){
+  .shop-bar,.shop-listing-toolbar,.shop-listing-toolbar__count-slot{
+    min-width:0;max-width:100%;
+  }
+  .shop-listing-toolbar{flex-direction:column;align-items:stretch}
+  .shop-listing-toolbar__sort.filters{
+    display:flex;flex-wrap:nowrap;justify-content:flex-start;
+    width:100%;min-width:0;max-width:100%;
+    margin-inline-start:0;gap:.2rem;
+    overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+    touch-action:pan-x;scrollbar-width:thin;
+  }
+  .filters--sort .filter--sort{
+    flex:0 0 auto;padding:.4rem .6rem;font-size:.75rem;
+  }
+  .sort-label--full{display:none}
+  .sort-label--short{display:inline}
 }
 
 /* Cabinet cards: image, category, name, summary — no price row. */
@@ -1471,7 +1482,7 @@ select.field__input{
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 
-.shop-bar{display:grid;gap:1.25rem}
+.shop-bar{display:grid;gap:.65rem}
 
 @media(max-width:720px){
   .shop-page__advisory{display:none}

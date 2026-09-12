@@ -44,6 +44,8 @@ export const SHOP: Record<string, L> = {
   sortNewest: { en: "Newest", ar: "الأحدث" },
   sortPriceAsc: { en: "Price: Low to High", ar: "السعر: من الأقل للأعلى" },
   sortPriceDesc: { en: "Price: High to Low", ar: "السعر: من الأعلى للأقل" },
+  sortPriceAscShort: { en: "Lowest price", ar: "أقل سعر" },
+  sortPriceDescShort: { en: "Highest price", ar: "أعلى سعر" },
   sortName: { en: "Name", ar: "الاسم" },
   resultsOne: { en: "1 formula", ar: "تركيبة واحدة" },
   resultsMany: { en: "formulas", ar: "تركيبة" },
