@@ -47,27 +47,20 @@ export async function Footer({ locale }: { locale: Locale }) {
           />
 
           <div className="footer__grid">
-            <div>
+            <div className="footer__brand">
               <p className="footer__h">{t(BRAND.slogan, locale)}</p>
-              <p
-                className="footer__meta"
-                style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-violet-800)" }}
-              >
-                {t(BRAND.tagline, locale)}
-              </p>
-              <p className="footer__meta" style={{ marginTop: "1rem", maxWidth: "34ch" }}>
-                {t(BRAND.supporting, locale)}
-              </p>
+              <p className="footer__tagline footer__meta">{t(BRAND.tagline, locale)}</p>
+              <p className="footer__blurb footer__meta">{t(BRAND.supporting, locale)}</p>
             </div>
 
-            <div>
+            <div className="footer__contact">
               <p className="footer__h">{t(CONTACT.labels.contact, locale)}</p>
-              <div className="footer__meta" style={{ display: "grid", gap: "1.1rem" }}>
+              <div className="footer__contact-detail footer__meta">
                 <p>
                   <strong>{t(CONTACT.labels.email, locale)}</strong>
                   <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
                 </p>
-                <p>
+                <p className="footer__address">
                   <strong>{t(CONTACT.labels.address, locale)}</strong>
                   {t(CONTACT.address, locale)}
                 </p>
@@ -80,26 +73,40 @@ export async function Footer({ locale }: { locale: Locale }) {
                   </p>
                 ) : null}
               </div>
+              <div className="footer__contact-links">
+                <a className="footer__li" href={`mailto:${CONTACT.email}`} title={CONTACT.email}>
+                  <span>{t(CONTACT.labels.email, locale)}</span>
+                </a>
+                {mobile ? (
+                  <a className="footer__li" href={`tel:${mobile.replace(/\s/g, "")}`} dir="ltr">
+                    <span>{mobile}</span>
+                  </a>
+                ) : null}
+              </div>
             </div>
 
-            <div>
+            <div className="footer__explore">
               <p className="footer__h">{BRAND.name}</p>
               {links.map((l) => (
                 <Link key={l.href} className="footer__li" href={localePath(locale, l.href)}>
                   <span>{t(l.label, locale)}</span>
-                  <span aria-hidden="true">&rarr;</span>
+                  <span className="footer__li-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
                 </Link>
               ))}
             </div>
 
             {/* Named in full, because "account" as an icon is a guess and
                 these two are what people come back for. */}
-            <div>
+            <div className="footer__account">
               <p className="footer__h">{t(ACCOUNT_LINKS[0].label, locale)}</p>
               {ACCOUNT_LINKS.map((l) => (
                 <Link key={l.href} className="footer__li" href={localePath(locale, l.href)}>
                   <span>{t(l.label, locale)}</span>
-                  <span aria-hidden="true">&rarr;</span>
+                  <span className="footer__li-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
                 </Link>
               ))}
             </div>

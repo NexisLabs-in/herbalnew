@@ -746,19 +746,56 @@ body::before{
 /* Four columns need more room than three did before they start setting two
    words per line, so they pair up earlier than the old 860px. */
 @media(max-width:1024px){.footer__grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.footer__grid{grid-template-columns:1fr}}
 .footer__h{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--color-violet-600);margin-bottom:1.25rem}
 .footer a{color:var(--color-ink-2);font-size:.9062rem;transition:color .3s var(--ease-brand)}
 .footer a:hover{color:var(--color-violet-700)}
 .footer__li{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.6rem;border-bottom:1px solid var(--color-line)}
-.footer__li span:last-child{color:var(--color-violet-500);transition:transform .35s var(--ease-brand)}
-.footer__li:hover span:last-child{transform:translateX(4px)}
+.footer__li-arrow{color:var(--color-violet-500);transition:transform .35s var(--ease-brand)}
+.footer__li:hover .footer__li-arrow{transform:translateX(4px)}
 .footer__meta{font-size:.8125rem;color:var(--color-ink-3);line-height:1.7}
 .footer__meta strong{display:block;font-family:var(--font-mono);font-size:.5938rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-violet-600);font-weight:500;margin-bottom:.3rem}
+.footer__tagline{font-family:var(--font-display);font-size:1.5rem;color:var(--color-violet-800);line-height:1.2}
+.footer__blurb{margin-top:1rem;max-width:34ch}
+.footer__contact-detail{display:grid;gap:1.1rem}
+.footer__contact-links{display:none}
 .footer__bar{margin-top:clamp(2.5rem,5vw,4rem);border-top:1px solid var(--color-line);padding-block:1.6rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:var(--color-muted)}
 /* Full opacity on a light ground: the .92 was knocking back a white logo on
    near-black, which on paper just makes the mark look faded. */
 .footer__logo{width:clamp(200px,34vw,380px);height:auto;margin-bottom:1.75rem}
+
+/* Mobile: compact 2-column footer (reference-style) — laptop/desktop unchanged. */
+@media(max-width:720px){
+  .disclaimer{padding-block:1.15rem 1rem}
+  .disclaimer__t{margin-bottom:.45rem;font-size:.5625rem;letter-spacing:.16em}
+  .disclaimer p{font-size:.75rem;line-height:1.55}
+
+  .footer{padding-top:1.35rem;padding-bottom:.25rem}
+  .footer .shell{padding-inline:clamp(1rem,4vw,1.25rem)}
+  .footer__logo{width:118px;margin-bottom:.55rem}
+  .footer__grid{
+    grid-template-columns:1fr 1fr;
+    gap:.85rem 1.15rem;
+  }
+  .footer__brand{grid-column:1 / -1}
+  .footer__brand .footer__h{margin-bottom:.35rem}
+  .footer__tagline{display:none}
+  .footer__blurb{margin-top:0;max-width:none;font-size:.75rem;line-height:1.45}
+  .footer__h{margin-bottom:.4rem;font-size:.5625rem;letter-spacing:.16em}
+  .footer__meta{font-size:.75rem;line-height:1.45}
+  .footer__meta strong{font-size:.5625rem;margin-bottom:.15rem;letter-spacing:.14em}
+  .footer__contact-detail{display:none}
+  .footer__contact-links{display:block}
+  .footer__contact-links .footer__li{padding-block:.22rem}
+  .footer__li{
+    justify-content:flex-start;padding-block:.22rem;border-bottom:none;
+    font-size:.8125rem;line-height:1.35;
+  }
+  .footer__li-arrow{display:none}
+  .footer__bar{
+    margin-top:.85rem;padding-block:.65rem;
+    font-size:.6875rem;gap:.2rem;flex-direction:column;align-items:flex-start;
+  }
+}
 
 /* Sign-in: full footer padding reads heavy below a single-field page, and the
    near-black shade sits too close under the light card to feel this dark. */
@@ -954,13 +991,13 @@ a.faq-close__text:hover{color:var(--color-violet-800)}
    have to point the other way — and their hover nudge follows the flip. */
 [dir="rtl"] .btn__arrow,
 [dir="rtl"] .link-arrow span:last-child,
-[dir="rtl"] .footer__li span:last-child,
+[dir="rtl"] .footer__li-arrow,
 [dir="rtl"] .order-row__view span {
   transform: scaleX(-1);
 }
 [dir="rtl"] .btn:hover .btn__arrow,
 [dir="rtl"] .link-arrow:hover span:last-child,
-[dir="rtl"] .footer__li:hover span:last-child,
+[dir="rtl"] .footer__li:hover .footer__li-arrow,
 [dir="rtl"] .order-row:hover .order-row__view span {
   transform: scaleX(-1) translateX(4px);
 }
