@@ -27,6 +27,12 @@ const PARENT_ART: Record<string, { icon: IconName; tint: string }> = {
   "reproductive-hormonal": { icon: "heart", tint: "repro" },
 };
 
+const FALLBACK_ART: { icon: IconName; tint: string } = { icon: "leaf", tint: "wellness" };
+
+/** The panel is named by its own heading, which `aria-labelledby` points at, so
+ *  the group is announced as the shelf it belongs to. */
+const PANEL_HEADING_ID = "shop-shelf-panel-heading";
+
 type FilterLinkProps = {
   href: string;
   next: ShopParams;
@@ -72,6 +78,56 @@ function resolveActiveParent(tree: CategoryTreeNode[], activeCategory: string): 
   return tree.find((parent) => parent.slug === activeCategory) ?? tree[0];
 }
 
+/** One subcategory row. Shared by the hover menu and the touch fallback panel,
+ *  which render the same links for different input devices — CSS shows exactly
+ *  one of them, so only that one reaches the accessibility tree. */
+function SubcategoryLink({
+  child,
+  icon,
+  active,
+  base,
+  params,
+  counts,
+  locale,
+  onNavigate,
+}: {
+  child: CategoryTreeNode["children"][number];
+  icon: IconName;
+  active: boolean;
+  base: string;
+  params: ShopParams;
+  counts: Record<string, number>;
+  locale: Locale;
+  onNavigate: (href: string, next: ShopParams, options?: NavigateOptions) => void;
+}) {
+  const blurb = tl(child.description, locale);
+
+  return (
+    <FilterLink
+      className={`shop-sub-card${active ? " is-active" : ""}`}
+      href={shopHref(base, params, { category: child.slug, page: undefined })}
+      next={nextParams(params, { category: child.slug, page: undefined })}
+      onNavigate={onNavigate}
+      aria-current={active ? "true" : undefined}
+    >
+      {/* The shelf's own mark, so a subcategory visibly wears the shelf it
+          belongs to. A per-subcategory icon would need a slug map that breaks
+          the next time the client adds one from the admin. */}
+      <span className="shop-sub-card__icon" aria-hidden="true">
+        <Icon name={icon} size={18} strokeWidth={1.4} />
+      </span>
+      <span className="shop-sub-card__text">
+        <span className="shop-sub-card__title">{tl(child.name, locale)}</span>
+        {blurb ? <span className="shop-sub-card__desc">{blurb}</span> : null}
+      </span>
+      <span className="shop-sub-card__count">{counts[child.slug] ?? 0}</span>
+      <span className="shop-sub-card__chev" aria-hidden="true">
+        <Icon name="chevron" size={16} strokeWidth={1.6} />
+      </span>
+    </FilterLink>
+  );
+}
+
 function subcategoryLabel(count: number, locale: Locale): string {
   if (count === 1) return t(SHOP.subcategoriesOne, locale);
   return `${count} ${t(SHOP.subcategoriesMany, locale)}`;
@@ -97,6 +153,7 @@ export function ShopFilters({
   const activeCategory = params.category ?? "";
   const activeSort = (params.sort ?? "featured") as ShopSort;
   const activeParent = resolveActiveParent(tree, activeCategory);
+  const activeArt = PARENT_ART[activeParent.slug] ?? FALLBACK_ART;
 
   const sorts: { value: ShopSort; label: string }[] = [
     { value: "featured", label: t(SHOP.sortFeatured, locale) },
@@ -115,63 +172,101 @@ export function ShopFilters({
           </div>
         </div>
 
+        {/* Shelves in a row; hovering one drops its subcategories out of the
+            card itself. */}
         <div className="shop-shelf-grid">
           {tree.map((parent) => {
-            const isActive = parent.slug === activeParent.slug;
-            const art = PARENT_ART[parent.slug] ?? { icon: "leaf" as IconName, tint: "wellness" };
+            const isOpen = parent.slug === activeParent.slug;
+            const art = PARENT_ART[parent.slug] ?? FALLBACK_ART;
 
             return (
-              <FilterLink
+              /* The slot is the positioning context: the menu is absolutely
+                 placed against this card, so it is anchored by the DOM rather
+                 than by arithmetic that has to agree with the grid. It is also
+                 why the card cannot be the outer element — an anchor cannot
+                 hold the subcategory anchors. */
+              <div
                 key={parent.id}
-                className={`shop-shelf-card${isActive ? " is-active" : ""}`}
-                href={shopHref(base, params, { category: parent.slug, page: undefined })}
-                next={nextParams(params, { category: parent.slug, page: undefined })}
-                onNavigate={onNavigate}
-                aria-current={isActive ? "true" : undefined}
+                className={`shop-shelf-slot shelf-tint--${art.tint}${isOpen ? " is-open" : ""}`}
               >
-                <span
-                  className={`shop-shelf-card__icon shop-shelf-card__icon--${art.tint}`}
-                  aria-hidden="true"
+                <FilterLink
+                  className={`shop-shelf${parent.children.length ? " has-children" : ""}`}
+                  href={shopHref(base, params, { category: parent.slug, page: undefined })}
+                  next={nextParams(params, { category: parent.slug, page: undefined })}
+                  onNavigate={onNavigate}
+                  aria-current={isOpen ? "true" : undefined}
                 >
-                  <Icon name={art.icon} size={20} strokeWidth={1.4} />
-                </span>
-                <span className="shop-shelf-card__text">
-                  <span className="shop-shelf-card__title">{tl(parent.name, locale)}</span>
-                  <span className="shop-shelf-card__meta">
-                    {parent.children.length
-                      ? subcategoryLabel(parent.children.length, locale)
-                      : (counts[parent.slug] ?? 0) === 1
-                        ? t(SHOP.productsOne, locale)
-                        : `${counts[parent.slug] ?? 0} ${t(SHOP.productsMany, locale)}`}
+                  <span className="shop-shelf__icon" aria-hidden="true">
+                    <Icon name={art.icon} size={20} strokeWidth={1.4} />
                   </span>
-                </span>
-                <span className="shop-shelf-card__chev" aria-hidden="true">
-                  <Icon name="chevron" size={16} strokeWidth={1.6} />
-                </span>
-              </FilterLink>
+                  <span className="shop-shelf__text">
+                    <span className="shop-shelf__title">{tl(parent.name, locale)}</span>
+                    <span className="shop-shelf__meta">
+                      {parent.children.length
+                        ? subcategoryLabel(parent.children.length, locale)
+                        : (counts[parent.slug] ?? 0) === 1
+                          ? t(SHOP.productsOne, locale)
+                          : `${counts[parent.slug] ?? 0} ${t(SHOP.productsMany, locale)}`}
+                    </span>
+                  </span>
+                  <span className="shop-shelf__chev" aria-hidden="true">
+                    <Icon name="chevron" size={16} strokeWidth={1.6} />
+                  </span>
+                </FilterLink>
+
+                {parent.children.length ? (
+                  <div className="shop-shelf-menu" role="group" aria-label={tl(parent.name, locale)}>
+                    <div className="shop-sub-cards">
+                      {parent.children.map((child) => (
+                        <SubcategoryLink
+                          key={child.id}
+                          child={child}
+                          icon={art.icon}
+                          active={activeCategory === child.slug}
+                          base={base}
+                          params={params}
+                          counts={counts}
+                          locale={locale}
+                          onNavigate={onNavigate}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             );
           })}
         </div>
 
+        {/* Touch fallback. There is no hover on a phone, so the selected
+            shelf's subcategories are shown here instead; CSS displays exactly
+            one of the two, so only one reaches the accessibility tree. */}
         {activeParent.children.length ? (
-          <div className="shop-sub-pills" role="group" aria-label={tl(activeParent.name, locale)}>
-            {activeParent.children.map((child) => {
-              const isActive = activeCategory === child.slug;
+          <div
+            className={`shop-shelf-panel shelf-tint--${activeArt.tint}`}
+            role="group"
+            aria-labelledby={PANEL_HEADING_ID}
+          >
+            <p className="shop-shelf-panel__head" id={PANEL_HEADING_ID}>
+              <span className="shop-shelf__eyebrow">{t(SHOP.subcategoriesMany, locale)}</span>
+              <span className="sr-only">{tl(activeParent.name, locale)}</span>
+            </p>
 
-              return (
-                <FilterLink
+            <div className="shop-sub-cards">
+              {activeParent.children.map((child) => (
+                <SubcategoryLink
                   key={child.id}
-                  className={`shop-sub-pill${isActive ? " is-active" : ""}`}
-                  href={shopHref(base, params, { category: child.slug, page: undefined })}
-                  next={nextParams(params, { category: child.slug, page: undefined })}
+                  child={child}
+                  icon={activeArt.icon}
+                  active={activeCategory === child.slug}
+                  base={base}
+                  params={params}
+                  counts={counts}
+                  locale={locale}
                   onNavigate={onNavigate}
-                  aria-current={isActive ? "true" : undefined}
-                >
-                  <span className="shop-sub-pill__label">{tl(child.name, locale)}</span>
-                  <span className="shop-sub-pill__count">{counts[child.slug] ?? 0}</span>
-                </FilterLink>
-              );
-            })}
+                />
+              ))}
+            </div>
           </div>
         ) : null}
       </div>

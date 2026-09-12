@@ -1319,8 +1319,9 @@ select.field__input{
   .shop-page__grid{margin-top:.75rem}
   .shop-bar{gap:.75rem}
   .shop-category-section{padding-inline:0}
-  .shop-sub-pills{gap:.45rem}
-  .shop-sub-pill{font-size:.75rem;padding:.45rem .65rem}
+
+  .shop-sub-cards{gap:.45rem}
+  .shop-sub-card{padding:.5rem .6rem;gap:.55rem}
   .shop-listing-toolbar{gap:.6rem}
   .shop-listing-toolbar__sort{
     width:100%;margin-inline-start:0;justify-content:flex-start;
@@ -1354,86 +1355,205 @@ select.field__input{
   margin:.45rem 0 0;font-family:var(--font-display);font-weight:400;
   font-size:clamp(1.15rem,1.75vw,1.45rem);color:var(--color-ink);line-height:1.2;
 }
+/* One definition per shelf colour, worn by the shelf row and by the
+   subcategories inside it. */
+.shelf-tint--beauty{--shelf-soft:#F0EAFB;--shelf-ink:#7C4DDA;--shelf-line:#DCCDF5}
+.shelf-tint--wellness{--shelf-soft:#E8F5EC;--shelf-ink:#3E8B57;--shelf-line:#CBE6D5}
+.shelf-tint--body{--shelf-soft:#F7EFE6;--shelf-ink:#A9773F;--shelf-line:#EBD9C4}
+.shelf-tint--repro{--shelf-soft:#FCEBEF;--shelf-ink:#C15771;--shelf-line:#F5D2DA}
+
+/* Shelves as an accordion: one full-width row each, the selected one opening
+   with its subcategories inside its own border. Two earlier attempts hung a
+   panel beneath a four-column row and tried to tie it back to one card, first
+   with a notch and then an elbow; both only lined up for the leftmost shelf,
+   because a full-width panel shares no edge with a single column. Containment
+   removes that geometry instead of decorating around it. */
+/* The shelves stay in a row. The gap and column count are variables so the
+   panel's weld can be placed from the same numbers the grid uses. */
+.shop-category-section{--shelf-gap:clamp(.55rem,1vw,.75rem);--shelf-cols:2}
 .shop-shelf-grid{
-  display:grid;gap:clamp(.55rem,1vw,.75rem);
-  /* Two-up by default. Four columns on a phone is what crushed the titles. */
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  /* One shared row height so a short title (Beauty) does not sit in a
-     smaller box than Body Systems on the line below. */
+  display:grid;gap:var(--shelf-gap);
+  grid-template-columns:repeat(var(--shelf-cols),minmax(0,1fr));
   grid-auto-rows:1fr;
 }
-/* One compact row per shelf — icon, two-line label, chevron. The earlier
-   stacked card left a dead column of white to the right of every title. */
-.shop-shelf-card{
+
+.shop-shelf{
   display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
   height:100%;box-sizing:border-box;
-  gap:.65rem;text-decoration:none;text-align:start;
-  padding:.6rem .7rem;
+  gap:.7rem;padding:.7rem .85rem;text-decoration:none;text-align:start;
   border:1px solid var(--color-line);border-radius:var(--radius-md);
   background:#fff;box-shadow:var(--shadow-sm);
-  transition:border-color .25s var(--ease-brand),background .25s var(--ease-brand),
-    box-shadow .25s var(--ease-brand),transform .25s var(--ease-brand);
+  transition:border-color .25s var(--ease-brand),background .25s var(--ease-brand);
 }
-.shop-shelf-card:hover{
-  border-color:var(--color-violet-300);
-  box-shadow:0 6px 18px rgba(81,43,199,.07);
-  transform:translateY(-1px);
-}
-.shop-shelf-card.is-active{
-  border-color:var(--color-violet-500);background:var(--color-violet-50);
-}
-.shop-shelf-card__icon{
+.shop-shelf:hover{border-color:var(--shelf-line)}
+/* The open tab takes the shelf tint — the same ground as the panel below it. */
+/* The shelf currently filtering the listing. */
+.shop-shelf-slot.is-open .shop-shelf{border-color:var(--shelf-line);background:var(--shelf-soft)}
+.shop-shelf__icon{
   display:grid;place-items:center;width:34px;height:34px;border-radius:50%;flex:none;
+  background:var(--shelf-soft);color:var(--shelf-ink);
 }
-.shop-shelf-card__icon--beauty{background:#F0EAFB;color:#7C4DDA}
-.shop-shelf-card__icon--wellness{background:#E8F5EC;color:#3E8B57}
-.shop-shelf-card__icon--body{background:#F7EFE6;color:#A9773F}
-.shop-shelf-card__icon--repro{background:#FCEBEF;color:#C15771}
-.shop-shelf-card__text{display:grid;gap:.1rem;min-width:0}
-.shop-shelf-card__title{
-  font-size:.8125rem;font-weight:500;line-height:1.25;color:var(--color-ink);
+/* The header sits on the tint once open, so the mark needs its own ground. */
+.shop-shelf-slot.is-open .shop-shelf__icon{background:#fff}
+.shop-shelf__text{display:grid;gap:.1rem;min-width:0}
+.shop-shelf__title{font-size:.875rem;font-weight:500;line-height:1.25;color:var(--color-ink)}
+.shop-shelf__meta{font-size:.6875rem;color:var(--color-ink-3);line-height:1.3}
+.shop-shelf__chev{
+  display:grid;place-items:center;color:var(--color-muted);opacity:.65;
+  transition:color .2s var(--ease-brand),opacity .2s var(--ease-brand),
+    transform .25s var(--ease-brand);
 }
-.shop-shelf-card__meta{font-size:.6875rem;color:var(--color-muted);line-height:1.3}
-.shop-shelf-card__chev{
+.shop-shelf:hover .shop-shelf__chev{color:var(--shelf-ink);opacity:1}
+/* Turns from "go here" into "this is open". */
+/* Selected is a tint, not a direction: the chevron only turns to point
+   down while the menu is actually open. */
+.shop-shelf-slot.is-open .shop-shelf__chev{color:var(--shelf-ink);opacity:1}
+
+/* Touch fallback only: shown where there is no hover to open the menu. */
+.shop-shelf-panel{
+  display:none;
+  margin-block-start:calc(var(--shelf-gap) + 4px);
+  padding:clamp(.9rem,1.8vw,1.15rem);
+  border:1px solid var(--shelf-line);border-radius:var(--radius-md);
+  background:var(--shelf-soft);
+}
+@media(hover:none){.shop-shelf-panel{display:block}}
+
+.shop-shelf-panel__head{
+  display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.7rem;
+}
+.shop-shelf__eyebrow{
+  font-family:var(--font-mono);font-size:.6875rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--shelf-ink);filter:brightness(.72);
+}
+.shop-shelf__rule{flex:none;width:2.25rem;height:1px;background:var(--shelf-line)}
+.shop-shelf__lede{font-size:.8125rem;color:var(--color-ink-3);line-height:1.4}
+
+/* The menu is positioned against its own card, so nothing has to be kept in
+ step with the grid. Three earlier attempts placed a full-width panel under
+ the row and tried to tie it back to one card by arithmetic — a notch, an
+ elbow, a weld — and each only lined up for some columns. Anchoring in the DOM
+ removes the problem rather than computing around it. */
+.shop-shelf-slot{position:relative}
+
+.shop-shelf-menu{
+  position:absolute;z-index:20;
+  /* Starts on the card's bottom edge and overlaps its border, so it reads as
+     the card continuing downward rather than a separate box below it. */
+  inset-block-start:100%;margin-block-start:-1px;
+  inset-inline-start:-1px;inset-inline-end:-1px;
+  padding:.45rem;
+  background:var(--shelf-soft);
+  border:1px solid var(--shelf-line);
+  border-end-start-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
+  box-shadow:0 18px 40px -18px rgba(18,8,51,.35);
+
+  /* Hidden by visibility rather than display, because display cannot be
+     transitioned. `visibility:hidden` still keeps the links out of the
+     accessibility tree, so the touch panel's copy stays the only one
+     announced. Slight lift plus fade, so it reads as coming out of the card
+     rather than appearing beside it. */
+  visibility:hidden;opacity:0;
+  transform:translateY(-6px);
+  transform-origin:top center;
+  pointer-events:none;
+  /* Visibility flips only after the fade has run, so the menu does not vanish
+     mid-transition on the way out. */
+  transition:opacity .19s var(--ease-brand),transform .19s var(--ease-brand),
+    visibility 0s linear .19s;
+}
+.shop-shelf-menu .shop-sub-cards{grid-template-columns:1fr;gap:.4rem}
+
+/* Only where there is a pointer to hover with. Focus-within opens it for
+ keyboard users on the same devices, which costs nothing and means tabbing
+ through the shelves reveals their contents. */
+@media(hover:hover){
+  .shop-shelf-slot:hover .shop-shelf-menu,
+  .shop-shelf-slot:focus-within .shop-shelf-menu{
+    visibility:visible;opacity:1;transform:none;pointer-events:auto;
+    /* No delay on the way in — only the exit waits for the fade. */
+    transition:opacity .19s var(--ease-brand),transform .19s var(--ease-brand),
+      visibility 0s;
+  }
+  /* The card takes the menu's ground, opens its bottom edge into it and sits
+     above it, so the two are one shape while open. */
+  .shop-shelf-slot:hover .shop-shelf.has-children,
+  .shop-shelf-slot:focus-within .shop-shelf.has-children{
+    background:var(--shelf-soft);border-color:var(--shelf-line);
+    border-end-start-radius:0;border-end-end-radius:0;
+    position:relative;z-index:21;
+  }
+  /* Points down while the menu is open. */
+  .shop-shelf-slot:hover .shop-shelf.has-children .shop-shelf__chev,
+  .shop-shelf-slot:focus-within .shop-shelf.has-children .shop-shelf__chev{
+    transform:rotate(90deg);color:var(--shelf-ink);opacity:1;
+  }
+}
+
+/* The corner radius changes as the card opens, and that cannot tween, so it is
+   left out of the card's transition rather than snapping mid-fade. */
+.shop-shelf{transition:background .19s var(--ease-brand),border-color .19s var(--ease-brand)}
+
+@media(prefers-reduced-motion:reduce){
+  .shop-shelf-menu{transition:none;transform:none}
+  .shop-shelf-slot:hover .shop-shelf-menu,
+  .shop-shelf-slot:focus-within .shop-shelf-menu{transition:none;transform:none}
+}
+
+.shop-sub-cards{
+  display:grid;gap:.6rem;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));
+}
+/* White cards on the tinted ground, so each subcategory reads as an item
+   sitting inside the shelf. Text stays ink — the four shelf colours are
+   mid-tone and would not hold contrast at this size. */
+.shop-sub-card{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;
+  gap:.75rem;min-height:3.55rem;
+  padding:.6rem .8rem;text-decoration:none;text-align:start;
+  background:#fff;border:1px solid var(--shelf-line);border-radius:var(--radius-md);
+  transition:border-color .25s var(--ease-brand),box-shadow .25s var(--ease-brand),
+    transform .25s var(--ease-brand);
+}
+.shop-sub-card:hover{
+  border-color:var(--shelf-ink);box-shadow:0 6px 18px rgba(18,8,51,.07);transform:translateY(-1px);
+}
+.shop-sub-card.is-active{border-color:var(--shelf-ink);box-shadow:0 0 0 1px var(--shelf-ink)}
+.shop-sub-card__icon{
+  display:grid;place-items:center;width:32px;height:32px;border-radius:50%;flex:none;
+  background:var(--shelf-soft);color:var(--shelf-ink);
+}
+.shop-sub-card__text{display:grid;gap:.15rem;min-width:0}
+.shop-sub-card__title{font-size:.8125rem;font-weight:500;line-height:1.25;color:var(--color-ink)}
+.shop-sub-card__desc{
+  font-size:.6875rem;color:var(--color-ink-3);line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;
+}
+.shop-sub-card__count{
+  display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;
+  border-radius:999px;background:var(--shelf-soft);color:var(--color-ink-2);
+  font-size:.6875rem;font-weight:600;line-height:1;
+}
+.shop-sub-card__chev{
   display:grid;place-items:center;color:var(--color-muted);opacity:.65;
   transition:color .2s var(--ease-brand),opacity .2s var(--ease-brand);
 }
-.shop-shelf-card:hover .shop-shelf-card__chev,
-.shop-shelf-card.is-active .shop-shelf-card__chev{color:var(--color-violet-600);opacity:1}
+.shop-sub-card:hover .shop-sub-card__chev,
+.shop-sub-card.is-active .shop-sub-card__chev{color:var(--shelf-ink);opacity:1}
 
-.shop-sub-pills{
-  display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;
-}
-.shop-sub-pill{
-  display:inline-flex;align-items:center;gap:.55rem;text-decoration:none;
-  padding:.55rem .85rem;border-radius:999px;
-  background:var(--color-violet-100);color:var(--color-violet-800);
-  font-size:.8125rem;font-weight:500;line-height:1;
-  transition:background .2s var(--ease-brand),color .2s var(--ease-brand),transform .2s var(--ease-brand);
-}
-.shop-sub-pill:hover{background:var(--color-violet-200);color:var(--color-violet-900)}
-.shop-sub-pill.is-active{
-  background:var(--color-violet-700);color:#fff;
-}
-.shop-sub-pill__count{
-  display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .25rem;
-  border-radius:999px;background:#fff;color:var(--color-violet-800);
-  font-size:.6875rem;font-weight:600;line-height:1;
-}
-.shop-sub-pill.is-active .shop-sub-pill__count{color:var(--color-violet-800)}
-
-.shop-shelf-card-skeleton{min-height:3.4rem;border-radius:var(--radius-md)}
+.shop-shelf-skeleton{min-height:3.4rem;border-radius:var(--radius-md)}
 
 @media(max-width:720px){
-  .shop-shelf-grid{gap:.5rem}
-  .shop-shelf-card{padding:.55rem .6rem;gap:.5rem}
-  .shop-shelf-card__icon{width:32px;height:32px}
-  .shop-shelf-card__icon svg{width:17px;height:17px}
-  .shop-shelf-card__chev{display:none}
+  .shop-category-section{--shelf-gap:.5rem}
+  .shop-shelf{padding:.55rem .6rem;gap:.55rem}
+  .shop-shelf__icon{width:32px;height:32px}
+  .shop-shelf__icon svg{width:17px;height:17px}
+  .shop-shelf__chev{display:none}
 }
 
+/* Four shelves across once there is room for them. */
 @media(min-width:1101px){
-  .shop-shelf-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .shop-category-section{--shelf-cols:4}
 }
 
 .shop-listing-toolbar{

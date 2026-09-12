@@ -15,12 +15,7 @@ export function ShopListingSkeleton() {
         </div>
         <div className="shop-shelf-grid">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div className="skel shop-shelf-card-skeleton" key={i} />
-          ))}
-        </div>
-        <div className="shop-sub-pills">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div className="skel skel--filter-pill" key={i} style={{ width: "9rem", height: "2.1rem", borderRadius: "999px" }} />
+            <div className="skel shop-shelf-skeleton" key={i} />
           ))}
         </div>
       </div>
