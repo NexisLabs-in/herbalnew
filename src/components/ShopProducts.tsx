@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { SHOP } from "@/content/shop";
 import { ProductCard } from "@/components/ProductCard";
-import { ShopPagination, shopHref, type ShopParams } from "@/components/ShopFilters";
+import { ShopPagination } from "@/components/ShopFilters";
+import { shopHref, type ShopParams } from "@/lib/shop-url";
 import { getShopProducts, type ShopSort } from "@/lib/catalogue";
 import { localePath, t, type Locale } from "@/lib/i18n";
 import type { ProductForm } from "@/lib/models/enums";

@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ShopFilters, paramsFromSearch, paramsEqual, type ShopParams } from "@/components/ShopFilters";
+import { ShopFilters } from "@/components/ShopFilters";
+import { paramsEqual, paramsFromSearch, type ShopParams } from "@/lib/shop-url";
 import { ShopCatalogContext } from "@/components/shop-catalog-context";
 import { ShopProductGridSkeleton } from "@/components/ShopProductGridSkeleton";
 import type { CategoryTreeNode } from "@/lib/catalogue";

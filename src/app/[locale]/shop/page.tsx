@@ -5,7 +5,7 @@ import { NAV } from "@/content/brand";
 import { SHOP } from "@/content/shop";
 import { ShopHero } from "@/components/ShopHero";
 import { ShopCatalog } from "@/components/ShopCatalog";
-import type { ShopParams } from "@/components/ShopFilters";
+import type { ShopParams } from "@/lib/shop-url";
 import { ShopProducts } from "@/components/ShopProducts";
 import { buildCategoryTree, getCategories } from "@/lib/catalogue";
 import { isLocale, localePath, t, type Locale } from "@/lib/i18n";

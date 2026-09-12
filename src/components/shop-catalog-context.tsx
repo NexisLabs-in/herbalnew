@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { ShopParams } from "@/components/ShopFilters";
+import type { ShopParams } from "@/lib/shop-url";
 
 export type ShopCatalogContextValue = {
   base: string;
