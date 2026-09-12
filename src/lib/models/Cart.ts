@@ -15,7 +15,7 @@ import { defineModel } from "./base";
 const cartItemSchema = new Schema(
   {
     productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-    qty: { type: Number, required: true, min: 1, max: 99 },
+    qty: { type: Number, required: true, min: 1 },
     addedAt: { type: Date, default: Date.now },
   },
   { _id: false },

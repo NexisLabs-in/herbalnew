@@ -9,6 +9,10 @@ import type { ProductForm } from "@/lib/models/enums";
 
 const SORTS: ShopSort[] = ["featured", "newest", "price-asc", "price-desc", "name"];
 
+/** Widest row the grid renders (4 columns). These cards skip the scroll reveal
+ *  so the grid is never blank on arrival. */
+const FIRST_ROW = 4;
+
 /** Async product grid — lives inside Suspense so category/sort changes show a
  *  skeleton on the grid only while filters stay interactive. */
 export async function ShopProducts({
@@ -34,13 +38,9 @@ export async function ShopProducts({
   });
 
   const filtered = Boolean(query.q || query.category || query.form);
-  const resultsLabel =
-    result.total === 1 ? t(SHOP.productsOne, locale) : `${result.total} ${t(SHOP.productsMany, locale)}`;
 
   return (
     <>
-      <p className="shop-results__count">{resultsLabel}</p>
-
       {result.products.length === 0 ? (
         <div className="empty-state">
           <p className="display d4">
@@ -69,7 +69,8 @@ export async function ShopProducts({
                 key={product.id}
                 product={product}
                 locale={locale}
-                delay={index * 90}
+                reveal={index >= FIRST_ROW}
+                delay={Math.max(0, index - FIRST_ROW) * 90}
                 wishlist
                 variant="cabinet"
               />

@@ -116,12 +116,20 @@ export const LEGAL: LegalSection[] = [
     title: { en: "Shipping & Returns", ar: "الشحن والإرجاع" },
     clauses: [
       {
+        en: "A refund may be approved only if the product is unopened and the original seal and packaging are intact.",
+        ar: "لا يُوافق على استرداد المبلغ إلا إذا كان المنتج غير مفتوح وبقي الغلاف الأصلي والعبوة سليمين.",
+      },
+      {
         en: "For safety, opened consumable products are not accepted unless required by law, or where a product is defective, damaged or supplied in error.",
         ar: "لأسباب السلامة، لا تُقبل المنتجات القابلة للاستهلاك بعد فتحها إلا إذا فرض القانون ذلك أو عند وجود عيب أو ضرر أو خطأ في المنتج.",
       },
       {
         en: "Report transit damage with the order number and photographs within 3 days of receipt.",
         ar: "يُبلّغ عن ضرر النقل برقم الطلب والصور خلال ٣ أيام من استلام المنتج.",
+      },
+      {
+        en: "Refund approval follows inspection of the returned product.",
+        ar: "تُمنح الموافقة على الاسترداد بعد فحص المنتج المُعاد.",
       },
       {
         en: "Approved refunds are returned through the customer's original payment method within 7 business days.",

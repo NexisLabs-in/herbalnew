@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { MAX_LINE_QTY, findCart, openCart, orderQtyLimits } from "@/lib/cart";
+import { findCart, openCart, orderQtyLimits } from "@/lib/cart";
 import { isLocale, t, type Locale } from "@/lib/i18n";
 import { SHOP } from "@/content/shop";
 import { connectDb } from "@/lib/db";
@@ -76,8 +76,9 @@ export async function addToCart(productId: string, qty = 1, localeRaw?: string):
   const wanted = (existing?.qty ?? 0) + addQty;
 
   if (!existing && addQty < limits.min) return { error: qtyMessage("min", limits.min, locale) };
-  if (wanted > limits.max) return { error: qtyMessage("max", limits.max, locale) };
-  if (wanted > MAX_LINE_QTY) return { error: qtyMessage("max", MAX_LINE_QTY, locale) };
+  if (limits.max !== null && wanted > limits.max) {
+    return { error: qtyMessage("max", limits.max, locale) };
+  }
 
   if (existing) existing.qty = wanted;
   else cart.items.push({ productId: product._id, qty: wanted, addedAt: new Date() });
@@ -113,9 +114,11 @@ export async function setCartQty(productId: string, qty: number, localeRaw?: str
 
   // Stepping down from a stale quantity above the maximum is allowed, so the
   // customer can get back inside the range. Raising it further is not.
-  if (qty > limits.max && qty >= item.qty) return { error: qtyMessage("max", limits.max, locale) };
+  if (limits.max !== null && qty > limits.max && qty >= item.qty) {
+    return { error: qtyMessage("max", limits.max, locale) };
+  }
 
-  const wanted = Math.min(qty, MAX_LINE_QTY);
+  const wanted = Math.max(1, qty);
   const allowed = product.trackInventory ? Math.min(wanted, product.stock) : wanted;
 
   if (allowed <= 0) return removeFromCart(productId);

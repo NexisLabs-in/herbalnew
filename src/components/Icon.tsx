@@ -1,7 +1,7 @@
 export type IconName =
   | "research" | "balance" | "shield" | "doc" | "arrow" | "leaf" | "check"
   | "mail" | "pin" | "clock" | "id" | "user"
-  | "bag" | "menu" | "globe" | "drop" | "heart";
+  | "bag" | "menu" | "globe" | "drop" | "heart" | "filter" | "lotus" | "chevron";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   research: <path d="M11 3a8 8 0 105.29 14.01l4.35 4.35 1.41-1.41-4.35-4.35A8 8 0 0011 3zm0 2a6 6 0 110 12 6 6 0 010-12z" />,
@@ -71,6 +71,14 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   drop: <path d="M12 3s6.5 7.2 6.5 12a6.5 6.5 0 11-13 0C5.5 10.2 12 3 12 3z" />,
   heart: <path d="M12 20.5 3.8 12.3a5 5 0 0 1 7-7.1l1.2 1.1 1.2-1.1a5 5 0 1 1 7 7.1z" />,
+  filter: <path d="M4 5h16l-6.5 7.5V19l-3-2v-4.5L4 5z" />,
+  lotus: (
+    <>
+      <path d="M12 21c-2.3-1.7-3.7-4.2-3.7-7 0-2.9 1.4-5.4 3.7-7.1 2.3 1.7 3.7 4.2 3.7 7.1 0 2.8-1.4 5.3-3.7 7z" />
+      <path d="M12 21c-4.6 0-8.2-2.9-8.2-6.4 2 0 3.8.5 5.2 1.5M12 21c4.6 0 8.2-2.9 8.2-6.4-2 0-3.8.5-5.2 1.5" />
+    </>
+  ),
+  chevron: <path d="M9.5 6l6 6-6 6" />,
 };
 
 export function Icon({

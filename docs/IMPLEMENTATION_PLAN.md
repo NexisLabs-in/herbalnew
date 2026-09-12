@@ -144,9 +144,10 @@ Every question raised during planning, answered. Do not revisit these without as
 | Request-price flow | Enquiry → **admin sets a quoted price** → customer gets a link and pays (C1) |
 | Manual orders | **Not supported.** Every order originates from the storefront or an accepted quote, so orders reconcile 1:1 with Stripe |
 | Refunds | **Handled manually in the Stripe dashboard.** The app only marks the order cancelled/returned and records who did it |
+| Refund eligibility | **Unopened only, with the original seal and packaging intact.** Approval follows inspection of the returned goods; approved refunds go back through the original payment method (Stripe enforces this). Defective, damaged or wrongly-supplied items keep their statutory carve-out. **Open:** no return-request window is set yet |
 | Customer cancellation | **Request only** — customer can request cancellation while the order is `new` or `packed`; admin approves or declines and refunds in Stripe |
 | Invoices | **Printable HTML invoice page** for customer and admin, linked from the confirmation email. Chosen over a PDF library because none of them shape Arabic correctly — letters render disconnected — and headless Chrome would put ~300MB of Chromium on the VPS for one document |
-| Shipping destinations | **UAE only.** Country locked; address = full name, phone, line 1, line 2 (optional), area/city, **Emirate dropdown (7)**. No postcode field |
+| Shipping destinations | **Worldwide (confirmed 2026-09-11 with Mr. Arif).** Address form and carrier push are **blocked** until the shipping company sends OpenAPI / Swagger docs so paid orders can be created automatically, without re-entry. Until then the checkout stays UAE-only: country locked, Emirate dropdown (7), no postcode |
 
 ### Content & comms
 
@@ -261,10 +262,11 @@ revisiting with them if a men's-health range grows.
   null when request), `permanentDiscount: { type: "percent"|"amount", value } | null`.
 - Inventory: `trackInventory`, `stock`, `lowStockAlertedAt | null`.
   **No per-product threshold** — one global number in Settings (C12).
-  `minOrderQty` (default 1) and `maxOrderQty` (null = no product cap). The
+  `minOrderQty` (default 1) and `maxOrderQty` (null = no cap). The
   basket, checkout and quote payment refuse a quantity outside that range.
-  Stock and the line limit of 99 still apply. Empty maximum on the form means
-  no product-specific maximum.
+  **There is no fixed site-wide purchase maximum** — with an empty
+  `maxOrderQty` the only bound is live stock, and an untracked product has no
+  bound at all.
 - Herbal content (carried over from `src/content/products.ts`):
   `composition{en,ar}`, `chemistryEffects{en,ar}`, `directions{ steps[{detail{en,ar},
   measure}], frequency{en,ar}, maximum{en,ar} } | null`, `netQuantity{en,ar}`,
@@ -536,6 +538,14 @@ button disabled and labelled *Out of stock*, plus a "Notify me when back in
 stock" email field creating a `StockNotification`. When admin raises stock above
 zero, everyone waiting is emailed once and their record is stamped `notifiedAt`.
 
+Admin sees the queue itself, not just its size: the **Waiting** chip on
+`/admin/inventory` opens `/admin/inventory/[id]/waiting`, listing each pending
+request's email address, when it was asked, the language it came from, whether
+the address belongs to an account, and an "already notified" history filter.
+**Read-only** — `backInStockNotices` owns the sending, so an admin cannot email
+half a queue by hand and leave the records disagreeing with what went out.
+Needs `inventory:read`.
+
 ### 8.8 Reviews (C2)
 Only a logged-in customer with a **delivered** order containing that product can
 review it, once per purchase. If `settings.reviews.moderationEnabled` is **off**,
@@ -639,7 +649,7 @@ Recorded so it is never re-litigated mid-build:
 - Guest checkout.
 - Manual/offline order creation.
 - In-app refunds and self-service cancellation.
-- International shipping and multi-currency.
+- Multi-currency (checkout stays AED). International shipping is now in scope, blocked on the carrier's OpenAPI / Swagger.
 - Newsletter signup and WhatsApp/SMS notifications.
 - Courier/logistics API integration (status is a manual dropdown, C3).
 - Multi-vendor anything — vendor portal, commissions, onboarding (per the PDF).
@@ -652,6 +662,10 @@ Recorded so it is never re-litigated mid-build:
 | Date | Change |
 |---|---|
 | 2026-09-10 | **SMTP mail driver.** `MAIL_DRIVER=nodemailer` sends through any SMTP host (`SMTP_HOST` / port / user / pass). Resend and console stay available |
+| 2026-09-12 | **Worldwide shipping confirmed** (Mr. Arif, 2026-09-11). Paid orders must be pushed to the arranged carrier automatically. Implementation is blocked on OpenAPI / Swagger from that company. Checkout stays UAE-only until those docs arrive. Multi-currency stays out of scope |
+| 2026-09-12 | **Shipping & Returns refund wording** (client requirement). Two clauses added to the live CMS Policies page and the `legal.ts` fallback: a refund needs the product unopened with the original seal and packaging intact, and approval follows inspection of the returned goods. The defective/damaged/wrong-item carve-out stays. Return-request window still open |
+| 2026-09-12 | **Back-in-stock requests are visible per product** (client requirement: pending requests must be visible in the admin panel). The inventory Waiting chip now opens `/admin/inventory/[id]/waiting` — each waiting email with its date, locale, guest-or-account flag, plus an already-notified history. Read-only; the hourly task still owns the sending. Previously the panel showed only a count |
+| 2026-09-12 | **No fixed maximum purchase quantity** (client requirement). The 99-per-line basket cap (`MAX_LINE_QTY`) is removed entirely, along with the `max: 99` on the cart `qty` and product `minOrderQty`/`maxOrderQty` schema fields and the 99 ceiling in the quantity steppers. `orderQtyLimits()` now returns `max: number | null`, where null means unlimited: a customer may buy any quantity up to available stock. `maxOrderQty` stays as an optional per-product cap the admin may set, now bounded by 1,000,000 rather than 99 |
 | 2026-09-10 | Store timezone env renamed from `TZ` to `TimeZone` |
 | 2026-09-10 | Dropped `S3_PUBLIC_BASE_URL` — public object URLs are built from `S3_ENDPOINT` + `S3_BUCKET` |
 | 2026-09-10 | **Herb Cabinet on phones.** Shelf/form/sort sit behind a Filters toggle (collapsed by default). The "Read before ordering" notice stays on desktop `/shop` only, so products appear in the first viewport |

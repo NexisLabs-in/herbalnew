@@ -4,7 +4,11 @@ import { Suspense, useCallback, useEffect, useState, useTransition, type ReactNo
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShopFilters } from "@/components/ShopFilters";
 import { paramsEqual, paramsFromSearch, type ShopParams } from "@/lib/shop-url";
-import { ShopCatalogContext } from "@/components/shop-catalog-context";
+import {
+  LISTING_ANCHOR_ID,
+  ShopCatalogContext,
+  type NavigateOptions,
+} from "@/components/shop-catalog-context";
 import { ShopProductGridSkeleton } from "@/components/ShopProductGridSkeleton";
 import type { CategoryTreeNode } from "@/lib/catalogue";
 import type { Locale } from "@/lib/i18n";
@@ -19,25 +23,41 @@ export function ShopCatalog({
   base,
   tree,
   locale,
+  counts,
+  countSlot,
   children,
 }: {
   base: string;
   tree: CategoryTreeNode[];
   locale: Locale;
+  counts: Record<string, number>;
+  countSlot: ReactNode;
   children: ReactNode;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const urlParams = paramsFromSearch(searchParams);
+  const urlParams = paramsFromSearch(useSearchParams());
   const [optimistic, setOptimistic] = useState<ShopParams | null>(null);
   const [pending, startTransition] = useTransition();
 
   const displayParams = optimistic ?? urlParams;
 
   const onNavigate = useCallback(
-    (href: string, next: ShopParams) => {
+    (href: string, next: ShopParams, options?: NavigateOptions) => {
       if (paramsEqual(next, urlParams)) return;
       setOptimistic(next);
+
+      // Next.js restores scroll only on a full navigation, and these are
+      // query-param pushes with scroll suppressed, so page links scroll here.
+      if (options?.scrollToListing) {
+        const anchor = document.getElementById(LISTING_ANCHOR_ID);
+        anchor?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+          block: "start",
+        });
+      }
+
       startTransition(() => {
         router.push(href, { scroll: false });
       });
@@ -51,9 +71,23 @@ export function ShopCatalog({
     }
   }, [optimistic, pending, urlParams]);
 
+  const countDisplay = pending ? (
+    <div className="skel" style={{ width: "5.5rem", height: ".875rem" }} aria-hidden />
+  ) : (
+    countSlot
+  );
+
   return (
     <ShopCatalogContext.Provider value={{ base, params: displayParams, onNavigate }}>
-      <ShopFilters base={base} tree={tree} locale={locale} params={displayParams} onNavigate={onNavigate} />
+      <ShopFilters
+        base={base}
+        tree={tree}
+        locale={locale}
+        params={displayParams}
+        counts={counts}
+        countSlot={countDisplay}
+        onNavigate={onNavigate}
+      />
 
       <div className="shop-products-area">
         {pending ? (

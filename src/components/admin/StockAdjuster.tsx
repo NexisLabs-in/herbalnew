@@ -23,7 +23,10 @@ export function StockAdjuster({ productId, stock }: { productId: string; stock: 
       setError(null);
       const result = await adjustStock({ productId, delta, reason });
       if (result.error) {
-        setError(result.error ?? Object.values(result.fieldErrors ?? {})[0] ?? "Could not adjust.");
+        // The field message says what is actually wrong ("Say why…"); the
+        // top-level one is only a generic "Check the adjustment", so it must
+        // not win — that is what left a blank reason looking like a bug.
+        setError(Object.values(result.fieldErrors ?? {})[0] ?? result.error ?? "Could not adjust.");
         return;
       }
       setOpen(false);
@@ -58,8 +61,9 @@ export function StockAdjuster({ productId, stock }: { productId: string; stock: 
         <input
           className="field__input field__input--sm"
           value={reason}
-          placeholder="Reason — delivery, stock count, breakage"
+          placeholder="Reason (required) — delivery, count, breakage"
           aria-label="Reason"
+          required
           onChange={(event) => setReason(event.target.value)}
         />
         <button className="btn btn--brand btn--sm" type="button" disabled={pending} onClick={submit}>

@@ -26,7 +26,8 @@ export function AddToCart({
   locale: Locale;
   /** Fewest units in one order. The stepper cannot go below this. */
   minQty?: number;
-  /** Live stock and the product maximum, already combined. */
+  /** Live stock and the product maximum, already combined. Null means the
+   *  quantity is unlimited — the site imposes no fixed purchase ceiling. */
   maxQty?: number | null;
   compact?: boolean;
 }) {
@@ -36,7 +37,9 @@ export function AddToCart({
   const [pending, start] = useTransition();
   const [state, setState] = useState<{ error?: string; notice?: string } | null>(null);
 
-  const ceiling = maxQty && maxQty > 0 ? Math.min(Math.max(maxQty, floor), 99) : 99;
+  const ceiling = maxQty && maxQty > 0 ? Math.max(maxQty, floor) : null;
+  const clamp = (value: number) =>
+    ceiling === null ? Math.max(floor, value) : Math.min(Math.max(floor, value), ceiling);
 
   const submit = () =>
     start(async () => {
@@ -77,20 +80,20 @@ export function AddToCart({
             id={`qty-${productId}`}
             type="number"
             min={floor}
-            max={ceiling}
+            {...(ceiling === null ? {} : { max: ceiling })}
             value={qty}
             dir="ltr"
             onChange={(event) => {
               const next = Number.parseInt(event.target.value, 10);
-              setQty(Number.isFinite(next) ? Math.min(Math.max(floor, next), ceiling) : floor);
+              setQty(Number.isFinite(next) ? clamp(next) : floor);
             }}
           />
           <button
             type="button"
             className="qty__btn"
             aria-label="+"
-            disabled={qty >= ceiling || pending}
-            onClick={() => setQty((current) => Math.min(ceiling, current + 1))}
+            disabled={(ceiling !== null && qty >= ceiling) || pending}
+            onClick={() => setQty((current) => clamp(current + 1))}
           >
             +
           </button>

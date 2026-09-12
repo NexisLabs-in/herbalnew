@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Advisory } from "@/components/Blocks";
 import { NAV } from "@/content/brand";
 import { SHOP } from "@/content/shop";
 import { ShopHero } from "@/components/ShopHero";
 import { ShopCatalog } from "@/components/ShopCatalog";
 import type { ShopParams } from "@/lib/shop-url";
+import { ShopProductCount } from "@/components/ShopProductCount";
 import { ShopProducts } from "@/components/ShopProducts";
-import { buildCategoryTree, getCategories } from "@/lib/catalogue";
+import {
+  buildCategoryTree,
+  getCategories,
+  getCategoryProductCounts,
+} from "@/lib/catalogue";
 import { isLocale, localePath, t, type Locale } from "@/lib/i18n";
 
 /** The Herb Cabinet, read from the database.
@@ -39,7 +45,7 @@ export default async function ShopPage({
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw as Locale;
-  const categories = await getCategories();
+  const [categories, counts] = await Promise.all([getCategories(), getCategoryProductCounts()]);
   const base = localePath(locale, "/shop");
 
   return (
@@ -48,7 +54,21 @@ export default async function ShopPage({
 
       <section className="section--tight shop-page">
         <div className="shell shell--wide">
-          <ShopCatalog base={base} tree={buildCategoryTree(categories)} locale={locale}>
+          <ShopCatalog
+            base={base}
+            tree={buildCategoryTree(categories)}
+            locale={locale}
+            counts={counts}
+            countSlot={
+              <Suspense
+                fallback={
+                  <div className="skel" style={{ width: "5.5rem", height: ".875rem" }} aria-hidden />
+                }
+              >
+                <ShopProductCount locale={locale} searchParams={searchParams} />
+              </Suspense>
+            }
+          >
             <ShopProducts locale={locale} searchParams={searchParams} />
           </ShopCatalog>
 

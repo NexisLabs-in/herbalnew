@@ -172,7 +172,7 @@ export async function payQuote(
   if (limits.impossible || enquiry.qty < limits.min) {
     return { error: t(SHOP.minOrder, quoteLocale).replace("{qty}", String(limits.min)) };
   }
-  if (enquiry.qty > limits.max) {
+  if (limits.max !== null && enquiry.qty > limits.max) {
     return { error: t(SHOP.maxOrder, quoteLocale).replace("{qty}", String(limits.max)) };
   }
 

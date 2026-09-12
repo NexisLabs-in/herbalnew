@@ -49,7 +49,7 @@ const enquirySchema = z.object({
   name: z.string().trim().min(1).max(120),
   email,
   phone: z.string().trim().max(40).default(""),
-  qty: z.coerce.number().int().min(1).max(999).default(1),
+  qty: z.coerce.number().int().min(1).max(1_000_000).default(1),
   message: z.string().trim().max(2000).default(""),
   locale: localeField,
 });
@@ -79,7 +79,7 @@ export async function submitPriceEnquiry(
   if (limits.impossible || parsed.data.qty < limits.min) {
     return { error: t(SHOP.minOrder, locale).replace("{qty}", String(limits.min)) };
   }
-  if (parsed.data.qty > limits.max) {
+  if (limits.max !== null && parsed.data.qty > limits.max) {
     return { error: t(SHOP.maxOrder, locale).replace("{qty}", String(limits.max)) };
   }
 

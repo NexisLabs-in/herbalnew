@@ -34,25 +34,28 @@ import type { TL } from "./i18n";
  */
 
 export const CART_COOKIE = "hb_cart";
-export const MAX_LINE_QTY = 99;
 
 /** The range a customer may put in one order of this product.
  *
- *  Minimum defaults to 1. An empty maximum means no product cap — stock and
- *  the basket line limit still apply. If stock cannot cover the minimum, the
- *  product cannot be ordered at all. */
+ *  Minimum defaults to 1. **The site imposes no fixed purchase ceiling**: a
+ *  null maximum means unlimited, and the only bounds are the optional
+ *  per-product `maxOrderQty` an admin chooses to set and live stock, the latter
+ *  only when the product tracks inventory. If stock cannot cover the minimum,
+ *  the product cannot be ordered at all. */
 export function orderQtyLimits(product: {
   minOrderQty?: number | null;
   maxOrderQty?: number | null;
   trackInventory?: boolean;
   stock?: number;
-}): { min: number; max: number; impossible: boolean } {
-  const min = Math.min(MAX_LINE_QTY, Math.max(1, product.minOrderQty ?? 1));
-  const productMax =
-    product.maxOrderQty && product.maxOrderQty > 0 ? product.maxOrderQty : MAX_LINE_QTY;
-  let max = Math.min(MAX_LINE_QTY, productMax);
-  if (product.trackInventory) max = Math.min(max, Math.max(0, product.stock ?? 0));
-  return { min, max, impossible: max < min };
+}): { min: number; max: number | null; impossible: boolean } {
+  const min = Math.max(1, product.minOrderQty ?? 1);
+
+  const caps: number[] = [];
+  if (product.maxOrderQty && product.maxOrderQty > 0) caps.push(product.maxOrderQty);
+  if (product.trackInventory) caps.push(Math.max(0, product.stock ?? 0));
+
+  const max = caps.length ? Math.min(...caps) : null;
+  return { min, max, impossible: max !== null && max < min };
 }
 
 export type CartLineView = {
@@ -68,9 +71,9 @@ export type CartLineView = {
   /** How many are actually available, when that is less than the quantity in
    *  the basket. */
   availableQty: number | null;
-  /** Allowed order range for the stepper. */
+  /** Allowed order range for the stepper. A null maximum means unlimited. */
   minQty: number;
-  maxQty: number;
+  maxQty: number | null;
   /** Set when the basket quantity is outside the product's order range. */
   qtyLimit: "below_min" | "above_max" | null;
 };
@@ -166,7 +169,7 @@ export async function mergeCartOnLogin(customerId: string): Promise<void> {
       (line: { productId: unknown }) => String(line.productId) === String(item.productId),
     );
     if (existing) {
-      existing.qty = Math.min(existing.qty + item.qty, MAX_LINE_QTY);
+      existing.qty = existing.qty + item.qty;
     } else {
       owned.items.push(item);
     }
@@ -268,7 +271,8 @@ export async function priceCartView(cart: CartDocument | null): Promise<CartView
         unavailableReason: "gone",
         availableQty: null,
         minQty: 1,
-        maxQty: MAX_LINE_QTY,
+        // Nothing to raise it to — the product is gone.
+        maxQty: item.qty,
         qtyLimit: null,
       });
       continue;
@@ -311,7 +315,12 @@ export async function priceCartView(cart: CartDocument | null): Promise<CartView
     // More in the basket than on the shelf: price what can actually be sold and
     // tell the customer, rather than failing silently at checkout.
     const available = product.trackInventory ? Math.min(item.qty, product.stock) : item.qty;
-    const qtyLimit = item.qty < limits.min ? "below_min" : item.qty > limits.max ? "above_max" : null;
+    const qtyLimit =
+      item.qty < limits.min
+        ? "below_min"
+        : limits.max !== null && item.qty > limits.max
+          ? "above_max"
+          : null;
 
     lines.push({
       ...base,

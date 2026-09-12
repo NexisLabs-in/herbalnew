@@ -50,9 +50,14 @@ export const productSchema = z
 
     trackInventory: z.boolean().default(true),
     stock: z.coerce.number().int().min(0).max(1_000_000).default(0),
-    minOrderQty: z.coerce.number().int().min(1, "At least 1.").max(99, "99 or less.").default(1),
-    /** Empty means no product-specific maximum. */
-    maxOrderQty: optionalInt(99),
+    minOrderQty: z.coerce
+      .number()
+      .int()
+      .min(1, "At least 1.")
+      .max(1_000_000, "1,000,000 or less.")
+      .default(1),
+    /** Empty means no maximum at all — stock is then the only bound. */
+    maxOrderQty: optionalInt(1_000_000),
 
     composition: bilingual({ max: 4000 }),
     chemistryEffects: bilingual({ max: 4000 }),

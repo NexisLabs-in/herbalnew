@@ -15,7 +15,7 @@ import bcrypt from "bcryptjs";
 import { connectDb, disconnectDb } from "@/lib/db";
 import { env } from "@/lib/env";
 import { PRODUCTS } from "@/content/products";
-import { TAXONOMY, PRODUCT_CATEGORY } from "@/content/taxonomy";
+import { TAXONOMY, PRODUCT_CATEGORY, TAXONOMY_SLUGS } from "@/content/taxonomy";
 import { BRAND, PROMISE, TRADITIONS, TRADITIONS_HEADING, TRADITIONS_NOTE } from "@/content/brand";
 import { CONTACT, FAQ, HERO, METHOD_HEADING, METHOD_SUB } from "@/content/pages";
 import { CMS_PAGES } from "@/lib/cms/order";
@@ -108,6 +108,13 @@ async function seedCategories() {
         { upsert: true, setDefaultsOnInsert: true },
       );
     }
+  }
+
+  for (const category of await Category.find({})) {
+    if (TAXONOMY_SLUGS.has(category.slug)) continue;
+    category.published = false;
+    await category.save();
+    log(`unpublished stray category "${category.slug}"`);
   }
 
   const parents = TAXONOMY.length;

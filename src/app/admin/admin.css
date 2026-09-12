@@ -375,6 +375,18 @@
   white-space: nowrap;
 }
 
+/* A chip that opens a drill-down, e.g. the inventory waiting queue. */
+.admin-chip--link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .2s var(--ease-brand), background .2s var(--ease-brand), color .2s var(--ease-brand);
+}
+.admin-chip--link:hover {
+  border-color: var(--color-violet-400);
+  background: var(--color-violet-50);
+  color: var(--color-violet-700);
+}
+
 .admin-chip--published { border-color: #B7D3AE; background: #F1F7EF; color: #2C5720; }
 .admin-chip--draft { border-color: var(--color-line-strong); }
 .admin-chip--archived { color: var(--color-muted); }

@@ -1,9 +1,13 @@
 "use client";
 
 import { SHOP } from "@/content/shop";
+import {
+  LISTING_ANCHOR_ID,
+  useShopCatalog,
+  type NavigateOptions,
+} from "@/components/shop-catalog-context";
 import { Icon, type IconName } from "@/components/Icon";
-import { useShopCatalog } from "@/components/shop-catalog-context";
-import type { CategoryTreeNode, CategoryView, ShopSort } from "@/lib/catalogue";
+import type { CategoryTreeNode, ShopSort } from "@/lib/catalogue";
 import { t, tl, type Locale } from "@/lib/i18n";
 import {
   nextParams,
@@ -14,41 +18,14 @@ import {
 export type { ShopParams } from "@/lib/shop-url";
 export { shopHref } from "@/lib/shop-url";
 
-const SHELF_ICONS: Record<string, IconName> = {
-  "beauty-personal-care": "drop",
-  "wellness-lifestyle": "leaf",
-  "body-systems": "shield",
-  "reproductive-hormonal": "heart",
-  "hair-care-growth": "drop",
-  "skin-cleansing-glow": "drop",
-  "detox-cleansing": "leaf",
-  "weight-management": "leaf",
-  "digestive-health": "shield",
-  "heart-blood-pressure": "shield",
-  "fertility-vitality": "heart",
+/** Per-shelf icon and tint. Each shelf reads as its own thing at a glance,
+ *  which a single violet for all four did not. */
+const PARENT_ART: Record<string, { icon: IconName; tint: string }> = {
+  "beauty-personal-care": { icon: "lotus", tint: "beauty" },
+  "wellness-lifestyle": { icon: "leaf", tint: "wellness" },
+  "body-systems": { icon: "user", tint: "body" },
+  "reproductive-hormonal": { icon: "heart", tint: "repro" },
 };
-const tileIcon = (slug: string): IconName => SHELF_ICONS[slug] ?? "leaf";
-
-/** Flat category tiles: parent shelves plus the subcategories products sit on. */
-function categoryTiles(tree: CategoryTreeNode[]): CategoryView[] {
-  const tiles: CategoryView[] = [];
-  const seen = new Set<string>();
-
-  for (const parent of tree) {
-    if (!seen.has(parent.id)) {
-      tiles.push(parent);
-      seen.add(parent.id);
-    }
-    for (const child of parent.children) {
-      if (!seen.has(child.id)) {
-        tiles.push(child);
-        seen.add(child.id);
-      }
-    }
-  }
-
-  return tiles;
-}
 
 type FilterLinkProps = {
   href: string;
@@ -56,17 +33,26 @@ type FilterLinkProps = {
   className: string;
   children: React.ReactNode;
   "aria-current"?: "true";
-  onNavigate: (href: string, next: ShopParams) => void;
+  navOptions?: NavigateOptions;
+  onNavigate: (href: string, next: ShopParams, options?: NavigateOptions) => void;
 };
 
-function FilterLink({ href, next, className, children, onNavigate, ...rest }: FilterLinkProps) {
+function FilterLink({
+  href,
+  next,
+  className,
+  children,
+  navOptions,
+  onNavigate,
+  ...rest
+}: FilterLinkProps) {
   return (
     <a
       href={href}
       className={className}
       onClick={(event) => {
         event.preventDefault();
-        onNavigate(href, next);
+        onNavigate(href, next, navOptions);
       }}
       {...rest}
     >
@@ -75,111 +61,121 @@ function FilterLink({ href, next, className, children, onNavigate, ...rest }: Fi
   );
 }
 
+function resolveActiveParent(tree: CategoryTreeNode[], activeCategory: string): CategoryTreeNode {
+  if (!activeCategory) return tree[0];
+
+  const childParent = tree.find((parent) =>
+    parent.children.some((child) => child.slug === activeCategory),
+  );
+  if (childParent) return childParent;
+
+  return tree.find((parent) => parent.slug === activeCategory) ?? tree[0];
+}
+
+function subcategoryLabel(count: number, locale: Locale): string {
+  if (count === 1) return t(SHOP.subcategoriesOne, locale);
+  return `${count} ${t(SHOP.subcategoriesMany, locale)}`;
+}
+
 export function ShopFilters({
   base,
   tree,
   locale,
   params,
+  counts,
+  countSlot,
   onNavigate,
 }: {
   base: string;
   tree: CategoryTreeNode[];
   locale: Locale;
   params: ShopParams;
+  counts: Record<string, number>;
+  countSlot: React.ReactNode;
   onNavigate: (href: string, next: ShopParams) => void;
 }) {
-  const activeCategory = params.category ?? "all";
-  const activeForm = params.form ?? "all";
+  const activeCategory = params.category ?? "";
   const activeSort = (params.sort ?? "featured") as ShopSort;
-  const tiles = categoryTiles(tree);
+  const activeParent = resolveActiveParent(tree, activeCategory);
 
   const sorts: { value: ShopSort; label: string }[] = [
     { value: "featured", label: t(SHOP.sortFeatured, locale) },
     { value: "newest", label: t(SHOP.sortNewest, locale) },
     { value: "price-asc", label: t(SHOP.sortPriceAsc, locale) },
     { value: "price-desc", label: t(SHOP.sortPriceDesc, locale) },
-    { value: "name", label: t(SHOP.sortName, locale) },
   ];
-
-  const activeFilterCount =
-    (activeCategory !== "all" ? 1 : 0) +
-    (activeForm !== "all" ? 1 : 0) +
-    (activeSort !== "featured" ? 1 : 0);
-
-  const searchForm = (
-    <form className="shop-bar__search" action={base} method="get" role="search">
-      {activeCategory !== "all" ? <input type="hidden" name="category" value={activeCategory} /> : null}
-      {activeForm !== "all" ? <input type="hidden" name="form" value={activeForm} /> : null}
-      {activeSort !== "featured" ? <input type="hidden" name="sort" value={activeSort} /> : null}
-
-      <label className="visually-hidden" htmlFor="shop-q">
-        {t(SHOP.search, locale)}
-      </label>
-      <input
-        className="field__input"
-        id="shop-q"
-        type="search"
-        name="q"
-        defaultValue={params.q ?? ""}
-        placeholder={t(SHOP.searchPlaceholder, locale)}
-      />
-      <button className="btn btn--ghost btn--sm" type="submit">
-        {t(SHOP.search, locale)}
-      </button>
-      {params.q ? (
-        <FilterLink
-          className="link-plain"
-          href={shopHref(base, params, { q: undefined })}
-          next={nextParams(params, { q: undefined })}
-          onNavigate={onNavigate}
-        >
-          {t(SHOP.clear, locale)}
-        </FilterLink>
-      ) : null}
-    </form>
-  );
 
   return (
     <div className="shop-bar">
-      <div className="category-panel">
-        <div className="category-panel__intro">
-          <h2 className="category-panel__title">{t(SHOP.categoryHeading, locale)}</h2>
-          <p className="category-panel__sub">{t(SHOP.categorySub, locale)}</p>
+      <div className="shop-category-section">
+        <div className="shop-category-section__head">
+          <div className="shop-category-section__intro">
+            <p className="shop-category-section__eyebrow">{t(SHOP.categoryHeading, locale)}</p>
+            <h2 className="shop-category-section__title">{t(SHOP.categorySub, locale)}</h2>
+          </div>
         </div>
 
-        <div className="category-panel__tiles">
-          <FilterLink
-            className={`category-tile${activeCategory === "all" ? " is-active" : ""}`}
-            href={shopHref(base, params, { category: undefined })}
-            next={nextParams(params, { category: undefined })}
-            onNavigate={onNavigate}
-            aria-current={activeCategory === "all" ? "true" : undefined}
-          >
-            <span className="category-tile__icon">
-              <Icon name="leaf" size={18} />
-            </span>
-            <span className="category-tile__label">{t(SHOP.filterAll, locale)}</span>
-          </FilterLink>
-          {tiles.map((category) => (
-            <FilterLink
-              key={category.id}
-              className={`category-tile${activeCategory === category.slug ? " is-active" : ""}`}
-              href={shopHref(base, params, { category: category.slug })}
-              next={nextParams(params, { category: category.slug })}
-              onNavigate={onNavigate}
-              aria-current={activeCategory === category.slug ? "true" : undefined}
-            >
-              <span className="category-tile__icon">
-                <Icon name={tileIcon(category.slug)} size={18} />
-              </span>
-              <span className="category-tile__label">{tl(category.name, locale)}</span>
-            </FilterLink>
-          ))}
+        <div className="shop-shelf-grid">
+          {tree.map((parent) => {
+            const isActive = parent.slug === activeParent.slug;
+            const art = PARENT_ART[parent.slug] ?? { icon: "leaf" as IconName, tint: "wellness" };
+
+            return (
+              <FilterLink
+                key={parent.id}
+                className={`shop-shelf-card${isActive ? " is-active" : ""}`}
+                href={shopHref(base, params, { category: parent.slug, page: undefined })}
+                next={nextParams(params, { category: parent.slug, page: undefined })}
+                onNavigate={onNavigate}
+                aria-current={isActive ? "true" : undefined}
+              >
+                <span
+                  className={`shop-shelf-card__icon shop-shelf-card__icon--${art.tint}`}
+                  aria-hidden="true"
+                >
+                  <Icon name={art.icon} size={20} strokeWidth={1.4} />
+                </span>
+                <span className="shop-shelf-card__text">
+                  <span className="shop-shelf-card__title">{tl(parent.name, locale)}</span>
+                  <span className="shop-shelf-card__meta">
+                    {subcategoryLabel(parent.children.length, locale)}
+                  </span>
+                </span>
+                <span className="shop-shelf-card__chev" aria-hidden="true">
+                  <Icon name="chevron" size={16} strokeWidth={1.6} />
+                </span>
+              </FilterLink>
+            );
+          })}
         </div>
+
+        {activeParent.children.length ? (
+          <div className="shop-sub-pills" role="group" aria-label={tl(activeParent.name, locale)}>
+            {activeParent.children.map((child) => {
+              const isActive = activeCategory === child.slug;
+
+              return (
+                <FilterLink
+                  key={child.id}
+                  className={`shop-sub-pill${isActive ? " is-active" : ""}`}
+                  href={shopHref(base, params, { category: child.slug, page: undefined })}
+                  next={nextParams(params, { category: child.slug, page: undefined })}
+                  onNavigate={onNavigate}
+                  aria-current={isActive ? "true" : undefined}
+                >
+                  <span className="shop-sub-pill__label">{tl(child.name, locale)}</span>
+                  <span className="shop-sub-pill__count">{counts[child.slug] ?? 0}</span>
+                </FilterLink>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
-      <div className="shop-controls shop-controls--sort-only">
-        <div className="shop-controls__sort filters filters--sort">
+      <div className="shop-listing-toolbar" id={LISTING_ANCHOR_ID}>
+        <div className="shop-listing-toolbar__count-slot">{countSlot}</div>
+
+        <div className="shop-listing-toolbar__sort filters filters--sort">
           {sorts.map((option) => (
             <FilterLink
               key={option.value}
@@ -196,76 +192,6 @@ export function ShopFilters({
               {option.label}
             </FilterLink>
           ))}
-        </div>
-      </div>
-
-      <input
-        type="checkbox"
-        id="shop-filters-toggle"
-        className="shop-bar__toggle"
-        aria-controls="shop-filters-panel"
-      />
-      <div className="shop-bar__mobile-tools">
-        <label className="shop-bar__toggle-label" htmlFor="shop-filters-toggle">
-          <span className="shop-bar__toggle-text">{t(SHOP.filtersToggle, locale)}</span>
-          {activeFilterCount > 0 ? (
-            <span className="shop-bar__toggle-count" aria-hidden="true">
-              {activeFilterCount}
-            </span>
-          ) : null}
-          <span className="shop-bar__toggle-chevron" aria-hidden="true" />
-        </label>
-      </div>
-
-      <div className="shop-bar__rows" id="shop-filters-panel">
-        {searchForm}
-
-        <div className="shop-bar__row">
-          <span className="shop-bar__label">{t(SHOP.filterByForm, locale)}</span>
-          <div className="filters">
-            {[
-              { value: "all", label: t(SHOP.filterAll, locale) },
-              { value: "oil", label: locale === "ar" ? "زيت" : "Oil" },
-              { value: "powder", label: locale === "ar" ? "مسحوق" : "Powder" },
-            ].map((option) => (
-              <FilterLink
-                key={option.value}
-                className={`filter${activeForm === option.value ? " is-active" : ""}`}
-                href={shopHref(base, params, {
-                  form: option.value === "all" ? undefined : option.value,
-                })}
-                next={nextParams(params, {
-                  form: option.value === "all" ? undefined : option.value,
-                })}
-                onNavigate={onNavigate}
-                aria-current={activeForm === option.value ? "true" : undefined}
-              >
-                {option.label}
-              </FilterLink>
-            ))}
-          </div>
-        </div>
-
-        <div className="shop-bar__row shop-bar__row--end">
-          <span className="shop-bar__label shop-bar__label--sort">{t(SHOP.sortBy, locale)}</span>
-          <div className="filters">
-            {sorts.map((option) => (
-              <FilterLink
-                key={option.value}
-                className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
-                href={shopHref(base, params, {
-                  sort: option.value === "featured" ? undefined : option.value,
-                })}
-                next={nextParams(params, {
-                  sort: option.value === "featured" ? undefined : option.value,
-                })}
-                onNavigate={onNavigate}
-                aria-current={activeSort === option.value ? "true" : undefined}
-              >
-                {option.label}
-              </FilterLink>
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -294,6 +220,7 @@ export function ShopPagination({
           className="btn btn--ghost btn--sm"
           href={shopHref(base, params, { page: String(page - 1) })}
           next={nextParams(params, { page: String(page - 1) })}
+          navOptions={{ scrollToListing: true }}
           onNavigate={onNavigate}
         >
           {t(SHOP.previous, locale)}
@@ -313,6 +240,7 @@ export function ShopPagination({
           className="btn btn--ghost btn--sm"
           href={shopHref(base, params, { page: String(page + 1) })}
           next={nextParams(params, { page: String(page + 1) })}
+          navOptions={{ scrollToListing: true }}
           onNavigate={onNavigate}
         >
           {t(SHOP.next, locale)}

@@ -136,12 +136,14 @@ export function CartTable({
                     type="button"
                     className="qty__btn"
                     aria-label="+"
-                    disabled={pending || line.qty >= line.maxQty}
+                    disabled={pending || (line.maxQty !== null && line.qty >= line.maxQty)}
                     onClick={() =>
                       run(() =>
                         setCartQty(
                           line.productId,
-                          line.qty > line.maxQty ? line.maxQty : line.qty + 1,
+                          line.maxQty !== null && line.qty > line.maxQty
+                            ? line.maxQty
+                            : line.qty + 1,
                           locale,
                         ),
                       )

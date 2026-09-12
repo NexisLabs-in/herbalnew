@@ -1,4 +1,5 @@
 import "server-only";
+import { TAXONOMY_SLUGS } from "@/content/taxonomy";
 import { connectDb } from "./db";
 import { Category } from "./models/Category";
 import { Product, type ProductDoc } from "./models/Product";
@@ -169,7 +170,7 @@ async function categoryMap(): Promise<Map<string, CategoryView>> {
 
 export async function getCategories(): Promise<CategoryView[]> {
   await connectDb();
-  return [...(await categoryMap()).values()];
+  return [...(await categoryMap()).values()].filter((category) => TAXONOMY_SLUGS.has(category.slug));
 }
 
 /** Parents with their subcategories nested, in admin order. A subcategory whose
@@ -185,6 +186,22 @@ export function buildCategoryTree(categories: CategoryView[]): CategoryTreeNode[
 
 export async function getCategoryTree(): Promise<CategoryTreeNode[]> {
   return buildCategoryTree(await getCategories());
+}
+
+/** Published product counts keyed by category slug — for subcategory pills. */
+export async function getCategoryProductCounts(): Promise<Record<string, number>> {
+  await connectDb();
+  const [products, categories] = await Promise.all([
+    Product.find({ status: "published" }, { categoryId: 1 }).lean<{ categoryId: unknown }[]>(),
+    categoryMap(),
+  ]);
+
+  const counts: Record<string, number> = {};
+  for (const product of products) {
+    const category = categories.get(String(product.categoryId));
+    if (category) counts[category.slug] = (counts[category.slug] ?? 0) + 1;
+  }
+  return counts;
 }
 
 /** Resolves a slug from the URL to the set of categories to match.

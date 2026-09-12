@@ -78,10 +78,10 @@ const productSchema = new Schema(
     stock: { type: Number, default: 0, min: 0 },
     /** Fewest units a customer may buy in one order. The basket cannot sit below
      *  this except by removing the line. */
-    minOrderQty: { type: Number, default: 1, min: 1, max: 99 },
-    /** Most units in one order. Null means no product cap — stock and the
-     *  basket's own line limit still apply. */
-    maxOrderQty: { type: Number, default: null, min: 1, max: 99 },
+    minOrderQty: { type: Number, default: 1, min: 1 },
+    /** Most units in one order. Null means no cap at all — the site imposes no
+     *  fixed purchase ceiling, so stock alone bounds the quantity. */
+    maxOrderQty: { type: Number, default: null, min: 1 },
     /** Set when the "stock is low" email goes out, cleared on restock, so the
      *  alert fires once per dip rather than on every order. There is no
      *  per-product threshold — one global number lives in Settings. */

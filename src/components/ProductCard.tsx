@@ -15,10 +15,14 @@ export function ProductCard({
   delay = 0,
   wishlist,
   variant = "full",
+  reveal = true,
 }: {
   product: ProductCardView;
   locale: Locale;
   delay?: number;
+  /** Off for cards that are already in the first viewport — a scroll reveal
+   *  there just leaves the grid looking empty until the visitor scrolls. */
+  reveal?: boolean;
   /** Show the save-for-later heart. Omitted where it would be noise — the
    *  homepage, related products. The button loads its own state. */
   wishlist?: boolean;
@@ -35,12 +39,14 @@ export function ProductCard({
   const isPhoto = image?.kind === "photo";
   const alt = image ? tl(image.alt, locale) || name : name;
 
+  const Frame = reveal ? Reveal : "article";
+  const frameProps = reveal ? { as: "article" as const, delay } : {};
+
   return (
-    <Reveal
-      as="article"
+    <Frame
       className={`card card--lift product-card${cabinet ? " product-card--cabinet" : ""}`}
       data-form={product.form}
-      delay={delay}
+      {...frameProps}
     >
       {/* The heart sits over the media but outside the link: a button nested
           inside an anchor is invalid, and the click would navigate instead of
@@ -133,6 +139,6 @@ export function ProductCard({
           </div>
         ) : null}
       </div>
-    </Reveal>
+    </Frame>
   );
 }

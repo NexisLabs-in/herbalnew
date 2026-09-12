@@ -353,7 +353,7 @@ export function ProductForm({
             type="number"
             value={value.maxOrderQty}
             error={err("maxOrderQty")}
-            hint="Leave empty for no product limit. Stock and 99 still apply."
+            hint="Leave empty for no limit at all — stock is then the only bound."
             onChange={(next) => set("maxOrderQty", next)}
           />
         </div>

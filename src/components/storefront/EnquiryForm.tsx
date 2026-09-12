@@ -76,7 +76,7 @@ export function EnquiryForm({
               name="qty"
               type="number"
               min={Math.max(1, minQty)}
-              max={maxQty && maxQty > 0 ? maxQty : 99}
+              {...(maxQty && maxQty > 0 ? { max: maxQty } : {})}
               defaultValue={Math.max(1, minQty)}
               dir="ltr"
             />

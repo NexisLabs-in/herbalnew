@@ -6,22 +6,29 @@ export function ShopListingSkeleton() {
 
   return (
     <div className="shop-listing-skeleton" aria-busy="true" aria-live="polite">
-      <div className="shop-loading__panel">
-        <div className="shop-loading__panel-intro">
-          <div className="skel skel--panel-title" />
-          <div className="skel skel--panel-sub" />
+      <div className="shop-category-section">
+        <div className="shop-category-section__head">
+          <div className="shop-category-section__intro">
+            <div className="skel skel--eyebrow" />
+            <div className="skel skel--panel-title" style={{ marginTop: ".55rem" }} />
+          </div>
         </div>
-        <div className="shop-loading__panel-tiles">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div className="skel skel--tile" key={i} />
+        <div className="shop-shelf-grid">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div className="skel shop-shelf-card-skeleton" key={i} />
+          ))}
+        </div>
+        <div className="shop-sub-pills">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div className="skel skel--filter-pill" key={i} style={{ width: "9rem", height: "2.1rem", borderRadius: "999px" }} />
           ))}
         </div>
       </div>
 
-      <div className="shop-controls">
+      <div className="shop-listing-toolbar">
         <div className="skel" style={{ width: "5.5rem", height: ".875rem" }} />
-        <div className="shop-loading__toolbar">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="shop-listing-toolbar__sort">
+          {Array.from({ length: 4 }).map((_, i) => (
             <div className="skel skel--filter-pill" key={i} />
           ))}
         </div>

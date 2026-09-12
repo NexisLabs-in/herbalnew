@@ -109,7 +109,9 @@ export default async function AdminInventoryPage({
                     <td className="admin-table__mono">{product.stock}</td>
                     <td>
                       {queue > 0 ? (
-                        <span className="admin-chip">{queue} to notify</span>
+                        <Link className="admin-chip admin-chip--link" href={`/admin/inventory/${id}/waiting`}>
+                          {queue} to notify
+                        </Link>
                       ) : (
                         <span className="admin-table__meta">—</span>
                       )}

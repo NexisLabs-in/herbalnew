@@ -107,7 +107,31 @@ export const TAXONOMY: TaxonomyParent[] = [
  * specifically, and this was the nearest existing one — worth revisiting with
  * them if the catalogue grows a men's-health range.
  */
+/** Subcategory slug for each product. Used by seed and catalogue sync. */
 export const PRODUCT_CATEGORY: Record<string, string> = {
   "hair-growth": "hair-care-growth",
   "prostate-health": "fertility-vitality",
+  "lavender-amethyst-moon-salve": "skin-cleansing-glow",
+  "herbal-tea": "digestive-health",
+  "digestive-ease": "digestive-health",
+  "ginger-relief": "digestive-health",
+  "fennel-calm": "digestive-health",
+  "peppermint-blend": "digestive-health",
+  "chamomile-settle": "digestive-health",
+  "liquorice-root": "digestive-health",
+  "cumin-digest": "digestive-health",
+  "cardamom-blend": "digestive-health",
+  "anise-settle": "digestive-health",
+  "coriander-ease": "digestive-health",
+  "caraway-blend": "digestive-health",
+  "dill-seed": "digestive-health",
+  "ajwain-comfort": "digestive-health",
+  "lemon-balm": "digestive-health",
+  "marshmallow-root": "digestive-health",
+  "slippery-elm": "digestive-health",
 };
+
+/** Every slug the storefront is allowed to show — parents for grouping, children for filters. */
+export const TAXONOMY_SLUGS = new Set(
+  TAXONOMY.flatMap((parent) => [parent.slug, ...parent.children.map((child) => child.slug)]),
+);
