@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteCategory, saveCategory } from "@/server/actions/categories";
 import type { ActionState } from "@/lib/validation/shared";
 import { BilingualField, SelectField, TextField, Toggle, emptyTL, type TL } from "./fields/Fields";
 
-/** Categories are few and shallow, so they are edited in place rather than on
- *  their own pages — the whole shelf list fits on one screen and reordering is
- *  easier when you can see everything at once. */
+/** Categories are few and shallow, so they stay on one list. Create and edit
+ *  open a dialog so the table does not jump and the form is not off-screen
+ *  when you click a row at the bottom. */
 
 export type CategoryRow = {
   id: string;
@@ -55,10 +55,30 @@ export function CategoryManager({
   canWrite: boolean;
 }) {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(blank());
   const [state, setState] = useState<ActionState>({});
   const [pending, start] = useTransition();
+  const open = editing !== null;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
+  const close = () => setEditing(null);
 
   const startNew = (parentId = "") => {
     setEditing("new");
@@ -110,7 +130,7 @@ export function CategoryManager({
 
   return (
     <>
-      {state.error ? (
+      {state.error && !editing ? (
         <p className="auth-card__error" role="alert">
           {state.error}
         </p>
@@ -121,98 +141,127 @@ export function CategoryManager({
         </p>
       ) : null}
 
-      {editing ? (
-        <div className="admin-card" style={{ marginBottom: "1.5rem" }}>
-          <h2 className="admin-fieldset__legend" style={{ marginBottom: "1rem" }}>
-            {editing === "new" ? "New category" : "Edit category"}
-          </h2>
-
-          <div className="stack" style={{ ["--stack" as string]: "1.1rem" }}>
-            <BilingualField
-              label="Name"
-              required
-              value={draft.name}
-              errors={{ en: err("name.en") }}
-              onChange={(next) =>
-                setDraft((current) => ({
-                  ...current,
-                  name: next,
-                  slug: editing === "new" ? slugify(next.en) : current.slug,
-                }))
-              }
-            />
-
-            <SelectField
-              label="Sits under"
-              value={draft.parentId}
-              error={err("parentId")}
-              hint="Products can only be added to a subcategory. A top-level category groups the shelves beneath it."
-              options={[
-                { value: "", label: "Top level — a grouping" },
-                ...categories
-                  .filter((category) => category.parentId === null && category.id !== editing)
-                  .map((category) => ({ value: category.id, label: category.name.en })),
-              ]}
-              onChange={(next) => setDraft((current) => ({ ...current, parentId: next }))}
-            />
-
-            <div className="admin-row">
-              <TextField
-                label="Web address (slug)"
-                monospace
-                required
-                value={draft.slug}
-                error={err("slug")}
-                hint={`/shop?category=${draft.slug || "…"}`}
-                onChange={(next) => setDraft((current) => ({ ...current, slug: next }))}
-              />
-              <TextField
-                label="Order"
-                type="number"
-                value={draft.order}
-                hint="Lower numbers appear first in the filter."
-                onChange={(next) => setDraft((current) => ({ ...current, order: next }))}
-              />
-            </div>
-
-            <BilingualField
-              label="Note"
-              value={draft.note}
-              hint="A short line shown beside the shelf name."
-              onChange={(next) => setDraft((current) => ({ ...current, note: next }))}
-            />
-
-            <BilingualField
-              label="Description"
-              multiline
-              rows={3}
-              value={draft.description}
-              onChange={(next) => setDraft((current) => ({ ...current, description: next }))}
-            />
-
-            <Toggle
-              label="Show this category on the storefront"
-              checked={draft.published}
-              onChange={(checked) => setDraft((current) => ({ ...current, published: checked }))}
-            />
-
-            <div className="admin-formbar" style={{ marginTop: 0 }}>
-              <button className="btn btn--brand btn--sm" type="button" disabled={pending} onClick={save}>
-                {pending ? "Saving…" : "Save"}
-              </button>
-              <button className="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(null)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : canWrite ? (
+      {canWrite ? (
         <p style={{ marginBottom: "1.25rem" }}>
           <button className="btn btn--brand btn--sm" type="button" onClick={() => startNew()}>
             Add category
           </button>
         </p>
       ) : null}
+
+      <dialog
+        ref={dialogRef}
+        className="admin-dialog"
+        aria-labelledby="category-dialog-title"
+        onClose={close}
+        onClick={(event) => {
+          if (event.target === dialogRef.current) close();
+        }}
+      >
+        <div className="admin-dialog__inner">
+          <div className="admin-dialog__head">
+            <h2 id="category-dialog-title" className="admin-dialog__title">
+              {editing === "new"
+                ? draft.parentId
+                  ? "New subcategory"
+                  : "New category"
+                : "Edit category"}
+            </h2>
+            <button className="admin-dialog__close" type="button" onClick={close} aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="admin-dialog__body">
+            {state.error && editing ? (
+              <p className="auth-card__error" role="alert" style={{ marginBottom: "1rem" }}>
+                {state.error}
+              </p>
+            ) : null}
+
+            <div className="stack" style={{ ["--stack" as string]: "1.1rem" }}>
+              <BilingualField
+                label="Name"
+                required
+                value={draft.name}
+                errors={{ en: err("name.en") }}
+                onChange={(next) =>
+                  setDraft((current) => ({
+                    ...current,
+                    name: next,
+                    slug: editing === "new" ? slugify(next.en) : current.slug,
+                  }))
+                }
+              />
+
+              <SelectField
+                label="Sits under"
+                value={draft.parentId}
+                error={err("parentId")}
+                hint="Products can only be added to a subcategory. A top-level category groups the shelves beneath it."
+                options={[
+                  { value: "", label: "Top level — a grouping" },
+                  ...categories
+                    .filter((category) => category.parentId === null && category.id !== editing)
+                    .map((category) => ({ value: category.id, label: category.name.en })),
+                ]}
+                onChange={(next) => setDraft((current) => ({ ...current, parentId: next }))}
+              />
+
+              <div className="admin-row">
+                <TextField
+                  label="Web address (slug)"
+                  monospace
+                  required
+                  value={draft.slug}
+                  error={err("slug")}
+                  hint={`/shop?category=${draft.slug || "…"}`}
+                  onChange={(next) => setDraft((current) => ({ ...current, slug: next }))}
+                />
+                <TextField
+                  label="Order"
+                  type="number"
+                  value={draft.order}
+                  hint="Lower numbers appear first in the filter."
+                  onChange={(next) => setDraft((current) => ({ ...current, order: next }))}
+                />
+              </div>
+
+              <BilingualField
+                label="Note"
+                value={draft.note}
+                hint="A short line shown beside the shelf name."
+                onChange={(next) => setDraft((current) => ({ ...current, note: next }))}
+              />
+
+              <BilingualField
+                label="Description"
+                multiline
+                rows={3}
+                value={draft.description}
+                onChange={(next) => setDraft((current) => ({ ...current, description: next }))}
+              />
+
+              <Toggle
+                label="Show this category on the storefront"
+                checked={draft.published}
+                onChange={(checked) => setDraft((current) => ({ ...current, published: checked }))}
+              />
+            </div>
+          </div>
+
+          <div className="admin-dialog__foot">
+            <button className="btn btn--brand btn--sm" type="button" disabled={pending} onClick={save}>
+              {pending ? "Saving…" : "Save"}
+            </button>
+            <button className="btn btn--ghost btn--sm" type="button" onClick={close}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </dialog>
 
       {categories.length === 0 ? (
         <div className="admin-empty">No categories yet.</div>
