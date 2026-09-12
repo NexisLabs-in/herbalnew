@@ -19,7 +19,7 @@ export function ShopHero({ locale }: { locale: Locale }) {
           {SHOP_TRUST.map((item) => (
             <li key={item.icon}>
               <span className="shop-hero__trust-icon" aria-hidden="true">
-                <Icon name={item.icon} size={22} strokeWidth={1.3} />
+                <Icon name={item.icon} size={30} strokeWidth={1.35} />
               </span>
               <span className="shop-hero__trust-label">{t(item.label, locale)}</span>
             </li>
