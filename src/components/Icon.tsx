@@ -1,7 +1,8 @@
 export type IconName =
   | "research" | "balance" | "shield" | "doc" | "arrow" | "leaf" | "check"
   | "mail" | "pin" | "clock" | "id" | "user"
-  | "bag" | "menu" | "globe" | "drop" | "heart" | "filter" | "lotus" | "chevron";
+  | "bag" | "menu" | "globe" | "drop" | "heart" | "filter" | "lotus" | "chevron"
+  | "tag";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   research: <path d="M11 3a8 8 0 105.29 14.01l4.35 4.35 1.41-1.41-4.35-4.35A8 8 0 0011 3zm0 2a6 6 0 110 12 6 6 0 010-12z" />,
@@ -79,6 +80,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   chevron: <path d="M9.5 6l6 6-6 6" />,
+  tag: (
+    <>
+      <path d="M20.6 13.2 12.8 21a2 2 0 01-2.8 0L3 13.9V4h9.9l7.7 7.7a2 2 0 010 2.8z" />
+      <circle cx="7.4" cy="8.4" r="1.35" />
+    </>
+  ),
 };
 
 export function Icon({

@@ -17,10 +17,13 @@ export function Price({
   price,
   locale,
   size = "md",
+  showOff = true,
 }: {
   price: UnitPrice | null;
   locale: Locale;
   size?: "sm" | "md" | "lg";
+  /** Off when a sibling already names the cut — the sale banner on the PDP. */
+  showOff?: boolean;
 }) {
   if (!price) {
     return <span className={`price price--pending price--${size}`}>{t(SHOP.priceOnRequest, locale)}</span>;
@@ -41,9 +44,11 @@ export function Price({
       <s className="price__was" aria-hidden="true">
         {formatFils(price.listFils, locale)}
       </s>
-      <span className="price__off">
-        {price.percentOff}% {t(SHOP.off, locale)}
-      </span>
+      {showOff ? (
+        <span className="price__off">
+          {price.percentOff}% {t(SHOP.off, locale)}
+        </span>
+      ) : null}
     </span>
   );
 }

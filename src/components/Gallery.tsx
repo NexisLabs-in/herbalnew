@@ -16,6 +16,7 @@ export function Gallery({
   label,
   locale,
   action,
+  badge,
 }: {
   views: GalleryView[];
   label: string;
@@ -23,6 +24,8 @@ export function Gallery({
   /** Rendered pinned to the top corner of the stage — the save-for-later
    *  heart, so it reads as part of the product image rather than the form. */
   action?: ReactNode;
+  /** Corner mark — a sale flag opposite the heart. */
+  badge?: ReactNode;
 }) {
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
@@ -94,6 +97,7 @@ export function Gallery({
           </svg>
         </button>
 
+        {badge ? <div className="pdp__sale-flag">{badge}</div> : null}
         {action ? <div className="pdp__wish">{action}</div> : null}
       </div>
 

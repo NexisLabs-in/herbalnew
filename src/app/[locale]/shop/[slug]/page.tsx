@@ -7,6 +7,7 @@ import { PageHead } from "@/components/Blocks";
 import { Gallery } from "@/components/Gallery";
 import { Icon } from "@/components/Icon";
 import { Price } from "@/components/Price";
+import { SaleCallout } from "@/components/SaleCallout";
 import { StockLine } from "@/components/StockLine";
 import { AddToCart } from "@/components/storefront/AddToCart";
 import { EnquiryForm } from "@/components/storefront/EnquiryForm";
@@ -111,6 +112,13 @@ export default async function ProductPage({
                 views={views}
                 label={name}
                 locale={locale}
+                badge={
+                  product.sale && product.price ? (
+                    <span className="sale-flag">
+                      {product.price.percentOff}% {t(SHOP.off, locale)}
+                    </span>
+                  ) : null
+                }
                 action={
                   <WishlistButton
                     productId={product.id}
@@ -129,7 +137,7 @@ export default async function ProductPage({
                 {product.categoryName ? (
                   <span className="chip">{tl(product.categoryName, locale)}</span>
                 ) : null}
-                {product.price && product.price.source !== "none" ? (
+                {!product.sale && product.price && product.price.source !== "none" ? (
                   <span className="chip chip--sale">
                     {product.price.percentOff}% {t(SHOP.off, locale)}
                   </span>
@@ -186,6 +194,13 @@ export default async function ProductPage({
                 />
               ) : (
                 <div className="buy-box">
+                  {product.sale && product.price ? (
+                    <SaleCallout
+                      name={product.sale.name}
+                      endAt={product.sale.endAt}
+                      locale={locale}
+                    />
+                  ) : null}
                   <div className="buy-box__price">
                     <Price price={product.price} locale={locale} size="lg" />
                   </div>

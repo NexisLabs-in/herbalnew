@@ -64,7 +64,9 @@ export function ProductCard({
             {product.formLabel.en || product.formLabel.ar ? (
               <span className="chip chip--brand">{tl(product.formLabel, locale)}</span>
             ) : null}
-            {product.price?.source && product.price.source !== "none" ? (
+            {product.sale ? (
+              <span className="chip chip--sale">{t(SHOP.sale, locale)}</span>
+            ) : product.price?.source && product.price.source !== "none" ? (
               <span className="chip chip--sale">
                 {product.price.percentOff}% {t(SHOP.off, locale)}
               </span>

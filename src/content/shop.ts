@@ -65,6 +65,14 @@ export const SHOP: Record<string, L> = {
   was: { en: "Was", ar: "كان" },
   off: { en: "off", ar: "خصم" },
   save: { en: "Save", ar: "وفّر" },
+  sale: { en: "Sale", ar: "تخفيض" },
+  saleSpecial: { en: "Special offer", ar: "عرض خاص" },
+  saleLimited: { en: "Limited-time offer", ar: "عرض لفترة محدودة" },
+  saleEnds: { en: "Ends", ar: "ينتهي" },
+  saleDays: { en: "Days", ar: "أيام" },
+  saleHours: { en: "Hours", ar: "ساعات" },
+  saleMins: { en: "Mins", ar: "دقائق" },
+  saleSecs: { en: "Secs", ar: "ثوانٍ" },
 
   // --- Stock (C12) ----------------------------------------------------------
   inStock: { en: "In stock", ar: "متوفر" },

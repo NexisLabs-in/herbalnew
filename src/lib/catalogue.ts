@@ -5,7 +5,7 @@ import { Category } from "./models/Category";
 import { Product, type ProductDoc } from "./models/Product";
 import { Sale } from "./models/Sale";
 import type { ImageKind, PricingMode, ProductForm } from "./models/enums";
-import { bestSaleDiscounts, resolveUnitPrice, stockStateOf, type StockState, type UnitPrice } from "./pricing";
+import { isSaleLive, resolveUnitPrice, stockStateOf, type StockState, type UnitPrice } from "./pricing";
 import { getSettings } from "./settings";
 import type { TL } from "./i18n";
 
@@ -44,6 +44,9 @@ export type ProductCardView = {
   shelfLifeMonths: number | null;
   ratingAvg: number;
   reviewCount: number;
+  /** Set only when the price the customer sees is from a live sale, not a
+   *  standing discount — the product page uses this to say so. */
+  sale: { name: string; endAt: string } | null;
 };
 
 export type ProductDetailView = ProductCardView & {
@@ -95,13 +98,25 @@ const primaryImage = (images: ProductDoc["images"]): ProductImageView | null => 
   return imageView(images.find((image) => image.isPrimary) ?? images[0]);
 };
 
+type LiveSale = { percent: number; name: string; endAt: string };
+
 function toCard(
   product: ProductDoc,
-  saleDiscounts: Map<string, number>,
+  sales: Map<string, LiveSale>,
   categories: Map<string, CategoryView>,
   lowStockThreshold: number,
 ): ProductCardView {
   const id = String(product._id);
+  const live = sales.get(id);
+  const price = resolveUnitPrice(
+    {
+      id,
+      pricingMode: product.pricingMode,
+      priceFils: product.priceFils,
+      permanentDiscount: product.permanentDiscount ?? null,
+    },
+    live?.percent ?? 0,
+  );
   return {
     id,
     slug: product.slug,
@@ -112,15 +127,7 @@ function toCard(
     categoryId: String(product.categoryId),
     categoryName: categories.get(String(product.categoryId))?.name ?? null,
     pricingMode: product.pricingMode,
-    price: resolveUnitPrice(
-      {
-        id,
-        pricingMode: product.pricingMode,
-        priceFils: product.priceFils,
-        permanentDiscount: product.permanentDiscount ?? null,
-      },
-      saleDiscounts.get(id) ?? 0,
-    ),
+    price,
     stockState: stockStateOf(product, lowStockThreshold),
     stock: product.stock,
     image: primaryImage(product.images),
@@ -128,27 +135,34 @@ function toCard(
     shelfLifeMonths: product.shelfLifeMonths ?? null,
     ratingAvg: product.ratingAvg,
     reviewCount: product.reviewCount,
+    sale: price?.source === "sale" && live ? { name: live.name, endAt: live.endAt } : null,
   };
 }
 
-/** Live sale discounts, resolved once per request rather than per product. */
-async function liveSaleDiscounts(): Promise<Map<string, number>> {
+/** Live sales, resolved once per request. Keeps the winning percent *and* the
+ *  sale that produced it, so the page can name the sale and say when it ends.
+ *  Same winner rule as the pricing engine: the larger percent, first on a tie. */
+async function liveSales(): Promise<Map<string, LiveSale>> {
   const now = new Date();
-  // Filtered in the query as well as in the engine so a store with years of
-  // finished sales does not read them all to decide today's prices.
   const sales = await Sale.find({ active: true, startAt: { $lte: now }, endAt: { $gte: now } }).lean();
-  return bestSaleDiscounts(
-    sales.map((sale) => ({
-      active: sale.active,
-      startAt: sale.startAt,
-      endAt: sale.endAt,
-      entries: sale.entries.map((entry: { productId: unknown; discountPercent: number }) => ({
-        productId: String(entry.productId),
-        discountPercent: entry.discountPercent,
-      })),
-    })),
-    now,
-  );
+  const best = new Map<string, LiveSale>();
+
+  for (const sale of sales) {
+    if (!isSaleLive(sale, now)) continue;
+    for (const entry of sale.entries) {
+      const id = String(entry.productId);
+      const current = best.get(id);
+      if (!current || entry.discountPercent > current.percent) {
+        best.set(id, {
+          percent: entry.discountPercent,
+          name: sale.name,
+          endAt: new Date(sale.endAt).toISOString(),
+        });
+      }
+    }
+  }
+
+  return best;
 }
 
 async function categoryMap(): Promise<Map<string, CategoryView>> {
@@ -291,7 +305,7 @@ export async function getShopProducts(query: ShopQuery = {}): Promise<ShopResult
       .skip((page - 1) * perPage)
       .limit(perPage)
       .lean<ProductDoc[]>(),
-    liveSaleDiscounts(),
+    liveSales(),
   ]);
 
   return {
@@ -311,7 +325,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailView 
   const product = await Product.findOne({ slug, status: "published" }).lean<ProductDoc | null>();
   if (!product) return null;
 
-  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  const [saleDiscounts, categories] = await Promise.all([liveSales(), categoryMap()]);
   const card = toCard(product, saleDiscounts, categories, settings.inventory.lowStockThreshold);
 
   return {
@@ -379,7 +393,7 @@ export async function getRecommendedProducts(
       .skip((safePage - 1) * RECOMMENDED_PAGE)
       .limit(RECOMMENDED_PAGE)
       .lean<ProductDoc[]>(),
-    liveSaleDiscounts(),
+    liveSales(),
     categoryMap(),
   ]);
 
@@ -401,7 +415,7 @@ export async function getFeaturedProducts(limit = 6): Promise<ProductCardView[]>
     .limit(limit)
     .lean<ProductDoc[]>();
 
-  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  const [saleDiscounts, categories] = await Promise.all([liveSales(), categoryMap()]);
   return docs.map((doc) => toCard(doc, saleDiscounts, categories, settings.inventory.lowStockThreshold));
 }
 
@@ -415,7 +429,7 @@ export async function getProductsByIds(ids: string[]): Promise<ProductCardView[]
   const settings = await getSettings();
 
   const docs = await Product.find({ _id: { $in: ids }, status: "published" }).lean<ProductDoc[]>();
-  const [saleDiscounts, categories] = await Promise.all([liveSaleDiscounts(), categoryMap()]);
+  const [saleDiscounts, categories] = await Promise.all([liveSales(), categoryMap()]);
 
   const cards = new Map(
     docs.map((doc) => [
