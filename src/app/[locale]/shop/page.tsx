@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Advisory } from "@/components/Blocks";
 import { NAV } from "@/content/brand";
 import { SHOP } from "@/content/shop";
 import { ShopHero } from "@/components/ShopHero";
-import { ShopListing } from "@/components/ShopListing";
-import { ShopListingSkeleton } from "@/components/ShopListingSkeleton";
+import { ShopCatalog } from "@/components/ShopCatalog";
 import type { ShopParams } from "@/components/ShopFilters";
-import { isLocale, t, type Locale } from "@/lib/i18n";
+import { ShopProducts } from "@/components/ShopProducts";
+import { buildCategoryTree, getCategories } from "@/lib/catalogue";
+import { isLocale, localePath, t, type Locale } from "@/lib/i18n";
 
 /** The Herb Cabinet, read from the database.
  *
@@ -38,6 +39,8 @@ export default async function ShopPage({
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw as Locale;
+  const categories = await getCategories();
+  const base = localePath(locale, "/shop");
 
   return (
     <>
@@ -45,9 +48,13 @@ export default async function ShopPage({
 
       <section className="section--tight shop-page">
         <div className="shell shell--wide">
-          <Suspense fallback={<ShopListingSkeleton />}>
-            <ShopListing locale={locale} searchParams={searchParams} />
-          </Suspense>
+          <ShopCatalog base={base} tree={buildCategoryTree(categories)} locale={locale}>
+            <ShopProducts locale={locale} searchParams={searchParams} />
+          </ShopCatalog>
+
+          <div className="shop-page__advisory">
+            <Advisory locale={locale} />
+          </div>
         </div>
       </section>
     </>

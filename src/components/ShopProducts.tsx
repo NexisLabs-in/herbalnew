@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { SHOP } from "@/content/shop";
-import { Advisory } from "@/components/Blocks";
 import { ProductCard } from "@/components/ProductCard";
-import { ShopFilters, ShopPagination, shopHref, type ShopParams } from "@/components/ShopFilters";
-import { buildCategoryTree, getShopProducts, type ShopSort } from "@/lib/catalogue";
+import { ShopPagination, shopHref, type ShopParams } from "@/components/ShopFilters";
+import { getShopProducts, type ShopSort } from "@/lib/catalogue";
 import { localePath, t, type Locale } from "@/lib/i18n";
 import type { ProductForm } from "@/lib/models/enums";
 
 const SORTS: ShopSort[] = ["featured", "newest", "price-asc", "price-desc", "name"];
 
-/** Async catalogue body — lives inside Suspense so shelf/sort/page changes
- *  show a skeleton immediately instead of freezing the current grid. */
-export async function ShopListing({
+/** Async product grid — lives inside Suspense so category/sort changes show a
+ *  skeleton on the grid only while filters stay interactive. */
+export async function ShopProducts({
   locale,
   searchParams,
 }: {
@@ -34,16 +33,12 @@ export async function ShopListing({
   });
 
   const filtered = Boolean(query.q || query.category || query.form);
+  const resultsLabel =
+    result.total === 1 ? t(SHOP.productsOne, locale) : `${result.total} ${t(SHOP.productsMany, locale)}`;
 
   return (
     <>
-      <ShopFilters
-        base={base}
-        params={query}
-        tree={buildCategoryTree(result.categories)}
-        locale={locale}
-        total={result.total}
-      />
+      <p className="shop-results__count">{resultsLabel}</p>
 
       {result.products.length === 0 ? (
         <div className="empty-state">
@@ -81,7 +76,6 @@ export async function ShopListing({
           </div>
 
           <ShopPagination
-            base={base}
             params={query}
             page={result.page}
             pages={result.pages}
@@ -89,10 +83,6 @@ export async function ShopListing({
           />
         </>
       )}
-
-      <div className="shop-page__advisory">
-        <Advisory locale={locale} />
-      </div>
     </>
   );
 }

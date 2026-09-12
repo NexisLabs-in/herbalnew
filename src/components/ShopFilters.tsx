@@ -1,7 +1,8 @@
-import Link from "next/link";
+"use client";
+
 import { SHOP } from "@/content/shop";
 import { Icon, type IconName } from "@/components/Icon";
-import { ShopFilterLink } from "@/components/ShopFilterLink";
+import { useShopCatalog } from "@/components/shop-catalog-context";
 import type { CategoryTreeNode, CategoryView, ShopSort } from "@/lib/catalogue";
 import { t, tl, type Locale } from "@/lib/i18n";
 
@@ -19,15 +20,6 @@ const SHELF_ICONS: Record<string, IconName> = {
   "fertility-vitality": "heart",
 };
 const tileIcon = (slug: string): IconName => SHELF_ICONS[slug] ?? "leaf";
-
-/** The catalogue toolbar: search, shelf, form and sort.
- *
- *  Rewritten from a client-side filter to plain links and a GET form. Filtering
- *  in the browser only works while the whole catalogue fits on one page, and it
- *  leaves every filtered view sharing one URL — so a customer cannot send
- *  somebody "the oils", and a search engine sees one page instead of several.
- *  Server-side means every view has an address and the page works without JS.
- */
 
 export type ShopParams = {
   category?: string;
@@ -52,6 +44,32 @@ export function shopHref(base: string, params: ShopParams, change: Partial<ShopP
   return query ? `${base}?${query}` : base;
 }
 
+export function paramsFromSearch(search: URLSearchParams): ShopParams {
+  return {
+    category: search.get("category") ?? undefined,
+    form: search.get("form") ?? undefined,
+    q: search.get("q") ?? undefined,
+    sort: search.get("sort") ?? undefined,
+    page: search.get("page") ?? undefined,
+  };
+}
+
+export function paramsEqual(a: ShopParams, b: ShopParams): boolean {
+  return (
+    (a.category ?? "") === (b.category ?? "") &&
+    (a.form ?? "") === (b.form ?? "") &&
+    (a.q ?? "") === (b.q ?? "") &&
+    (a.sort ?? "") === (b.sort ?? "") &&
+    (a.page ?? "") === (b.page ?? "")
+  );
+}
+
+function nextParams(params: ShopParams, change: Partial<ShopParams>): ShopParams {
+  const next = { ...params, ...change };
+  if (!("page" in change)) delete next.page;
+  return next;
+}
+
 /** Flat category tiles: parent shelves plus the subcategories products sit on. */
 function categoryTiles(tree: CategoryTreeNode[]): CategoryView[] {
   const tiles: CategoryView[] = [];
@@ -73,18 +91,43 @@ function categoryTiles(tree: CategoryTreeNode[]): CategoryView[] {
   return tiles;
 }
 
+type FilterLinkProps = {
+  href: string;
+  next: ShopParams;
+  className: string;
+  children: React.ReactNode;
+  "aria-current"?: "true";
+  onNavigate: (href: string, next: ShopParams) => void;
+};
+
+function FilterLink({ href, next, className, children, onNavigate, ...rest }: FilterLinkProps) {
+  return (
+    <a
+      href={href}
+      className={className}
+      onClick={(event) => {
+        event.preventDefault();
+        onNavigate(href, next);
+      }}
+      {...rest}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function ShopFilters({
   base,
-  params,
   tree,
   locale,
-  total,
+  params,
+  onNavigate,
 }: {
   base: string;
-  params: ShopParams;
   tree: CategoryTreeNode[];
   locale: Locale;
-  total: number;
+  params: ShopParams;
+  onNavigate: (href: string, next: ShopParams) => void;
 }) {
   const activeCategory = params.category ?? "all";
   const activeForm = params.form ?? "all";
@@ -103,9 +146,6 @@ export function ShopFilters({
     (activeCategory !== "all" ? 1 : 0) +
     (activeForm !== "all" ? 1 : 0) +
     (activeSort !== "featured" ? 1 : 0);
-
-  const resultsLabel =
-    total === 1 ? t(SHOP.productsOne, locale) : `${total} ${t(SHOP.productsMany, locale)}`;
 
   const searchForm = (
     <form className="shop-bar__search" action={base} method="get" role="search">
@@ -128,9 +168,14 @@ export function ShopFilters({
         {t(SHOP.search, locale)}
       </button>
       {params.q ? (
-        <Link className="link-plain" scroll={false} href={shopHref(base, params, { q: undefined })}>
+        <FilterLink
+          className="link-plain"
+          href={shopHref(base, params, { q: undefined })}
+          next={nextParams(params, { q: undefined })}
+          onNavigate={onNavigate}
+        >
           {t(SHOP.clear, locale)}
-        </Link>
+        </FilterLink>
       ) : null}
     </form>
   );
@@ -144,46 +189,53 @@ export function ShopFilters({
         </div>
 
         <div className="category-panel__tiles">
-          <ShopFilterLink
+          <FilterLink
             className={`category-tile${activeCategory === "all" ? " is-active" : ""}`}
             href={shopHref(base, params, { category: undefined })}
+            next={nextParams(params, { category: undefined })}
+            onNavigate={onNavigate}
             aria-current={activeCategory === "all" ? "true" : undefined}
           >
             <span className="category-tile__icon">
               <Icon name="leaf" size={18} />
             </span>
             <span className="category-tile__label">{t(SHOP.filterAll, locale)}</span>
-          </ShopFilterLink>
+          </FilterLink>
           {tiles.map((category) => (
-            <ShopFilterLink
+            <FilterLink
               key={category.id}
               className={`category-tile${activeCategory === category.slug ? " is-active" : ""}`}
               href={shopHref(base, params, { category: category.slug })}
+              next={nextParams(params, { category: category.slug })}
+              onNavigate={onNavigate}
               aria-current={activeCategory === category.slug ? "true" : undefined}
             >
               <span className="category-tile__icon">
                 <Icon name={tileIcon(category.slug)} size={18} />
               </span>
               <span className="category-tile__label">{tl(category.name, locale)}</span>
-            </ShopFilterLink>
+            </FilterLink>
           ))}
         </div>
       </div>
 
-      <div className="shop-controls">
-        <p className="shop-controls__count">{resultsLabel}</p>
+      <div className="shop-controls shop-controls--sort-only">
         <div className="shop-controls__sort filters filters--sort">
           {sorts.map((option) => (
-            <ShopFilterLink
+            <FilterLink
               key={option.value}
               className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
               href={shopHref(base, params, {
                 sort: option.value === "featured" ? undefined : option.value,
               })}
+              next={nextParams(params, {
+                sort: option.value === "featured" ? undefined : option.value,
+              })}
+              onNavigate={onNavigate}
               aria-current={activeSort === option.value ? "true" : undefined}
             >
               {option.label}
-            </ShopFilterLink>
+            </FilterLink>
           ))}
         </div>
       </div>
@@ -204,7 +256,6 @@ export function ShopFilters({
           ) : null}
           <span className="shop-bar__toggle-chevron" aria-hidden="true" />
         </label>
-        <span className="shop-bar__count">{resultsLabel}</span>
       </div>
 
       <div className="shop-bar__rows" id="shop-filters-panel">
@@ -218,16 +269,20 @@ export function ShopFilters({
               { value: "oil", label: locale === "ar" ? "زيت" : "Oil" },
               { value: "powder", label: locale === "ar" ? "مسحوق" : "Powder" },
             ].map((option) => (
-              <ShopFilterLink
+              <FilterLink
                 key={option.value}
                 className={`filter${activeForm === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
                   form: option.value === "all" ? undefined : option.value,
                 })}
+                next={nextParams(params, {
+                  form: option.value === "all" ? undefined : option.value,
+                })}
+                onNavigate={onNavigate}
                 aria-current={activeForm === option.value ? "true" : undefined}
               >
                 {option.label}
-              </ShopFilterLink>
+              </FilterLink>
             ))}
           </div>
         </div>
@@ -236,16 +291,20 @@ export function ShopFilters({
           <span className="shop-bar__label shop-bar__label--sort">{t(SHOP.sortBy, locale)}</span>
           <div className="filters">
             {sorts.map((option) => (
-              <ShopFilterLink
+              <FilterLink
                 key={option.value}
                 className={`filter filter--sort${activeSort === option.value ? " is-active" : ""}`}
                 href={shopHref(base, params, {
                   sort: option.value === "featured" ? undefined : option.value,
                 })}
+                next={nextParams(params, {
+                  sort: option.value === "featured" ? undefined : option.value,
+                })}
+                onNavigate={onNavigate}
                 aria-current={activeSort === option.value ? "true" : undefined}
               >
                 {option.label}
-              </ShopFilterLink>
+              </FilterLink>
             ))}
           </div>
         </div>
@@ -255,26 +314,31 @@ export function ShopFilters({
 }
 
 export function ShopPagination({
-  base,
   params,
   page,
   pages,
   locale,
 }: {
-  base: string;
   params: ShopParams;
   page: number;
   pages: number;
   locale: Locale;
 }) {
+  const { base, onNavigate } = useShopCatalog();
+
   if (pages <= 1) return null;
 
   return (
     <nav className="pager" aria-label={t(SHOP.page, locale)}>
       {page > 1 ? (
-        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page - 1) })}>
+        <FilterLink
+          className="btn btn--ghost btn--sm"
+          href={shopHref(base, params, { page: String(page - 1) })}
+          next={nextParams(params, { page: String(page - 1) })}
+          onNavigate={onNavigate}
+        >
           {t(SHOP.previous, locale)}
-        </Link>
+        </FilterLink>
       ) : (
         <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
           {t(SHOP.previous, locale)}
@@ -286,9 +350,14 @@ export function ShopPagination({
       </span>
 
       {page < pages ? (
-        <Link className="btn btn--ghost btn--sm" href={shopHref(base, params, { page: String(page + 1) })}>
+        <FilterLink
+          className="btn btn--ghost btn--sm"
+          href={shopHref(base, params, { page: String(page + 1) })}
+          next={nextParams(params, { page: String(page + 1) })}
+          onNavigate={onNavigate}
+        >
           {t(SHOP.next, locale)}
-        </Link>
+        </FilterLink>
       ) : (
         <span className="btn btn--ghost btn--sm is-disabled" aria-disabled="true">
           {t(SHOP.next, locale)}
