@@ -5,9 +5,9 @@ import type { L } from "@/lib/i18n";
  * `docs/Products categories.docx`. Both languages come from that document —
  * nothing here is translated by us.
  *
- * Two levels: a top-level grouping, and the subcategories products are actually
- * assigned to. A product never sits on a parent; "everything under Beauty" is
- * the union of its children.
+ * Two levels, except where the client listed none: a parent with children is a
+ * grouping ("everything under Beauty" is the union of its children). A parent
+ * with no children holds products itself — Reproductive & Hormone Health.
  *
  * This file seeds the database. After the first `npm run seed` the categories
  * are the admin's to edit, and this stays as the record of what was supplied.
@@ -86,31 +86,14 @@ export const TAXONOMY: TaxonomyParent[] = [
   {
     slug: "reproductive-hormonal",
     name: { en: "Reproductive & Hormonal Health", ar: "الصحة الإنجابية والهرمونية" },
-    children: [
-      {
-        slug: "fertility-vitality",
-        name: { en: "Fertility & Vitality", ar: "الخصوبة والحيوية" },
-        description: {
-          en: "Natural tonics to support reproductive health, hormonal balance, and conception for men and women.",
-          ar: "منشطات طبيعية لدعم الصحة الإنجابية، والتوازن الهرموني، والحمل لدى الرجال والنساء.",
-        },
-      },
-    ],
+    children: [],
   },
 ];
 
-/**
- * Where the two confirmed formulas sit, by product slug.
- *
- * `prostate-health` is placed in Fertility & Vitality at the client's
- * direction. The supplied taxonomy has no shelf for prostate support
- * specifically, and this was the nearest existing one — worth revisiting with
- * them if the catalogue grows a men's-health range.
- */
-/** Subcategory slug for each product. Used by seed and catalogue sync. */
+/** Where each seeded formula sits, by product slug. */
 export const PRODUCT_CATEGORY: Record<string, string> = {
   "hair-growth": "hair-care-growth",
-  "prostate-health": "fertility-vitality",
+  "prostate-health": "reproductive-hormonal",
   "lavender-amethyst-moon-salve": "skin-cleansing-glow",
   "herbal-tea": "digestive-health",
   "digestive-ease": "digestive-health",

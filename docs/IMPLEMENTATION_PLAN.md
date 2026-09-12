@@ -128,7 +128,7 @@ Every question raised during planning, answered. Do not revisit these without as
 |---|---|
 | Product variants | **None.** One price, one SKU per product. Different sizes are separate products |
 | Bilingual products | Every text field has EN + AR inputs. **EN required, AR optional** — blank AR falls back to EN on `/ar` |
-| Categories | **Two levels**, from the client's own taxonomy (`docs/Products categories.docx`): four top-level groupings with seven subcategories. **Products sit on a subcategory only**; a parent means "everything beneath it". Still a filter on `/shop` — no `/categories/[slug]` landing pages |
+| Categories | **Two levels**, from the client's own list: four top-level shelves, six subcategories. **Products sit on a leaf** — a subcategory, or a parent that has no children. Reproductive & Hormone Health has no subcategory; products hang on the parent. Still a filter on `/shop` — no `/categories/[slug]` landing pages |
 | Shop on mobile | **Filters collapsed by default**; the "Read before ordering" advisory is **desktop-only on `/shop`** so the first products sit in the first viewport. Desktop keeps filters open and the advisory visible |
 | Related products | **Automatic — other published, in-stock products from the same category.** No manual picking |
 | Out of stock | **Product stays visible and listed**, buy button disabled and labelled, plus a **"Notify me when back in stock"** email capture that fires when admin restocks |
@@ -238,9 +238,10 @@ slugs or generated numbers, never raw ObjectIds.
 **`Category`** (indication categories / shelves)
 `slug`, `name{en,ar}`, `note{en,ar}`, `description{en,ar}`, `parentId | null`,
 `image`, `order`, `published`.
-Two levels, enforced: a subcategory cannot itself become a parent. Products are
-assigned to subcategories only, so a parent selection expands to its children.
-No SEO fields and no landing page — categories exist as a `/shop` filter.
+Two levels, enforced: a subcategory cannot itself become a parent. Products sit
+on a leaf: a subcategory, or a parent with no children. A parent selection
+includes the parent itself plus its children. No SEO fields and no landing
+page — categories exist as a `/shop` filter.
 
 The taxonomy is transcribed in `src/content/taxonomy.ts` and seeded from there:
 
@@ -249,11 +250,10 @@ The taxonomy is transcribed in `src/content/taxonomy.ts` and seeded from there:
 | Beauty & Personal Care | Hair Care & Growth · Skin Cleansing & Glow |
 | Wellness & Lifestyle | Detox & Cleansing · Weight Management |
 | Body Systems & Chronic Support | Digestive Health · Heart & Blood Pressure |
-| Reproductive & Hormonal Health | Fertility & Vitality |
+| Reproductive & Hormonal Health | *(none — products sit on the parent)* |
 
-`prostate-health` sits in Fertility & Vitality at the client's direction — the
-supplied taxonomy has no shelf for prostate support specifically. Worth
-revisiting with them if a men's-health range grows.
+`prostate-health` sits on Reproductive & Hormonal Health. **Fertility & Vitality
+was invented to force every product onto a child and has been removed.**
 
 **`Product`**
 - Identity: `slug`, `sku`, `name{en,ar}`, `summary{en,ar}`, `categoryId`, `form`
@@ -662,6 +662,7 @@ Recorded so it is never re-litigated mid-build:
 | Date | Change |
 |---|---|
 | 2026-09-10 | **SMTP mail driver.** `MAIL_DRIVER=nodemailer` sends through any SMTP host (`SMTP_HOST` / port / user / pass). Resend and console stay available |
+| 2026-09-12 | **Reproductive & Hormone Health holds products directly.** The client's list has no subcategory there. The invented Fertility & Vitality shelf is removed; `prostate-health` (and any other product on that child) moves onto the parent. Products sit on a leaf: a subcategory, or a parent with no children |
 | 2026-09-12 | **Worldwide shipping confirmed** (Mr. Arif, 2026-09-11). Paid orders must be pushed to the arranged carrier automatically. Implementation is blocked on OpenAPI / Swagger from that company. Checkout stays UAE-only until those docs arrive. Multi-currency stays out of scope |
 | 2026-09-12 | **Shipping & Returns refund wording** (client requirement). Two clauses added to the live CMS Policies page and the `legal.ts` fallback: a refund needs the product unopened with the original seal and packaging intact, and approval follows inspection of the returned goods. The defective/damaged/wrong-item carve-out stays. Return-request window still open |
 | 2026-09-12 | **Back-in-stock requests are visible per product** (client requirement: pending requests must be visible in the admin panel). The inventory Waiting chip now opens `/admin/inventory/[id]/waiting` — each waiting email with its date, locale, guest-or-account flag, plus an already-notified history. Read-only; the hourly task still owns the sending. Previously the panel showed only a count |

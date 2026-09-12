@@ -213,8 +213,8 @@ export function BilingualField({
 export type SelectOption<T extends string> = { value: T; label: string };
 
 /** A group of options under a heading. Used for the category picker, where the
- *  headings are top-level categories and only the subcategories beneath them
- *  are selectable — which is exactly what an optgroup does. */
+ *  headings are top-level shelves and the options are the shelves products
+ *  may sit on (a child, or the parent itself when it has none). */
 export type SelectGroup<T extends string> = { label: string; options: SelectOption<T>[] };
 
 export function SelectField<T extends string>({

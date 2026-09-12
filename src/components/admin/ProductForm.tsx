@@ -107,8 +107,7 @@ export function ProductForm({
    *  cannot be called from a server component, so the empty form is built
    *  here rather than passed in. */
   initial?: ProductFormValue;
-  /** Only subcategories are selectable — a product never sits on a top-level
-   *  grouping — so they arrive grouped by their parent. */
+  /** Grouped by top-level shelf. A parent with no children is itself an option. */
   categories: { parent: string; children: { id: string; name: string }[] }[];
   lowStockThreshold: number;
 }) {
@@ -207,7 +206,7 @@ export function ProductForm({
             path="categoryId"
             value={value.categoryId}
             error={err("categoryId")}
-            hint="Products are assigned to a subcategory, not to the grouping above it."
+            hint="Pick the shelf the product sits on. A grouping with subcategories is not itself a shelf."
             options={[{ value: "", label: "Choose a category…" }]}
             groups={categories.map((group) => ({
               label: group.parent,

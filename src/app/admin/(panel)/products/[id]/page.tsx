@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductForm, type ProductFormValue } from "@/components/admin/ProductForm";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
+import { productCategoryGroups } from "@/lib/category-options";
 import { Category, Product, type ProductDoc } from "@/lib/models";
 import { getSettings } from "@/lib/settings";
 import { toAed } from "@/lib/money";
@@ -118,15 +119,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         productId={id}
         initial={initial}
         lowStockThreshold={settings.inventory.lowStockThreshold}
-        categories={categories
-          .filter((category) => category.parentId === null)
-          .map((parent) => ({
-            parent: parent.name.en,
-            children: categories
-              .filter((child) => String(child.parentId ?? "") === String(parent._id))
-              .map((child) => ({ id: String(child._id), name: child.name.en })),
-          }))
-          .filter((group) => group.children.length > 0)}
+        categories={productCategoryGroups(categories)}
       />
     </>
   );

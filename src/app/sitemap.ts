@@ -40,8 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPaths.flatMap((path) => entry(path, path === "" ? 1 : 0.7)),
     ...slugs.flatMap((slug) => entry(`/shop/${slug}`, 0.8)),
     // Category views are real URLs on the shop, so they are worth listing.
-    ...categories
-      .filter((category) => category.parentId !== null)
-      .flatMap((category) => entry(`/shop?category=${category.slug}`, 0.5)),
+    ...categories.flatMap((category) => entry(`/shop?category=${category.slug}`, 0.5)),
   ];
 }

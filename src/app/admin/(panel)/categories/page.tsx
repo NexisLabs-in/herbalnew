@@ -37,8 +37,8 @@ export default async function AdminCategoriesPage() {
         <div>
           <h1 className="admin-head__title">Categories</h1>
           <p className="admin-head__sub">
-            Two levels: a top-level grouping, and the subcategories products are
-            actually assigned to.
+            Two levels, except where there are no subcategories — those products
+            sit on the parent, as with Reproductive & Hormone Health.
           </p>
         </div>
       </div>

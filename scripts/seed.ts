@@ -128,7 +128,7 @@ async function seedCategories() {
  *  find them still in use. Never deletes one that still holds a product —
  *  `categoryId` is required, so that would leave the product unsaveable. */
 async function removePlaceholderCategories() {
-  for (const slug of ["hair", "prostate"]) {
+  for (const slug of ["hair", "prostate", "fertility-vitality"]) {
     const stale = await Category.findOne({ slug });
     if (!stale) continue;
     const held = await Product.countDocuments({ categoryId: stale._id });
@@ -143,7 +143,8 @@ async function removePlaceholderCategories() {
 
 async function seedProducts() {
   for (const product of PRODUCTS) {
-    // Products sit on a subcategory, never on a top-level grouping.
+    // The mapping is the shelf the product sits on — a child, or a parent
+    // that has no children.
     const slug = PRODUCT_CATEGORY[product.slug];
     if (!slug) throw new Error(`No category mapping for product "${product.slug}"`);
     const category = await Category.findOne({ slug });

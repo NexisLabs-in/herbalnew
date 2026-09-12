@@ -138,7 +138,11 @@ export function ShopFilters({
                 <span className="shop-shelf-card__text">
                   <span className="shop-shelf-card__title">{tl(parent.name, locale)}</span>
                   <span className="shop-shelf-card__meta">
-                    {subcategoryLabel(parent.children.length, locale)}
+                    {parent.children.length
+                      ? subcategoryLabel(parent.children.length, locale)
+                      : (counts[parent.slug] ?? 0) === 1
+                        ? t(SHOP.productsOne, locale)
+                        : `${counts[parent.slug] ?? 0} ${t(SHOP.productsMany, locale)}`}
                   </span>
                 </span>
                 <span className="shop-shelf-card__chev" aria-hidden="true">

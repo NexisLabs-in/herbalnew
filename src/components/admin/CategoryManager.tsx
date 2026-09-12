@@ -16,7 +16,7 @@ export type CategoryRow = {
   name: TL;
   note: TL;
   description: TL;
-  /** Null for a top-level category. Products only sit on subcategories. */
+  /** Null for a top-level category. Products sit on a child, or on a parent that has none. */
   parentId: string | null;
   order: number;
   published: boolean;
@@ -200,7 +200,7 @@ export function CategoryManager({
                 label="Sits under"
                 value={draft.parentId}
                 error={err("parentId")}
-                hint="Products can only be added to a subcategory. A top-level category groups the shelves beneath it."
+                hint="A top-level category with no subcategories can hold products itself. Once it has children, products sit on those children."
                 options={[
                   { value: "", label: "Top level — a grouping" },
                   ...categories
@@ -295,7 +295,7 @@ export function CategoryManager({
                   </td>
                   <td className="admin-table__mono">{category.slug}</td>
                   <td>
-                    {category.parentId === null ? (
+                    {category.parentId === null && category.childCount > 0 ? (
                       <span className="admin-table__meta">—</span>
                     ) : (
                       category.productCount

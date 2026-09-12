@@ -73,7 +73,7 @@ export type CategoryView = {
   name: TL;
   note: TL;
   description: TL;
-  /** Null for a top-level category. Products only ever sit on subcategories. */
+  /** Null for a top-level grouping. A grouping with no children holds products. */
   parentId: string | null;
 };
 
@@ -220,14 +220,15 @@ export async function getCategoryProductCounts(): Promise<Record<string, number>
 
 /** Resolves a slug from the URL to the set of categories to match.
  *
- *  A parent means "everything beneath it": products sit on subcategories, so a
- *  parent selection has to expand to its children or it would match nothing. */
+ *  A parent means that shelf and everything on it: its own products (when it
+ *  has none underneath) plus every child's. Including the parent id is what
+ *  lets Reproductive & Hormone Health hold products without a dummy child. */
 export function categoryIdsFor(slug: string, categories: CategoryView[]): string[] | null {
   const match = categories.find((category) => category.slug === slug);
   if (!match) return null;
   if (match.parentId !== null) return [match.id];
   const children = categories.filter((category) => category.parentId === match.id);
-  return children.length ? children.map((child) => child.id) : [match.id];
+  return [match.id, ...children.map((child) => child.id)];
 }
 
 export type ShopSort = "featured" | "newest" | "price-asc" | "price-desc" | "name";
@@ -276,9 +277,8 @@ export async function getShopProducts(query: ShopQuery = {}): Promise<ShopResult
   const filter: Record<string, unknown> = { status: "published" };
 
   if (query.category && query.category !== "all") {
-    // A parent expands to its subcategories, since products only ever sit on a
-    // subcategory. An unknown slug matches nothing rather than silently showing
-    // everything — a wrong URL should look wrong.
+    // A parent expands to itself plus its children. An unknown slug matches
+    // nothing rather than silently showing everything.
     const ids = categoryIdsFor(query.category, [...categories.values()]);
     filter.categoryId = ids ? { $in: ids } : null;
   }

@@ -1,6 +1,7 @@
 /**
  * Normalises the catalogue to the client's four-shelf taxonomy:
- * unpublishes stray categories and reassigns products to subcategories.
+ * unpublishes stray categories (including the invented Fertility & Vitality
+ * shelf) and reassigns products to the shelf they belong on.
  *
  *   npx tsx --env-file-if-exists=.env.local scripts/sync-catalogue.ts
  */
@@ -44,6 +45,18 @@ async function main() {
     await Product.updateOne({ _id: product._id }, { $set: { categoryId: target._id } });
     log(`moved "${product.slug}" -> ${targetSlug}`);
     moved += 1;
+  }
+
+  const invented = bySlug.get("fertility-vitality");
+  if (invented) {
+    const held = await Product.countDocuments({ categoryId: invented._id });
+    if (held === 0) {
+      await Category.deleteOne({ _id: invented._id });
+      log(`deleted invented category "fertility-vitality"`);
+    } else {
+      await Category.updateOne({ _id: invented._id }, { $set: { published: false } });
+      log(`hid "fertility-vitality" — ${held} product(s) still assigned`);
+    }
   }
 
   await disconnectDb();

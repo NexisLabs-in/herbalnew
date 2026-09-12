@@ -16,8 +16,7 @@ import { fieldErrorsFrom, type ActionState } from "@/lib/validation/shared";
  *
  *    - **Exactly two levels.** A subcategory cannot become a parent, and a
  *      category that already has children cannot be moved under someone else.
- *    - **Products live on subcategories.** A parent is a grouping; making one
- *      hold products directly would make "everything under Beauty" ambiguous.
+ *    - **Products sit on a leaf.** A child, or a parent that has no children.
  *    - **Nothing is deleted out from under something that references it.**
  */
 
@@ -69,18 +68,6 @@ export async function saveCategory(categoryId: string | null, payload: unknown):
         error: `This category has ${children} subcategor${children === 1 ? "y" : "ies"}, so it cannot become one itself. Move them first.`,
         fieldErrors: { parentId: "Has subcategories." },
       };
-    }
-
-    // Promoting a subcategory to the top level would strand its products,
-    // which are only ever allowed on subcategories.
-    if (!parent && existing.parentId) {
-      const held = await Product.countDocuments({ categoryId, status: { $ne: "archived" } });
-      if (held > 0) {
-        return {
-          error: `${held} product${held === 1 ? " is" : "s are"} in this subcategory. Move them before making it a top-level category.`,
-          fieldErrors: { parentId: "Still holds products." },
-        };
-      }
     }
 
     try {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { connectDb } from "@/lib/db";
+import { productCategoryGroups } from "@/lib/category-options";
 import { Category } from "@/lib/models";
 import { getSettings } from "@/lib/settings";
 
@@ -32,9 +33,9 @@ export default async function NewProductPage() {
         </div>
       </div>
 
-      {categories.filter((category) => category.parentId !== null).length === 0 ? (
+      {productCategoryGroups(categories).length === 0 ? (
         <div className="admin-empty">
-          <p>Create a subcategory first — every product belongs to one.</p>
+          <p>Create a category first — every product belongs to one.</p>
           <p style={{ marginTop: ".75rem" }}>
             <Link className="link-plain" href="/admin/categories">
               Go to categories
@@ -45,15 +46,7 @@ export default async function NewProductPage() {
         <ProductForm
           productId={null}
           lowStockThreshold={settings.inventory.lowStockThreshold}
-        categories={categories
-          .filter((category) => category.parentId === null)
-          .map((parent) => ({
-            parent: parent.name.en,
-            children: categories
-              .filter((child) => String(child.parentId ?? "") === String(parent._id))
-              .map((child) => ({ id: String(child._id), name: child.name.en })),
-          }))
-          .filter((group) => group.children.length > 0)}
+          categories={productCategoryGroups(categories)}
         />
       )}
     </>
